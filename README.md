@@ -1,17 +1,23 @@
 # AndroidArchitectureCollection
 安卓架构文章合集（a collection of android Architecture）
-博客原地址：http://www.jianshu.com/p/1f21e1d375aa
-github地址：https://github.com/CameloeAnthony/AndroidArchitectureCollection 
-欢迎star，fork进行收藏，后续会继续更新。
 
-这是从各大平台上参考的android架构文章，主要参考自：
-+ [Juude/Awesome-Android-Architecture](https://github.com/Juude/Awesome-Android-Architecture)
+###博客原地址：
++ [简书博客](http://www.jianshu.com/p/1f21e1d375aa)
 
-#1 国内各大平台架构：
+###github地址：
++ [AndroidArchitectureCollection github地址](https://github.com/CameloeAnthony/AndroidArchitectureCollection) 
+请关注github，后续会在github上面更新
+
+这是从各大平台上参考的android架构文章，文章数据，主要参考自Info，推荐关注：
+![infoQ](http://upload-images.jianshu.io/upload_images/1833901-b890433fd922ca64.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240)
+
+#1 Android官方架构：
++ [googlesamples/android-architecture](https://github.com/googlesamples/android-architecture)（google官方android架构项目）
+
+#2 国内各大平台架构：
 + [App工程结构搭建：几种常见Android代码架构分析](http://www.uml.org.cn/mobiledev/201310211.asp)
 + [携程Mobile架构演化(视频)](http://www.infoq.com/cn/presentations/ctrip-mobile-architecture-evolution)
 + [携程Android App插件化和动态加载实践](http://www.infoq.com/cn/articles/ctrip-android-dynamic-loading)
-+ [携程移动App架构优化之旅](http://www.infoq.com/cn/articles/ctrip-app-architecture)
 + [陶钧谈淘宝客户端应用框架实践](http://www.infoq.com/cn/interviews/tj-taobao-client-arch)
 + [QCon旧金山演讲总结：阿里无线技术架构演进](http://www.infoq.com/cn/articles/alibaba-mobile-infrastructure)
 + [手机淘宝构架演化实践](http://www.infoq.com/cn/news/2014/12/taobao-app-evolution)
@@ -45,6 +51,7 @@ github地址：https://github.com/CameloeAnthony/AndroidArchitectureCollection
 + [Web开发的MVVM模式](http://www.cnblogs.com/dxy1982/p/3793895.html)（MVC VS. MVP VS. MVVM）
 + [Android应用开发架构概述](http://www.liuguangli.win/archives/299)
 + [MVVM介绍](http://objccn.io/issue-13-1/)（iOS中MVVM的一种实现，对概念的理解有帮助）
+
 #3 Clean Architecture
 + [The Clean Architecture](https://blog.8thlight.com/uncle-bob/2012/08/13/the-clean-architecture.html)(clean architecture出处)
 + [Android-CleanArchitecture github地址](https://github.com/android10/Android-CleanArchitecture)（The Clean Architecture文章的例子）
@@ -66,8 +73,7 @@ github地址：https://github.com/CameloeAnthony/AndroidArchitectureCollection
 + [Design for Offline: Android App Architecture Best Practices](https://plus.google.com/+AndroidDevelopers/posts/3C4GPowmWLb)
 + [Robust and readable architecture for an Android App](http://blog.joanzapata.com/robust-architecture-for-an-android-app/)
 + [Android application architecture](https://events.google.com/io2015/schedule?sid=358c9f91-b6d4-e411-b87f-00155d5066d7#day1/358c9f91-b6d4-e411-b87f-00155d5066d7)
-+ [googlesamples/android-architecture](https://github.com/googlesamples/android-architecture)（google官方架构项目）
-+ [google官方MVP架构示例项目解析](http://mp.weixin.qq.com/s?__biz=MzA3ODg4MDk0Ng==&mid=403539764&idx=1&sn=d30d89e6848a8e13d4da0f5639100e5f#rd)（上面这个github地址的解析）
++ [google官方MVP架构示例项目解析](http://mp.weixin.qq.com/s?__biz=MzA3ODg4MDk0Ng==&mid=403539764&idx=1&sn=d30d89e6848a8e13d4da0f5639100e5f#rd)（google官网架构中文解析）
 + [jiangqqlmj](https://github.com/jiangqqlmj)/**[FastDev4Android](https://github.com/jiangqqlmj/FastDev4Android)** （android快速开发框架）
-+ [Android 开发有什么好的架构么?](https://www.zhihu.com/question/21406685)
-+ [如果从0创建一个Android APP，设计思路是什么？（架构、activity、layout等复用性的考虑），感觉无从下手](https://www.zhihu.com/question/28564947)
++ [知乎：Android 开发有什么好的架构么?](https://www.zhihu.com/question/21406685)
++ [知乎：如果从0创建一个Android APP，设计思路是什么？（架构、activity、layout等复用性的考虑），感觉无从下手](https://www.zhihu.com/question/28564947)
