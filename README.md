@@ -11,6 +11,7 @@ github地址：https://github.com/CameloeAnthony/AndroidArchitectureCollection
 + [App工程结构搭建：几种常见Android代码架构分析](http://www.uml.org.cn/mobiledev/201310211.asp)
 + [携程Mobile架构演化(视频)](http://www.infoq.com/cn/presentations/ctrip-mobile-architecture-evolution)
 + [携程Android App插件化和动态加载实践](http://www.infoq.com/cn/articles/ctrip-android-dynamic-loading)
++ [携程移动App架构优化之旅](http://www.infoq.com/cn/articles/ctrip-app-architecture)
 + [陶钧谈淘宝客户端应用框架实践](http://www.infoq.com/cn/interviews/tj-taobao-client-arch)
 + [QCon旧金山演讲总结：阿里无线技术架构演进](http://www.infoq.com/cn/articles/alibaba-mobile-infrastructure)
 + [手机淘宝构架演化实践](http://www.infoq.com/cn/news/2014/12/taobao-app-evolution)
