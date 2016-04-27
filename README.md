@@ -77,4 +77,4 @@
 + [jiangqqlmj](https://github.com/jiangqqlmj)/**[FastDev4Android](https://github.com/jiangqqlmj/FastDev4Android)** （android快速开发框架）
 + [知乎：Android 开发有什么好的架构么?](https://www.zhihu.com/question/21406685)
 + [知乎：如果从0创建一个Android APP，设计思路是什么？（架构、activity、layout等复用性的考虑），感觉无从下手](https://www.zhihu.com/question/28564947)
-+ [AndroidTDDBootStrap是一个Android TDD 引导项目，使用一些新技术，灵感来自于一些最流行的框架，有许多方便的开发工具，遵循最佳实践。](https://github.com/Piasy/AndroidTDDBootStrap)
++ [AndroidTDDBootStrap Github地址](https://github.com/Piasy/AndroidTDDBootStrap)（AndroidTDDBootStrap 是一个Android TDD 引导项目，使用一些新技术，灵感来自于一些最流行的框架，有许多方便的开发工具，遵循最佳实践。）
