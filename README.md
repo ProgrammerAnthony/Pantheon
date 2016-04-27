@@ -9,7 +9,7 @@
 请关注github，后续会在github上面更新
 
 这是从各大平台上参考的android架构文章，文章数据，主要参考自Info，推荐关注：
-+[http://www.infoq.com/cn/](http://www.infoq.com/cn/)
++ [http://www.infoq.com/cn/](http://www.infoq.com/cn/)
 
 #1 Android官方架构：
 + [googlesamples/android-architecture](https://github.com/googlesamples/android-architecture)（google官方android架构项目）
