@@ -9,7 +9,7 @@
 请关注github，后续会在github上面更新
 
 这是从各大平台上参考的android架构文章，文章数据，主要参考自Info，推荐关注：
-![infoQ](http://upload-images.jianshu.io/upload_images/1833901-b890433fd922ca64.png?imageMogr2/auto-orient/strip%7CimageView2/2/w/1240)
++[http://www.infoq.com/cn/](http://www.infoq.com/cn/)
 
 #1 Android官方架构：
 + [googlesamples/android-architecture](https://github.com/googlesamples/android-architecture)（google官方android架构项目）
@@ -77,3 +77,4 @@
 + [jiangqqlmj](https://github.com/jiangqqlmj)/**[FastDev4Android](https://github.com/jiangqqlmj/FastDev4Android)** （android快速开发框架）
 + [知乎：Android 开发有什么好的架构么?](https://www.zhihu.com/question/21406685)
 + [知乎：如果从0创建一个Android APP，设计思路是什么？（架构、activity、layout等复用性的考虑），感觉无从下手](https://www.zhihu.com/question/28564947)
++ [AndroidTDDBootStrap是一个Android TDD 引导项目，使用一些新技术，灵感来自于一些最流行的框架，有许多方便的开发工具，遵循最佳实践。](https://github.com/Piasy/AndroidTDDBootStrap)
