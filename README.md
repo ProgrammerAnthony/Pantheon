@@ -48,12 +48,18 @@
 + [AndroidMVPDemo github地址](https://github.com/CameloeAnthony/AndroidMVPDemo)（本文作者MVP demo github地址）
 + [MVVM on Android: What You Need to Know](http://willowtreeapps.com/blog/mvvm-on-android-what-you-need-to-know/)(MVVM介绍，这个博客很不错)
 + [data-bingding guide](https://developer.android.com/tools/data-binding/guide.html)（data-binding guide官网）
-+ [Web开发的MVVM模式](http://www.cnblogs.com/dxy1982/p/3793895.html)（MVC VS. MVP VS. MVVM）
 + [Android应用开发架构概述](http://www.liuguangli.win/archives/299)
 + [MVVM介绍](http://objccn.io/issue-13-1/)（iOS中MVVM的一种实现，对概念的理解有帮助）
++ [Android Architecture](https://medium.com/android-news/android-architecture-2f12e1c7d4db#.ta695te6a)（区分andrtoid项目中的MVVM，MVP，MVC）
++ [Web开发的MVVM模式](http://www.cnblogs.com/dxy1982/p/3793895.html)（web开发中的MVC VS. MVP VS. MVVM）
++ [M — Model in MVC, MVP, MVVC in Android](https://medium.com/@artem_zin/m-model-from-mvc-mvp-in-android-flow-and-mortar-bd1e50c45395#.5kbw4q5psd)（android工程MVC，MVVC，MVVM中的Model角色讲解）
 + [Android MVP架构中的Presentation层应该怎么设计](http://mp.weixin.qq.com/s?__biz=MzA3ODg4MDk0Ng==&mid=402868193&idx=1&sn=790e12f84dfcea171528e6d3789c69ed#rd)（如果你面临部分代码不知道放到Presentation层还是UI层的问题，甚至你不知道某段代码是否属于业务代码。不知道如何分清MVP中的代码职责，参考这篇文章）
-+ 
-#3 Clean Architecture
+
+#3 Android中的设计模式：
++ [Software design pattern on android](http://www.slideshare.net/PedroVicenteGmezSnch/software-design-patterns-on-android)（安卓中的设计模式，英文ppt）
++ 强烈推荐书籍《Android 源码设计模式解析与实战》
+
+#4 Clean Architecture
 + [The Clean Architecture](https://blog.8thlight.com/uncle-bob/2012/08/13/the-clean-architecture.html)(clean architecture出处)
 + [Android-CleanArchitecture github地址](https://github.com/android10/Android-CleanArchitecture)（The Clean Architecture文章的例子）
 + [Android Application Architecture原文](https://medium.com/ribot-labs/android-application-architecture-8b6e34acda65#.b29vhtdm2) 
@@ -61,7 +67,7 @@
 + [Architecting Android…The evolution](http://fernandocejas.com/2015/07/18/architecting-android-the-evolution/)
 + [Architecting Android…The evolution中文翻译](http://www.devtf.cn/?p=1083)
 
-#4 Flux
+#5 Flux
 * [flux and android](https://armueller.github.io/android/2015/03/29/flux-and-android.html)
 * [rxflux android architecture](https://medium.com/swlh/rxflux-android-architecture-94f77c857aa2#.sfjwchwok)
 * [why rxflux](https://medium.com/swlh/why-rxflux-5b687f062709#.ltlnlr4cl)
@@ -69,7 +75,7 @@
 * [RxFlux](https://github.com/skimarxall/RxFlux)
 * [android-flux](https://github.com/naodroid/android-flux)
 
-#5 其它
+#6 其它
 + [Artchitecture Library](https://github.com/Juude/Awesome-Android-Architecture/blob/master/Library.md)
 + [Design for Offline: Android App Architecture Best Practices](https://plus.google.com/+AndroidDevelopers/posts/3C4GPowmWLb)
 + [Robust and readable architecture for an Android App](http://blog.joanzapata.com/robust-architecture-for-an-android-app/)
