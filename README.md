@@ -51,7 +51,8 @@
 + [Web开发的MVVM模式](http://www.cnblogs.com/dxy1982/p/3793895.html)（MVC VS. MVP VS. MVVM）
 + [Android应用开发架构概述](http://www.liuguangli.win/archives/299)
 + [MVVM介绍](http://objccn.io/issue-13-1/)（iOS中MVVM的一种实现，对概念的理解有帮助）
-
++ [Android MVP架构中的Presentation层应该怎么设计](http://mp.weixin.qq.com/s?__biz=MzA3ODg4MDk0Ng==&mid=402868193&idx=1&sn=790e12f84dfcea171528e6d3789c69ed#rd)（如果你面临部分代码不知道放到Presentation层还是UI层的问题，甚至你不知道某段代码是否属于业务代码。不知道如何分清MVP中的代码职责，参考这篇文章）
++ 
 #3 Clean Architecture
 + [The Clean Architecture](https://blog.8thlight.com/uncle-bob/2012/08/13/the-clean-architecture.html)(clean architecture出处)
 + [Android-CleanArchitecture github地址](https://github.com/android10/Android-CleanArchitecture)（The Clean Architecture文章的例子）
