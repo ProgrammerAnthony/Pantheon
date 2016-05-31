@@ -30,7 +30,7 @@
 + [微信Android客户端架构演进之路](http://www.infoq.com/cn/articles/wechat-android-app-architecture)
 + [饿了么移动APP的架构演进](https://mp.weixin.qq.com/s?__biz=MzAxNDUwMzU3Mw==&mid=401044540&idx=1&sn=24b7d8fb655ae6dd5d989d0cb3c08e90&scene=2&srcid=0106EtxRjD2jHxzomxVPTwY3&from=timeline&isappinstalled=0&uin=NzgwODIwNDgw&key=&devicetype=webwx&version=70000001&lang=zh_CN&pass_ticket=46hW44w3Hxd7VY9rutz7mgLu1JGe2T1AAKNQpxNoYOSGi8NpmNYr%2BAZj%2BiXtRX2F)
 + [糯米移动组件架构演进之路](https://mp.weixin.qq.com/s?__biz=MzA3ODg4MDk0Ng==&mid=2651112195&idx=1&sn=27fa638e90b09a107057e4a5e8d01ab1&scene=0&key=b28b03434249256bfa802f640871a1d36fcc58d62fbdae43d4cf0bb232988312ebd980373392cdb72dff355da09201bf&ascene=0&uin=Mjc3OTU3Nzk1&devicetype=iMac+MacBookPro10%2C1+OSX+OSX+10.10.5+build%2814F1713%29&version=11020201&pass_ticket=fVNELMIhboNqtKbXT0UAQtJy1MNge%2F0s6VqFTdnuSJvfHsNGCxh1X%2FVk7UdXna7W)
-
++ [英语流利说 Android 架构演进](http://mp.weixin.qq.com/s?__biz=MzI0NjIzNDkwOA==&mid=2247483673&idx=1&sn=ba9cf498ab78646f1a9c9e711f65c360&scene=2&srcid=0527JyTxU6ucKtlLVyl7REaB&from=timeline&isappinstalled=0#wechat_redirect)
 
 #2 MVVM & MVP & MVC
 
