@@ -72,6 +72,7 @@
 + [Android Application Architecture中文翻译](http://www.jianshu.com/p/8ca27934c6e6)
 + [Architecting Android…The evolution](http://fernandocejas.com/2015/07/18/architecting-android-the-evolution/)
 + [Architecting Android…The evolution中文翻译](http://www.devtf.cn/?p=1083)
++ [Rosie](https://github.com/Karumi/Rosie)（利用Clean Architecture搭建的安卓框架）
 
 #5 Flux
 * [flux and android](https://armueller.github.io/android/2015/03/29/flux-and-android.html)
