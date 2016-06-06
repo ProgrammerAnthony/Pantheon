@@ -1,5 +1,6 @@
 # AndroidArchitectureCollection
 安卓架构文章合集（a collection of android Architecture）
+fork from  :https://github.com/Juude/Awesome-Android-Architecture!!!
 
 ###博客原地址：
 + [简书博客](http://www.jianshu.com/p/1f21e1d375aa)
