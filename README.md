@@ -1,5 +1,6 @@
 # AndroidArchitectureCollection
 安卓架构文章合集（a collection of android Architecture）
+
 fork from  :https://github.com/Juude/Awesome-Android-Architecture!!!
 
 ###博客原地址：
@@ -39,6 +40,7 @@ fork from  :https://github.com/Juude/Awesome-Android-Architecture!!!
 
 #2 MVVM & MVP & MVC
 
++ [android-boilerplate](https://github.com/ribot/android-boilerplate)(基于MVP的完整架构，Dagger2+Retrofit+RxJava ,参考链接[Android Application Architecture](https://medium.com/ribot-labs/android-application-architecture-8b6e34acda65))
 + [ANDROID DATABINDING: GOODBYE PRESENTER, HELLO VIEWMODEL](http://tech.vg.no/2015/07/17/android-databinding-goodbye-presenter-hello-viewmodel/)
 （viewmodel，安卓中的databinding）
 + [MVVM-in-Android](http://www.codeproject.com/Articles/166952/MVVM-in-Android)（android中的mvvm）
