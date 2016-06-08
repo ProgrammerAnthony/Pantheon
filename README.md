@@ -41,6 +41,7 @@ fork from  :https://github.com/Juude/Awesome-Android-Architecture!!!
 #2 MVVM & MVP & MVC
 
 + [android-boilerplate](https://github.com/ribot/android-boilerplate)(基于MVP的完整架构，Dagger2+Retrofit+RxJava ,参考链接[Android Application Architecture](https://medium.com/ribot-labs/android-application-architecture-8b6e34acda65),对应中文翻译[Android Application Architecture中文翻译](http://www.jianshu.com/p/8ca27934c6e6))
++ [Archi](https://github.com/ivacf/archi)（同一个app，分别利用MVP，MVVM，以及标准模式实现。）
 + [ANDROID DATABINDING: GOODBYE PRESENTER, HELLO VIEWMODEL](http://tech.vg.no/2015/07/17/android-databinding-goodbye-presenter-hello-viewmodel/)
 （viewmodel，安卓中的databinding）
 + [MVVM-in-Android](http://www.codeproject.com/Articles/166952/MVVM-in-Android)（android中的mvvm）
@@ -63,6 +64,7 @@ fork from  :https://github.com/Juude/Awesome-Android-Architecture!!!
 + [Web开发的MVVM模式](http://www.cnblogs.com/dxy1982/p/3793895.html)（web开发中的MVC VS. MVP VS. MVVM）
 + [M — Model in MVC, MVP, MVVC in Android](https://medium.com/@artem_zin/m-model-from-mvc-mvp-in-android-flow-and-mortar-bd1e50c45395#.5kbw4q5psd)（android工程MVC，MVVC，MVVM中的Model角色讲解）
 + [Android MVP架构中的Presentation层应该怎么设计](http://mp.weixin.qq.com/s?__biz=MzA3ODg4MDk0Ng==&mid=402868193&idx=1&sn=790e12f84dfcea171528e6d3789c69ed#rd)（如果你面临部分代码不知道放到Presentation层还是UI层的问题，甚至你不知道某段代码是否属于业务代码。不知道如何分清MVP中的代码职责，参考这篇文章）
+[MVVM_Android-CleanArchitecture](http://rocko.xyz/2015/11/07/MVVM_Android-CleanArchitecture/)(MVVM+CleanArchitecture实现，)
 
 #3 Android中的设计模式：
 + [Software design pattern on android](http://www.slideshare.net/PedroVicenteGmezSnch/software-design-patterns-on-android)（安卓中的设计模式，英文ppt）
@@ -85,6 +87,7 @@ fork from  :https://github.com/Juude/Awesome-Android-Architecture!!!
 * [android flux todo app](https://github.com/lgvalle/android-flux-todo-app)([中文翻译](http://www.devtf.cn/?p=1028))
 * [RxFlux](https://github.com/skimarxall/RxFlux)（RxFlux是一个遵从Flux设计规范，并添加RxJava支持的架构项目）
 * [android-flux-todo-app](https://github.com/lgvalle/android-flux-todo-app)(示例代码，利用Facebook的Flux实现TODO项目)
+* [flux-comparison](https://github.com/voronianski/flux-comparison)(各种flux实现对比)
 
 #6 其它
 + [AndroidTDDBootStrap Github地址](https://github.com/Piasy/AndroidTDDBootStrap)（AndroidTDDBootStrap 是一个Android TDD 引导项目，使用一些新技术，灵感来自于一些最流行的框架，有许多方便的开发工具，遵循最佳实践。）
