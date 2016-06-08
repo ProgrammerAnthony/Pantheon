@@ -40,7 +40,7 @@ fork from  :https://github.com/Juude/Awesome-Android-Architecture!!!
 
 #2 MVVM & MVP & MVC
 
-+ [android-boilerplate](https://github.com/ribot/android-boilerplate)(基于MVP的完整架构，Dagger2+Retrofit+RxJava ,参考链接[Android Application Architecture](https://medium.com/ribot-labs/android-application-architecture-8b6e34acda65))
++ [android-boilerplate](https://github.com/ribot/android-boilerplate)(基于MVP的完整架构，Dagger2+Retrofit+RxJava ,参考链接[Android Application Architecture](https://medium.com/ribot-labs/android-application-architecture-8b6e34acda65),对应中文翻译[Android Application Architecture中文翻译](http://www.jianshu.com/p/8ca27934c6e6))
 + [ANDROID DATABINDING: GOODBYE PRESENTER, HELLO VIEWMODEL](http://tech.vg.no/2015/07/17/android-databinding-goodbye-presenter-hello-viewmodel/)
 （viewmodel，安卓中的databinding）
 + [MVVM-in-Android](http://www.codeproject.com/Articles/166952/MVVM-in-Android)（android中的mvvm）
@@ -70,28 +70,26 @@ fork from  :https://github.com/Juude/Awesome-Android-Architecture!!!
 
 #4 Clean Architecture
 + [The Clean Architecture](https://blog.8thlight.com/uncle-bob/2012/08/13/the-clean-architecture.html)(clean architecture出处)
-+ [Android-CleanArchitecture github地址](https://github.com/android10/Android-CleanArchitecture)（The Clean Architecture文章的例子）
-+ [Android Application Architecture原文](https://medium.com/ribot-labs/android-application-architecture-8b6e34acda65#.b29vhtdm2) 
-+ [Android Application Architecture中文翻译](http://www.jianshu.com/p/8ca27934c6e6)
 + [Architecting Android…The evolution](http://fernandocejas.com/2015/07/18/architecting-android-the-evolution/)
 + [Architecting Android…The evolution中文翻译](http://www.devtf.cn/?p=1083)
++ [MvpCleanArchitecture github地址](https://github.com/glomadrian/MvpCleanArchitecture)（使用clean architecture 和mvp的实例）
++ [EffectiveAndroid github地址](https://github.com/rallat/EffectiveAndroid)（MVP+clean Architecture 项目）
 + [Rosie](https://github.com/Karumi/Rosie)（利用Clean Architecture搭建的安卓框架）
++ [A detailed guide on developing Android apps using the Clean Architecture pattern](https://medium.com/@dmilicic/a-detailed-guide-on-developing-android-apps-using-the-clean-architecture-pattern-d38d71e94029)(使用Clean Architecture的基础性文章，对应翻译 [在Android应用中使用Clean架构 ](http://blog.chengdazhi.com/index.php/101))
 
 #5 Flux
+* [flux](https://github.com/facebook/flux)(flux 官方github地址)
 * [flux and android](https://armueller.github.io/android/2015/03/29/flux-and-android.html)
 * [rxflux android architecture](https://medium.com/swlh/rxflux-android-architecture-94f77c857aa2#.sfjwchwok)
 * [why rxflux](https://medium.com/swlh/why-rxflux-5b687f062709#.ltlnlr4cl)
 * [android flux todo app](https://github.com/lgvalle/android-flux-todo-app)([中文翻译](http://www.devtf.cn/?p=1028))
-* [RxFlux](https://github.com/skimarxall/RxFlux)
-* [android-flux](https://github.com/naodroid/android-flux)
+* [RxFlux](https://github.com/skimarxall/RxFlux)（RxFlux是一个遵从Flux设计规范，并添加RxJava支持的架构项目）
+* [android-flux-todo-app](https://github.com/lgvalle/android-flux-todo-app)(示例代码，利用Facebook的Flux实现TODO项目)
 
 #6 其它
-+ [Artchitecture Library](https://github.com/Juude/Awesome-Android-Architecture/blob/master/Library.md)
++ [AndroidTDDBootStrap Github地址](https://github.com/Piasy/AndroidTDDBootStrap)（AndroidTDDBootStrap 是一个Android TDD 引导项目，使用一些新技术，灵感来自于一些最流行的框架，有许多方便的开发工具，遵循最佳实践。）
 + [Design for Offline: Android App Architecture Best Practices](https://plus.google.com/+AndroidDevelopers/posts/3C4GPowmWLb)
 + [Robust and readable architecture for an Android App](http://blog.joanzapata.com/robust-architecture-for-an-android-app/)
-+ [Android application architecture](https://events.google.com/io2015/schedule?sid=358c9f91-b6d4-e411-b87f-00155d5066d7#day1/358c9f91-b6d4-e411-b87f-00155d5066d7)
-+ [google官方MVP架构示例项目解析](http://mp.weixin.qq.com/s?__biz=MzA3ODg4MDk0Ng==&mid=403539764&idx=1&sn=d30d89e6848a8e13d4da0f5639100e5f#rd)（google官网架构中文解析）
-+ [jiangqqlmj](https://github.com/jiangqqlmj)/**[FastDev4Android](https://github.com/jiangqqlmj/FastDev4Android)** （android快速开发框架）
 + [知乎：Android 开发有什么好的架构么?](https://www.zhihu.com/question/21406685)
 + [知乎：如果从0创建一个Android APP，设计思路是什么？（架构、activity、layout等复用性的考虑），感觉无从下手](https://www.zhihu.com/question/28564947)
-+ [AndroidTDDBootStrap Github地址](https://github.com/Piasy/AndroidTDDBootStrap)（AndroidTDDBootStrap 是一个Android TDD 引导项目，使用一些新技术，灵感来自于一些最流行的框架，有许多方便的开发工具，遵循最佳实践。）
+
