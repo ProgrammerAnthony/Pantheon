@@ -89,7 +89,10 @@ fork from  :https://github.com/Juude/Awesome-Android-Architecture!!!
 * [android-flux-todo-app](https://github.com/lgvalle/android-flux-todo-app)(示例代码，利用Facebook的Flux实现TODO项目)
 * [flux-comparison](https://github.com/voronianski/flux-comparison)(各种flux实现对比)
 
-#6 其它
+#6 架构心得体会系列：
+* [Android APP架构心得](http://www.jianshu.com/p/2d5c1d855c31)
+
+#7 其它
 + [AndroidTDDBootStrap Github地址](https://github.com/Piasy/AndroidTDDBootStrap)（AndroidTDDBootStrap 是一个Android TDD 引导项目，使用一些新技术，灵感来自于一些最流行的框架，有许多方便的开发工具，遵循最佳实践。）
 + [Design for Offline: Android App Architecture Best Practices](https://plus.google.com/+AndroidDevelopers/posts/3C4GPowmWLb)
 + [Robust and readable architecture for an Android App](http://blog.joanzapata.com/robust-architecture-for-an-android-app/)
