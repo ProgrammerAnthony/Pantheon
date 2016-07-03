@@ -36,6 +36,8 @@ fork from  :https://github.com/Juude/Awesome-Android-Architecture!!!
 + [七牛云存储-千万级用户的 ANDROID 客户端是如何养成的](http://blog.qiniu.com/archives/6017) 
 + [微信Android客户端后台保活经验分享](http://mp.weixin.qq.com/s?__biz=MzA3ODg4MDk0Ng==&mid=403254393&idx=1&sn=8dc0e3a03031177777b5a5876cb210cc&scene=1&srcid=0402fANUWIotbVLECw4Ytz4K#wechat_redirect)
 + [微信Android客户端架构演进之路](http://mp.weixin.qq.com/s?__biz=MzA3ODg4MDk0Ng==&mid=401921778&idx=1&sn=f05433ff53199999f9dc2acb3b249ac3&scene=21#wechat_redirect) 
++ [QQ空间直播秒开优化实践](https://mp.weixin.qq.com/s?__biz=MzI1MTA1MzM2Nw==&mid=2649796799&idx=1&sn=42061b7d021b8d8fba00202286cd9372&scene=1&srcid=06229jXN0bm1drO2Eckf9iAG&key=77421cf58af4a653d7ef81b351f58a7ebbe2903e873c2c7904d6a74bac0fb11b65ef1dd3a278cc35a3563229c548766b&ascene=0&uin=MTYzMjY2MTE1&devicetype=iMac+MacBookPro10%2C1+OSX+OSX+10.11.5+build(15F34)&version=11020201&pass_ticket=3vGrz7MTtJUi6HBVB4E0etQLjdXe6h6iiZ0lDZpD27c%3D) 
+
 
 
 #2 MVVM & MVP & MVC
