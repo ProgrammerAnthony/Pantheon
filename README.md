@@ -93,6 +93,7 @@ fork from  :https://github.com/Juude/Awesome-Android-Architecture!!!
 
 #6 架构心得体会系列：
 * [Android APP架构心得](http://www.jianshu.com/p/2d5c1d855c31)
+* [Android App的设计架构：MVC,MVP,MVVM与架构经验谈](http://android.jobbole.com/82578/)
 
 #7 其它
 + [AndroidTDDBootStrap Github地址](https://github.com/Piasy/AndroidTDDBootStrap)（AndroidTDDBootStrap 是一个Android TDD 引导项目，使用一些新技术，灵感来自于一些最流行的框架，有许多方便的开发工具，遵循最佳实践。）
