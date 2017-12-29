@@ -41,7 +41,9 @@ fork from  :https://github.com/Juude/Awesome-Android-Architecture!!!
 
 
 
-# 2 MVVM & MVP & MVC
+
+# 3 MVVM & MVP & MVC
+
 
 + [android-boilerplate](https://github.com/ribot/android-boilerplate)(基于MVP的完整架构，Dagger2+Retrofit+RxJava ,参考链接[Android Application Architecture](https://medium.com/ribot-labs/android-application-architecture-8b6e34acda65),对应中文翻译[Android Application Architecture中文翻译](http://www.jianshu.com/p/8ca27934c6e6))
 + [Archi](https://github.com/ivacf/archi)（同一个app，分别利用MVP，MVVM，以及标准模式实现。）
@@ -69,11 +71,14 @@ fork from  :https://github.com/Juude/Awesome-Android-Architecture!!!
 + [Android MVP架构中的Presentation层应该怎么设计](http://mp.weixin.qq.com/s?__biz=MzA3ODg4MDk0Ng==&mid=402868193&idx=1&sn=790e12f84dfcea171528e6d3789c69ed#rd)（如果你面临部分代码不知道放到Presentation层还是UI层的问题，甚至你不知道某段代码是否属于业务代码。不知道如何分清MVP中的代码职责，参考这篇文章）
 [MVVM_Android-CleanArchitecture](http://rocko.xyz/2015/11/07/MVVM_Android-CleanArchitecture/)(MVVM+CleanArchitecture实现，)
 
-# 3 Android中的设计模式：
+
+# 4 Android中的设计模式：
+
+
 + [Software design pattern on android](http://www.slideshare.net/PedroVicenteGmezSnch/software-design-patterns-on-android)（安卓中的设计模式，英文ppt）
 + 强烈推荐书籍《Android 源码设计模式解析与实战》
 
-#4 Clean Architecture
+# 5 Clean Architecture
 + [The Clean Architecture](https://blog.8thlight.com/uncle-bob/2012/08/13/the-clean-architecture.html)(clean architecture出处)
 + [Architecting Android…The evolution](http://fernandocejas.com/2015/07/18/architecting-android-the-evolution/)
 + [Architecting Android…The evolution中文翻译](http://www.devtf.cn/?p=1083)
@@ -82,7 +87,9 @@ fork from  :https://github.com/Juude/Awesome-Android-Architecture!!!
 + [Rosie](https://github.com/Karumi/Rosie)（利用Clean Architecture搭建的安卓框架）
 + [A detailed guide on developing Android apps using the Clean Architecture pattern](https://medium.com/@dmilicic/a-detailed-guide-on-developing-android-apps-using-the-clean-architecture-pattern-d38d71e94029)(使用Clean Architecture的基础性文章，对应翻译 [在Android应用中使用Clean架构 ](http://blog.chengdazhi.com/index.php/101))
 
-# 5 Flux
+
+# 6 Flux
+
 * [flux](https://github.com/facebook/flux)(flux 官方github地址)
 * [flux and android](https://armueller.github.io/android/2015/03/29/flux-and-android.html)
 * [rxflux android architecture](https://medium.com/swlh/rxflux-android-architecture-94f77c857aa2#.sfjwchwok)
@@ -92,11 +99,11 @@ fork from  :https://github.com/Juude/Awesome-Android-Architecture!!!
 * [android-flux-todo-app](https://github.com/lgvalle/android-flux-todo-app)(示例代码，利用Facebook的Flux实现TODO项目)
 * [flux-comparison](https://github.com/voronianski/flux-comparison)(各种flux实现对比)
 
-#6 架构心得体会系列：
+# 7 架构心得体会系列：
 * [Android APP架构心得](http://www.jianshu.com/p/2d5c1d855c31)
 * [Android App的设计架构：MVC,MVP,MVVM与架构经验谈](http://android.jobbole.com/82578/)
 
-#7 其它
+# 8 其它
 + [AndroidTDDBootStrap Github地址](https://github.com/Piasy/AndroidTDDBootStrap)（AndroidTDDBootStrap 是一个Android TDD 引导项目，使用一些新技术，灵感来自于一些最流行的框架，有许多方便的开发工具，遵循最佳实践。）
 + [Design for Offline: Android App Architecture Best Practices](https://plus.google.com/+AndroidDevelopers/posts/3C4GPowmWLb)
 + [Robust and readable architecture for an Android App](http://blog.joanzapata.com/robust-architecture-for-an-android-app/)
