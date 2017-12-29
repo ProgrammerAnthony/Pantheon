@@ -41,7 +41,9 @@ fork from  :https://github.com/Juude/Awesome-Android-Architecture!!!
 
 
 
+
 # 3 MVVM & MVP & MVC
+
 
 + [android-boilerplate](https://github.com/ribot/android-boilerplate)(基于MVP的完整架构，Dagger2+Retrofit+RxJava ,参考链接[Android Application Architecture](https://medium.com/ribot-labs/android-application-architecture-8b6e34acda65),对应中文翻译[Android Application Architecture中文翻译](http://www.jianshu.com/p/8ca27934c6e6))
 + [Archi](https://github.com/ivacf/archi)（同一个app，分别利用MVP，MVVM，以及标准模式实现。）
@@ -69,7 +71,10 @@ fork from  :https://github.com/Juude/Awesome-Android-Architecture!!!
 + [Android MVP架构中的Presentation层应该怎么设计](http://mp.weixin.qq.com/s?__biz=MzA3ODg4MDk0Ng==&mid=402868193&idx=1&sn=790e12f84dfcea171528e6d3789c69ed#rd)（如果你面临部分代码不知道放到Presentation层还是UI层的问题，甚至你不知道某段代码是否属于业务代码。不知道如何分清MVP中的代码职责，参考这篇文章）
 [MVVM_Android-CleanArchitecture](http://rocko.xyz/2015/11/07/MVVM_Android-CleanArchitecture/)(MVVM+CleanArchitecture实现，)
 
+
 # 4 Android中的设计模式：
+
+
 + [Software design pattern on android](http://www.slideshare.net/PedroVicenteGmezSnch/software-design-patterns-on-android)（安卓中的设计模式，英文ppt）
 + 强烈推荐书籍《Android 源码设计模式解析与实战》
 
@@ -82,7 +87,9 @@ fork from  :https://github.com/Juude/Awesome-Android-Architecture!!!
 + [Rosie](https://github.com/Karumi/Rosie)（利用Clean Architecture搭建的安卓框架）
 + [A detailed guide on developing Android apps using the Clean Architecture pattern](https://medium.com/@dmilicic/a-detailed-guide-on-developing-android-apps-using-the-clean-architecture-pattern-d38d71e94029)(使用Clean Architecture的基础性文章，对应翻译 [在Android应用中使用Clean架构 ](http://blog.chengdazhi.com/index.php/101))
 
+
 # 6 Flux
+
 * [flux](https://github.com/facebook/flux)(flux 官方github地址)
 * [flux and android](https://armueller.github.io/android/2015/03/29/flux-and-android.html)
 * [rxflux android architecture](https://medium.com/swlh/rxflux-android-architecture-94f77c857aa2#.sfjwchwok)
