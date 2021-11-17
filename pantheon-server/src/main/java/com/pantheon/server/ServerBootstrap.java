@@ -1,22 +1,29 @@
 package com.pantheon.server;
 
 import com.netflix.config.ConfigurationManager;
+import com.pantheon.remoting.RemotingServer;
+import com.pantheon.remoting.netty.AsyncNettyRequestProcessor;
+import com.pantheon.remoting.netty.NettyRemotingServer;
+import com.pantheon.remoting.netty.NettyServerConfig;
+import com.pantheon.remoting.protocol.RemotingCommand;
 import com.pantheon.server.config.DefaultPantheonServerConfig;
 import com.pantheon.server.config.PantheonServerConfig;
+import io.netty.channel.ChannelHandlerContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.util.concurrent.Executors;
 
 /**
  * @author Anthony
  * @create 2021/11/17
  * @desc
  **/
-public class Bootstrap {
-    private static final Logger logger = LoggerFactory.getLogger(Bootstrap.class);
+public class ServerBootstrap {
+    private static final Logger logger = LoggerFactory.getLogger(ServerBootstrap.class);
     private static final String PANTHEON_ENVIRONMENT = "pantheon.environment";
     private static final String ARCHAIUS_DEPLOYMENT_ENVIRONMENT = "archaius.deployment.environment";
     private static final String TEST = "test";
-//    private RemotingServer remotingServer;
 
     public static void main(String[] args) {
         logger.info("Bootstrap initializing");
@@ -27,8 +34,23 @@ public class Bootstrap {
 
     private static void startNettyServerNode(PantheonServerConfig serverConfig) {
         logger.info("start server node on: "+serverConfig.getNodeIp()+":"+serverConfig.getNodeHttpPort());
-        // todo initialize server node
 
+        NettyServerConfig config = new NettyServerConfig();
+        RemotingServer remotingServer = new NettyRemotingServer(config);
+        remotingServer.registerProcessor(0, new AsyncNettyRequestProcessor() {
+            @Override
+            public RemotingCommand processRequest(ChannelHandlerContext ctx, RemotingCommand request) {
+                request.setRemark("Hi " + ctx.channel().remoteAddress());
+                return request;
+            }
+
+            @Override
+            public boolean rejectRequest() {
+                return false;
+            }
+        }, Executors.newCachedThreadPool());
+
+        remotingServer.start();
     }
 
     /**

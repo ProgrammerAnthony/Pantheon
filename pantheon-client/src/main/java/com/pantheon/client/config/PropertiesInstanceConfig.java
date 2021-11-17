@@ -43,12 +43,7 @@ public class PropertiesInstanceConfig extends AbstractInstanceConfig implements 
                 super.getLeaseRenewalIntervalInSeconds()).get();
     }
 
-    /*
-     * (non-Javadoc)
-     *
-     * @see com.netflix.appinfo.AbstractInstanceConfig#
-     * getLeaseExpirationDurationInSeconds()
-     */
+
     @Override
     public int getLeaseExpirationDurationInSeconds() {
         return configInstance.getIntProperty(namespace + LEASE_EXPIRATION_DURATION_KEY,

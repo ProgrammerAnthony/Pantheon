@@ -1,6 +1,6 @@
 package com.pantheon.server.config;
 
-import com.pantheon.server.Bootstrap;
+import com.pantheon.server.ServerBootstrap;
 import com.netflix.config.ConfigurationManager;
 import com.netflix.config.DynamicPropertyFactory;
 import com.netflix.config.DynamicStringProperty;
@@ -32,7 +32,7 @@ import java.io.IOException;
  * todo verify how to add config in application。properties
  **/
 public class DefaultPantheonServerConfig implements PantheonServerConfig {
-    private static final Logger logger = LoggerFactory.getLogger(Bootstrap.class);
+    private static final Logger logger = LoggerFactory.getLogger(ServerBootstrap.class);
     private static final String TEST = "test";
     private static final String PANTHEON_ENVIRONMENT = "pantheon.environment";
     private static final String ARCHAIUS_DEPLOYMENT_ENVIRONMENT = "archaius.deployment.environment";
