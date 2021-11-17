@@ -1,6 +1,7 @@
 package com.pantheon.client;
 
 import com.pantheon.client.config.PropertiesInstanceConfig;
+import com.pantheon.remoting.ChannelEventListener;
 import com.pantheon.remoting.CommandCustomHeader;
 import com.pantheon.remoting.InvokeCallback;
 import com.pantheon.remoting.RemotingClient;
@@ -11,6 +12,9 @@ import com.pantheon.remoting.netty.NettyRemotingClient;
 import com.pantheon.remoting.netty.ResponseFuture;
 import com.pantheon.remoting.protocol.LanguageCode;
 import com.pantheon.remoting.protocol.RemotingCommand;
+import io.netty.channel.Channel;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.concurrent.CountDownLatch;
 
@@ -20,6 +24,8 @@ import java.util.concurrent.CountDownLatch;
  * @desc
  **/
 public class ClientBootStrap {
+    private static final Logger logger = LoggerFactory.getLogger(ClientBootStrap.class);
+
     static RemotingClient remotingClient;
 
     public static void main(String[] args) {
@@ -33,7 +39,27 @@ public class ClientBootStrap {
     }
 
     private static void startClientNode() {
-        remotingClient = new NettyRemotingClient(new NettyClientConfig());
+        remotingClient = new NettyRemotingClient(new NettyClientConfig(), new ChannelEventListener() {
+            @Override
+            public void onChannelConnect(String remoteAddr, Channel channel) {
+                logger.info("onChannelConnect");
+            }
+
+            @Override
+            public void onChannelClose(String remoteAddr, Channel channel) {
+                logger.info("onChannelClose");
+            }
+
+            @Override
+            public void onChannelException(String remoteAddr, Channel channel) {
+                logger.info("onChannelException");
+            }
+
+            @Override
+            public void onChannelIdle(String remoteAddr, Channel channel) {
+                logger.info("onChannelIdle");
+            }
+        });
         remotingClient.start();
         try {
             testInvokeSync();
