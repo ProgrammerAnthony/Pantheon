@@ -1,7 +1,6 @@
 package com.pantheon.server;
 
 import com.netflix.config.ConfigurationManager;
-import com.netflix.config.DynamicPropertyFactory;
 import com.pantheon.server.config.DefaultPantheonServerConfig;
 import com.pantheon.server.config.PantheonServerConfig;
 import org.slf4j.Logger;
@@ -17,18 +16,19 @@ public class Bootstrap {
     private static final String PANTHEON_ENVIRONMENT = "pantheon.environment";
     private static final String ARCHAIUS_DEPLOYMENT_ENVIRONMENT = "archaius.deployment.environment";
     private static final String TEST = "test";
-
+//    private RemotingServer remotingServer;
 
     public static void main(String[] args) {
         logger.info("Bootstrap initializing");
         PantheonServerConfig serverConfig = new DefaultPantheonServerConfig();
         initPantheonEnvironment();
-        startServerNode(serverConfig);
+        startNettyServerNode(serverConfig);
     }
 
-    private static void startServerNode(PantheonServerConfig serverConfig) {
+    private static void startNettyServerNode(PantheonServerConfig serverConfig) {
         logger.info("start server node on: "+serverConfig.getNodeIp()+":"+serverConfig.getNodeHttpPort());
         // todo initialize server node
+
     }
 
     /**
