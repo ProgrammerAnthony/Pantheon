@@ -4,6 +4,7 @@ import com.netflix.config.ConfigurationManager;
 import com.pantheon.remoting.RemotingServer;
 import com.pantheon.remoting.netty.AsyncNettyRequestProcessor;
 import com.pantheon.remoting.netty.NettyRemotingServer;
+import com.pantheon.remoting.netty.NettyRequestProcessor;
 import com.pantheon.remoting.netty.NettyServerConfig;
 import com.pantheon.remoting.protocol.RemotingCommand;
 import com.pantheon.server.config.DefaultPantheonServerConfig;
@@ -12,6 +13,7 @@ import io.netty.channel.ChannelHandlerContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.awt.*;
 import java.util.concurrent.Executors;
 
 /**
@@ -29,30 +31,19 @@ public class ServerBootstrap {
         logger.info("Bootstrap initializing");
         PantheonServerConfig serverConfig = new DefaultPantheonServerConfig();
         initPantheonEnvironment();
-        startNettyServerNode(serverConfig);
+        NettyServerConfig nettyServerConfig = new NettyServerConfig();
+        start(new ServerController(serverConfig,nettyServerConfig));
     }
 
-    private static void startNettyServerNode(PantheonServerConfig serverConfig) {
-        logger.info("start server node on: "+serverConfig.getNodeIp()+":"+serverConfig.getNodeClientTcpPort());
+    private static void start(ServerController serverController) {
+        boolean initResult = serverController.initialize();
+        if(!initResult){
+            serverController.shutdown();
+        }
 
-        NettyServerConfig config = new NettyServerConfig();
-        config.setListenPort(serverConfig.getNodeClientTcpPort());
-        RemotingServer remotingServer = new NettyRemotingServer(config);
-        remotingServer.registerProcessor(0, new AsyncNettyRequestProcessor() {
-            @Override
-            public RemotingCommand processRequest(ChannelHandlerContext ctx, RemotingCommand request) {
-                request.setRemark("Hi " + ctx.channel().remoteAddress());
-                return request;
-            }
-
-            @Override
-            public boolean rejectRequest() {
-                return false;
-            }
-        }, Executors.newCachedThreadPool());
-
-        remotingServer.start();
     }
+
+
 
     /**
      * Users can override to initialize the environment themselves.
