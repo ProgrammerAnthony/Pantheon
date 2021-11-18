@@ -19,8 +19,6 @@ public interface PantheonServerConfig {
 
     int getNodeInternTcpPort();
 
-    int getNodeHttpPort();
-
     int getNodeClientTcpPort();
 
     boolean isControllerCandidate();

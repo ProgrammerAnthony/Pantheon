@@ -43,6 +43,11 @@ public class DefaultPantheonServerConfig implements PantheonServerConfig {
                     "pantheon-server");
     private String namespace = "pantheon.";
     private static final int DEFAULT_HEARTBEAT_INTERVAL = 30;
+    private static final int DEFAULT_CLIENT_TCP_PORT = 9576;
+    private static final int DEFAULT_NODE_INTERN_TCP_PORT = 9577;
+    private static final int DEFAULT_NODE_ID = 1;
+    private static final int DEFAULT_CLUSTER_NODE_COUNT = 1;
+
 
     public DefaultPantheonServerConfig() {
         init();
@@ -110,32 +115,32 @@ public class DefaultPantheonServerConfig implements PantheonServerConfig {
 
     @Override
     public int getNodeId() {
-        return 0;
+        return configInstance.getIntProperty(
+                namespace + "nodeId", DEFAULT_NODE_ID).get();
     }
-
     @Override
     public int getNodeInternTcpPort() {
-        return 0;
+        return configInstance.getIntProperty(
+                namespace + "nodeInternTcpPort", DEFAULT_NODE_INTERN_TCP_PORT).get();
     }
 
-    @Override
-    public int getNodeHttpPort() {
-        return 0;
-    }
 
     @Override
     public int getNodeClientTcpPort() {
-        return 0;
+        return configInstance.getIntProperty(
+                namespace + "clientTcpPort", DEFAULT_CLIENT_TCP_PORT).get();
     }
 
     @Override
     public boolean isControllerCandidate() {
+        configInstance.getBooleanProperty(namespace + "isControllerCandidate", false).get();
         return false;
     }
 
     @Override
     public int getClusterNodeCount() {
-        return 0;
+        return configInstance.getIntProperty(
+                namespace + "clusterNodeCount", DEFAULT_CLUSTER_NODE_COUNT).get();
     }
 
 }

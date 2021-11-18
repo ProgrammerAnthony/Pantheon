@@ -36,9 +36,11 @@ public class ClientBootStrap {
 
     private static void initClientConfig() {
         PropertiesInstanceConfig propertiesInstanceConfig = new PropertiesInstanceConfig();
+
     }
 
     private static void startClientNode() {
+        NettyClientConfig nettyClientConfig =new NettyClientConfig();
         remotingClient = new NettyRemotingClient(new NettyClientConfig(), new ChannelEventListener() {
             @Override
             public void onChannelConnect(String remoteAddr, Channel channel) {
@@ -81,7 +83,7 @@ public class ClientBootStrap {
         requestHeader.setCount(1);
         requestHeader.setMessageTitle("Welcome");
         RemotingCommand request = RemotingCommand.createRequestCommand(0, requestHeader);
-        RemotingCommand response = remotingClient.invokeSync("localhost:8888", request, 1000 * 3);
+        RemotingCommand response = remotingClient.invokeSync("localhost:9983", request, 1000 * 3);
         System.out.println(response);
     }
 
@@ -91,7 +93,7 @@ public class ClientBootStrap {
 
         RemotingCommand request = RemotingCommand.createRequestCommand(0, null);
         request.setRemark("messi");
-        remotingClient.invokeOneway("localhost:8888", request, 1000 * 3);
+        remotingClient.invokeOneway("localhost:9983", request, 1000 * 3);
     }
 
 
@@ -101,7 +103,7 @@ public class ClientBootStrap {
         final CountDownLatch latch = new CountDownLatch(1);
         RemotingCommand request = RemotingCommand.createRequestCommand(0, null);
         request.setRemark("messi");
-        remotingClient.invokeAsync("localhost:8888", request, 1000 * 3, new InvokeCallback() {
+        remotingClient.invokeAsync("localhost:9983", request, 1000 * 3, new InvokeCallback() {
             @Override
             public void operationComplete(ResponseFuture responseFuture) {
                 latch.countDown();

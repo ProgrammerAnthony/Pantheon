@@ -33,9 +33,10 @@ public class ServerBootstrap {
     }
 
     private static void startNettyServerNode(PantheonServerConfig serverConfig) {
-        logger.info("start server node on: "+serverConfig.getNodeIp()+":"+serverConfig.getNodeHttpPort());
+        logger.info("start server node on: "+serverConfig.getNodeIp()+":"+serverConfig.getNodeClientTcpPort());
 
         NettyServerConfig config = new NettyServerConfig();
+        config.setListenPort(serverConfig.getNodeClientTcpPort());
         RemotingServer remotingServer = new NettyRemotingServer(config);
         remotingServer.registerProcessor(0, new AsyncNettyRequestProcessor() {
             @Override
