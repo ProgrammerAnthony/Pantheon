@@ -43,20 +43,20 @@ public class DefaultPantheonServerConfig implements PantheonServerConfig {
     private static final DynamicStringProperty PANTHEON_PROPS_FILE = DynamicPropertyFactory
             .getInstance().getStringProperty("pantheon.server.props",
                     "pantheon-server");
-    private String namespace = "pantheon.";
+    protected String namespace = "pantheon.";
 
 
-    private final String CONFIG_KEY_NODE_ID = namespace + "nodeId";
-    private final String CONFIG_KEY_NODE_IP = namespace + "nodeIp";
-    private final String CONFIG_KEY_INTERN_TCP_PORT = namespace + "nodeInternTcpPort";
-    private final String CONFIG_KEY_NODE_CLIENT_HTTP_PORT = namespace + "nodeClientHttpPort";
-    private final String CONFIG_KEY_CLIENT_TCP_PORT = namespace + "nodeClientTcpPort";
-    private final String CONFIG_KEY_CONTROLLER_CANDIDATE = namespace + "isControllerCandidate";
-    private final String CONFIG_KEY_DATA_DIR = namespace + "dataDir";
-    private final String CONFIG_KEY_CLUSTER_NODE_COUNT = namespace + "clusterNodeCount";
-    private final String CONFIG_KEY_CONTROLLER_CANDIDATE_SERVERS = namespace + "controllerCandidateServers";
-    private final String CONFIG_KEY_HEART_CHECK_INTERVAL = namespace + "heartbeatCheckInterval";
-    private final String CONFIG_KEY_Heart_TIMEOUT_PERIOD = namespace + "heartbeatTimeoutPeriod";
+    final String CONFIG_KEY_NODE_ID = namespace + "nodeId";
+    final String CONFIG_KEY_NODE_IP = namespace + "nodeIp";
+    final String CONFIG_KEY_INTERN_TCP_PORT = namespace + "nodeInternTcpPort";
+    final String CONFIG_KEY_NODE_CLIENT_HTTP_PORT = namespace + "nodeClientHttpPort";
+    final String CONFIG_KEY_CLIENT_TCP_PORT = namespace + "nodeClientTcpPort";
+    final String CONFIG_KEY_CONTROLLER_CANDIDATE = namespace + "isControllerCandidate";
+    final String CONFIG_KEY_DATA_DIR = namespace + "dataDir";
+    final String CONFIG_KEY_CLUSTER_NODE_COUNT = namespace + "clusterNodeCount";
+    final String CONFIG_KEY_CONTROLLER_CANDIDATE_SERVERS = namespace + "controllerCandidateServers";
+    final String CONFIG_KEY_HEART_CHECK_INTERVAL = namespace + "heartbeatCheckInterval";
+    final String CONFIG_KEY_Heart_TIMEOUT_PERIOD = namespace + "heartbeatTimeoutPeriod";
 
 
     public static final Integer DEFAULT_HEARTBEAT_CHECK_INTERVAL = 3;

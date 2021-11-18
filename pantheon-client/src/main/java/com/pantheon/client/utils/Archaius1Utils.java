@@ -15,7 +15,7 @@ import java.io.IOException;
 public final class Archaius1Utils {
 
     private static final Logger logger = LoggerFactory.getLogger(Archaius1Utils.class);
-
+    private static final String TEST = "test";
     private static final String ARCHAIUS_DEPLOYMENT_ENVIRONMENT = "archaius.deployment.environment";
     private static final String PANTHEON_ENVIRONMENT = "pantheon.environment";
 
@@ -24,7 +24,7 @@ public final class Archaius1Utils {
         DynamicPropertyFactory configInstance = DynamicPropertyFactory.getInstance();
         DynamicStringProperty PANTHEON_PROPS_FILE = configInstance.getStringProperty("pantheon.client.props", configName);
 
-        String env = ConfigurationManager.getConfigInstance().getString(PANTHEON_ENVIRONMENT, "test");
+        String env = ConfigurationManager.getConfigInstance().getString(PANTHEON_ENVIRONMENT, TEST);
         ConfigurationManager.getConfigInstance().setProperty(ARCHAIUS_DEPLOYMENT_ENVIRONMENT, env);
 
         String pantheonPropsFile = PANTHEON_PROPS_FILE.get();

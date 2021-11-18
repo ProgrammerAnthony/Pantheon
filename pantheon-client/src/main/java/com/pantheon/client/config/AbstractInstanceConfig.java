@@ -10,15 +10,15 @@ import java.net.UnknownHostException;
 /**
  * @author Anthony
  * @create 2021/11/17
- * @desc An abstract instance info configuration with some defaults to get the users
+ * @desc An abstract instance info configuration with some DEFAULT VALUE to get the users
  * started quickly.The users have to override only a few methods to register
  * their instance with pantheon server.
  **/
 public abstract class AbstractInstanceConfig implements PantheonInstanceConfig {
     private static final Logger logger = LoggerFactory.getLogger(AbstractInstanceConfig.class);
 
-    private static final int LEASE_EXPIRATION_DURATION_SECONDS = 90;
-    private static final int LEASE_RENEWAL_INTERVAL_SECONDS = 30;
+    private static final int LEASE_EXPIRATION_DURATION_SECONDS = 10;
+    private static final int LEASE_RENEWAL_INTERVAL_SECONDS = 3;
     private static final Pair<String, String> hostInfo = getHostInfo();
 
     protected AbstractInstanceConfig() {
@@ -26,22 +26,22 @@ public abstract class AbstractInstanceConfig implements PantheonInstanceConfig {
     }
 
     @Override
-    public String getHostName(boolean refresh) {
+    public String getInstanceHostName() {
         return hostInfo.second();
     }
 
     @Override
-    public String getIpAddress() {
+    public String getInstanceIpAddress() {
         return hostInfo.first();
     }
 
     @Override
-    public int getLeaseRenewalIntervalInSeconds() {
+    public Integer getLeaseRenewalIntervalInSeconds() {
         return LEASE_RENEWAL_INTERVAL_SECONDS;
     }
 
     @Override
-    public int getLeaseExpirationDurationInSeconds() {
+    public Integer getLeaseExpirationDurationInSeconds() {
         return LEASE_EXPIRATION_DURATION_SECONDS;
     }
 

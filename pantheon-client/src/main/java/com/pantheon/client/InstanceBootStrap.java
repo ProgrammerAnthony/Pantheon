@@ -25,7 +25,7 @@ import java.util.concurrent.CountDownLatch;
  * @author Anthony
  * @create 2021/11/17
  * @desc
- * todo how to get server address？？？
+ * todo how to subscribe to server’s data
  **/
 public class InstanceBootStrap {
     private static final Logger logger = LoggerFactory.getLogger(InstanceBootStrap.class);

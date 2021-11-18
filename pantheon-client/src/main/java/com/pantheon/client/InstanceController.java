@@ -2,13 +2,23 @@ package com.pantheon.client;
 
 import com.pantheon.client.config.DefaultInstanceConfig;
 import com.pantheon.common.ThreadFactoryImpl;
+import com.pantheon.remoting.CommandCustomHeader;
+import com.pantheon.remoting.InvokeCallback;
+import com.pantheon.remoting.annotation.CFNullable;
+import com.pantheon.remoting.exception.RemotingCommandException;
+import com.pantheon.remoting.exception.RemotingConnectException;
+import com.pantheon.remoting.exception.RemotingSendRequestException;
+import com.pantheon.remoting.exception.RemotingTimeoutException;
+import com.pantheon.remoting.exception.RemotingTooMuchRequestException;
 import com.pantheon.remoting.netty.NettyClientConfig;
 import com.pantheon.remoting.netty.NettyRemotingClient;
-import com.pantheon.remoting.netty.NettyRemotingServer;
+import com.pantheon.remoting.netty.ResponseFuture;
+import com.pantheon.remoting.protocol.RemotingCommand;
 import io.netty.bootstrap.ServerBootstrap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -22,7 +32,7 @@ public class InstanceController {
     private NettyClientConfig nettyClientConfig;
     private DefaultInstanceConfig instanceConfig;
     private ExecutorService remotingExecutor;
-    private NettyRemotingClient nettyRemotingClient;
+    private NettyRemotingClient remotingClient;
     private final ScheduledExecutorService scheduledExecutorService = Executors.newSingleThreadScheduledExecutor(new ThreadFactoryImpl(
             "InstanceControllerScheduledThread"));
     private static final Logger logger = LoggerFactory.getLogger(ServerBootstrap.class);
@@ -33,19 +43,96 @@ public class InstanceController {
     }
 
     public boolean initialize() {
-        nettyRemotingClient = new NettyRemotingClient(nettyClientConfig);
+        remotingClient = new NettyRemotingClient(nettyClientConfig);
         this.remotingExecutor =
                 Executors.newFixedThreadPool(nettyClientConfig.getClientWorkerThreads(), new ThreadFactoryImpl("RemotingExecutorThread_"));
         return true;
     }
 
     public void start() {
-        this.nettyRemotingClient.start();
+        this.remotingClient.start();
+        try {
+            invokeSync();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        } catch (RemotingConnectException e) {
+            e.printStackTrace();
+        } catch (RemotingSendRequestException e) {
+            e.printStackTrace();
+        } catch (RemotingTimeoutException e) {
+            e.printStackTrace();
+        }
     }
 
     public void shutdown() {
-        this.nettyRemotingClient.shutdown();
+        this.remotingClient.shutdown();
         this.remotingExecutor.shutdown();
 
+    }
+
+    public void invokeSync() throws InterruptedException, RemotingConnectException,
+            RemotingSendRequestException, RemotingTimeoutException {
+        logger.info("sync message to " + instanceConfig.getServerList().get(0));
+        RequestHeader requestHeader = new RequestHeader();
+        requestHeader.setCount(1);
+        requestHeader.setMessageTitle("Welcome");
+        RemotingCommand request = RemotingCommand.createRequestCommand(0, requestHeader);
+        RemotingCommand response = remotingClient.invokeSync(instanceConfig.getServerList().get(0), request, 1000 * 3);
+        System.out.println(response);
+    }
+
+
+    public void invokeOneway() throws InterruptedException, RemotingConnectException,
+            RemotingTimeoutException, RemotingTooMuchRequestException, RemotingSendRequestException {
+
+        RemotingCommand request = RemotingCommand.createRequestCommand(0, null);
+        request.setRemark("messi");
+        remotingClient.invokeOneway(instanceConfig.getServerList().get(0), request, 1000 * 3);
+    }
+
+
+    public void invokeAsync() throws InterruptedException, RemotingConnectException,
+            RemotingTimeoutException, RemotingTooMuchRequestException, RemotingSendRequestException {
+
+        final CountDownLatch latch = new CountDownLatch(1);
+        RemotingCommand request = RemotingCommand.createRequestCommand(0, null);
+        request.setRemark("messi");
+        remotingClient.invokeAsync(instanceConfig.getServerList().get(0), request, 1000 * 3, new InvokeCallback() {
+            @Override
+            public void operationComplete(ResponseFuture responseFuture) {
+                latch.countDown();
+                System.out.println(responseFuture.getResponseCommand());
+            }
+        });
+        latch.await();
+    }
+
+
+    static class RequestHeader implements CommandCustomHeader {
+        @CFNullable
+        private Integer count;
+
+        @CFNullable
+        private String messageTitle;
+
+        @Override
+        public void checkFields() throws RemotingCommandException {
+        }
+
+        public Integer getCount() {
+            return count;
+        }
+
+        public void setCount(Integer count) {
+            this.count = count;
+        }
+
+        public String getMessageTitle() {
+            return messageTitle;
+        }
+
+        public void setMessageTitle(String messageTitle) {
+            this.messageTitle = messageTitle;
+        }
     }
 }

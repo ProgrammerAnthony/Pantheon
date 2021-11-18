@@ -1,26 +1,36 @@
 package com.pantheon.client.config;
 
+import java.util.List;
+
 /**
  * @author Anthony
  * @create 2021/11/17
  * @desc Configuration information required by the instance to register with Pantheon server.
  **/
 public interface PantheonInstanceConfig {
-    /**
-     * Get the unique Id (within the scope of the appName) of this instance to be registered with pantheon.
-     */
-    String getInstanceId();
 
     /**
-     * Get the name of the application to be registered with pantheon.
+     * Get the name of the Service to be registered with pantheon.
      */
-    String getAppname();
+    String getServiceName();
 
-    String getHostName(boolean refresh);
+    /**
+     * default localhost name
+     */
+    String getInstanceHostName();
 
-    String getIpAddress();
+    /**
+     * default localhost ip address
+     */
+    String getInstanceIpAddress();
 
-    int getLeaseRenewalIntervalInSeconds();
+    Integer getLeaseRenewalIntervalInSeconds();
 
-    int getLeaseExpirationDurationInSeconds();
+    Integer getLeaseExpirationDurationInSeconds();
+
+    /**
+     * instances connect one of these servers
+     * @return
+     */
+    List<String> getServerList();
 }
