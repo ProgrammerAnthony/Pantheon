@@ -1,5 +1,6 @@
 package com.pantheon.server;
 
+import com.pantheon.common.ThreadFactoryImpl;
 import com.pantheon.remoting.RemotingServer;
 import com.pantheon.remoting.netty.AsyncNettyRequestProcessor;
 import com.pantheon.remoting.netty.NettyRemotingServer;
@@ -11,7 +12,9 @@ import io.netty.channel.ChannelHandlerContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
 
 /**
  * @author Anthony
@@ -22,6 +25,9 @@ public class ServerController {
     private NettyServerConfig nettyServerConfig;
     private PantheonServerConfig serverConfig;
     private RemotingServer remotingServer;
+    private ExecutorService remotingExecutor;
+    private final ScheduledExecutorService scheduledExecutorService = Executors.newSingleThreadScheduledExecutor(new ThreadFactoryImpl(
+            "ServerControllerScheduledThread"));
     private static final Logger logger = LoggerFactory.getLogger(ServerBootstrap.class);
 
     public ServerController(PantheonServerConfig serverConfig, NettyServerConfig nettyServerConfig) {
@@ -30,30 +36,24 @@ public class ServerController {
     }
 
     public boolean initialize() {
+        //bind to nodeClientTcpPort
         nettyServerConfig.setListenPort(serverConfig.getNodeClientTcpPort());
         remotingServer = new NettyRemotingServer(nettyServerConfig);
-        remotingServer.registerProcessor(0, new AsyncNettyRequestProcessor() {
-            @Override
-            public RemotingCommand processRequest(ChannelHandlerContext ctx, RemotingCommand request) {
-                request.setRemark("Hi " + ctx.channel().remoteAddress());
-                return request;
-            }
+        this.remotingExecutor =
+                Executors.newFixedThreadPool(nettyServerConfig.getServerWorkerThreads(), new ThreadFactoryImpl("RemotingExecutorThread_"));
 
-            @Override
-            public boolean rejectRequest() {
-                return false;
-            }
-        }, Executors.newCachedThreadPool());
-
-        remotingServer.start();
-
-
-        remotingServer.registerDefaultProcessor(new DefaultRequestProcessor(), Executors.newCachedThreadPool());
+        remotingServer.registerDefaultProcessor(new DefaultRequestProcessor(), remotingExecutor);
         return true;
+    }
+
+    public void start() {
+        this.remotingServer.start();
     }
 
     public void shutdown() {
         this.remotingServer.shutdown();
+        this.remotingExecutor.shutdown();
+
     }
 
     public class DefaultRequestProcessor extends AsyncNettyRequestProcessor implements NettyRequestProcessor {

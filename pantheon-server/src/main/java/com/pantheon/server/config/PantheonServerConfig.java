@@ -3,25 +3,27 @@ package com.pantheon.server.config;
 /**
  * @author Anthony
  * @create 2021/11/17
- * @desc  Configuration information required by the Pantheon Server to operate.
+ * @desc Configuration information required by the Pantheon Server to operate.
  **/
 public interface PantheonServerConfig {
-
     String getDataDir();
 
-    String getControllerCandidateServers();
+    Boolean isControllerCandidate();
 
-    int getHeartBeatInterval();
+    Integer getNodeId();
 
     String getNodeIp();
 
-    int getNodeId();
+    Integer getNodeInternTcpPort();
 
-    int getNodeInternTcpPort();
+    Integer getNodeClientHttpPort();
 
-    int getNodeClientTcpPort();
+    Integer getNodeClientTcpPort();
 
-    boolean isControllerCandidate();
+    Integer getClusterNodeCount();
 
-    int getClusterNodeCount();
+    String getControllerCandidateServers();
+
+    int getHeartBeatCheckInterval();
+
 }

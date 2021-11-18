@@ -1,13 +1,16 @@
 package com.pantheon.server.config;
 
+import com.pantheon.common.ObjectUtils;
 import com.pantheon.server.ServerBootstrap;
 import com.netflix.config.ConfigurationManager;
 import com.netflix.config.DynamicPropertyFactory;
 import com.netflix.config.DynamicStringProperty;
+import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.util.regex.Pattern;
 
 /**
  * @author Anthony
@@ -28,7 +31,6 @@ import java.io.IOException;
  * to <em>pantheon-server.properties</em>.
  * </p>
  * <p>
- * todo accomplish all of the config & client config
  * todo verify how to add config in application。properties
  **/
 public class DefaultPantheonServerConfig implements PantheonServerConfig {
@@ -42,23 +44,45 @@ public class DefaultPantheonServerConfig implements PantheonServerConfig {
             .getInstance().getStringProperty("pantheon.server.props",
                     "pantheon-server");
     private String namespace = "pantheon.";
-    private static final int DEFAULT_HEARTBEAT_INTERVAL = 30;
-    private static final int DEFAULT_CLIENT_TCP_PORT = 9576;
-    private static final int DEFAULT_NODE_INTERN_TCP_PORT = 9577;
-    private static final int DEFAULT_NODE_ID = 1;
-    private static final int DEFAULT_CLUSTER_NODE_COUNT = 1;
 
 
-    public DefaultPantheonServerConfig() {
-        init();
+    private final String CONFIG_KEY_NODE_ID = namespace + "nodeId";
+    private final String CONFIG_KEY_NODE_IP = namespace + "nodeIp";
+    private final String CONFIG_KEY_INTERN_TCP_PORT = namespace + "nodeInternTcpPort";
+    private final String CONFIG_KEY_NODE_CLIENT_HTTP_PORT = namespace + "nodeClientHttpPort";
+    private final String CONFIG_KEY_CLIENT_TCP_PORT = namespace + "nodeClientTcpPort";
+    private final String CONFIG_KEY_CONTROLLER_CANDIDATE = namespace + "isControllerCandidate";
+    private final String CONFIG_KEY_DATA_DIR = namespace + "dataDir";
+    private final String CONFIG_KEY_CLUSTER_NODE_COUNT = namespace + "clusterNodeCount";
+    private final String CONFIG_KEY_CONTROLLER_CANDIDATE_SERVERS = namespace + "controllerCandidateServers";
+    private final String CONFIG_KEY_HEART_CHECK_INTERVAL = namespace + "heartbeatCheckInterval";
+    private final String CONFIG_KEY_Heart_TIMEOUT_PERIOD = namespace + "heartbeatTimeoutPeriod";
+
+
+    public static final Integer DEFAULT_HEARTBEAT_CHECK_INTERVAL = 3;
+    public static final Integer DEFAULT_HEARTBEAT_TIMEOUT_PERIOD = 5;
+
+
+    private static class Singleton {
+        static DefaultPantheonServerConfig instance = new DefaultPantheonServerConfig();
+    }
+
+    public static DefaultPantheonServerConfig getInstance() {
+        return Singleton.instance;
+    }
+
+    private DefaultPantheonServerConfig() {
+        initConfig();
+        validateConfig();
     }
 
     public DefaultPantheonServerConfig(String namespace) {
         this.namespace = namespace;
-        init();
+        initConfig();
+        validateConfig();
     }
 
-    private void init() {
+    private void initConfig() {
         String env = ConfigurationManager.getConfigInstance().getString(
                 PANTHEON_ENVIRONMENT, TEST);
         ConfigurationManager.getConfigInstance().setProperty(
@@ -74,12 +98,158 @@ public class DefaultPantheonServerConfig implements PantheonServerConfig {
                             + "specific properties or the configuration is installed with a different mechanism.",
                     propsFile);
         }
+    }
 
+    public void validateConfig() {
+        validateNodeId(getNodeId());
+        validateNodeIp(getNodeIp());
+        validateNodeInternTcpPort(getNodeInternTcpPort());
+        validateNodeClientHttpPort(getNodeClientHttpPort());
+        validateNodeClientTcpPort(getNodeClientTcpPort());
+        validateIsControllerCandidate(isControllerCandidate());
+        validateClusterNodeCount(getClusterNodeCount());
+        validateDataDir(getDataDir());
+        validateControllerCandidateServers(getControllerCandidateServers());
+    }
+
+    /**
+     * 校验节点id参数
+     *
+     * @param nodeId
+     * @return
+     */
+    private boolean validateNodeId(Integer nodeId) {
+        if (ObjectUtils.isEmpty(nodeId)) {
+            throw new IllegalArgumentException("node.id cannot be empty！！！");
+        }
+        return true;
+    }
+
+
+    /**
+     * validate ip address
+     *
+     * @param nodeIp
+     * @return
+     * @throws IllegalArgumentException
+     */
+    private Boolean validateNodeIp(String nodeIp) throws IllegalArgumentException {
+        if (StringUtils.isEmpty(nodeIp)) {
+            throw new IllegalArgumentException("node.ip cannot be empty！！！");
+        }
+
+        final String regex = "(\\d+\\.\\d+\\.\\d+\\.\\d+)";
+        Boolean isMatch = Pattern.matches(regex, nodeIp);
+        if (!isMatch) {
+            throw new IllegalArgumentException("node.ip format is incorrect！！！");
+        }
+
+        return true;
+    }
+
+    /**
+     * validate the tcp port to communicate with intern
+     *
+     * @return
+     */
+    private boolean validateNodeInternTcpPort(Integer nodeInternTcpPort) {
+        if (ObjectUtils.isEmpty(nodeInternTcpPort)) {
+            throw new IllegalArgumentException("node.intern.tcp.port cannot be empty！！！");
+        }
+
+        return true;
+    }
+
+    /**
+     * validate the port to communicate with client
+     *
+     * @return
+     */
+    private boolean validateNodeClientHttpPort(Integer nodeClientHttpPort) {
+        if (ObjectUtils.isEmpty(nodeClientHttpPort)) {
+            throw new IllegalArgumentException("node.client.http.port cannot be empty！！！");
+        }
+
+        return true;
+    }
+
+    /**
+     * validate the tcp port to communicate with client
+     *
+     * @return
+     */
+    private boolean validateNodeClientTcpPort(Integer nodeClientTcpPort) {
+        if (ObjectUtils.isEmpty(nodeClientTcpPort)) {
+            throw new IllegalArgumentException("node.client.tcp.port cannot be empty！！！");
+        }
+
+        return true;
+    }
+
+    /**
+     * whether controller candidate
+     *
+     * @param isControllerCandidate
+     * @return
+     */
+    private boolean validateIsControllerCandidate(Boolean isControllerCandidate) {
+        if (ObjectUtils.isEmpty(isControllerCandidate)) {
+            throw new IllegalArgumentException("is.controller.candidate cannot be empty ！！！");
+        }
+        return true;
+    }
+
+
+    /**
+     * validate the cluster node count, for controller node，cluster node count cannot be empty
+     *
+     * @param clusterNodesCount
+     * @return
+     */
+    private boolean validateClusterNodeCount(Integer clusterNodesCount) {
+        if (isControllerCandidate() && ObjectUtils.isEmpty(clusterNodesCount)) {
+            throw new IllegalArgumentException("for controller node，clusterNodeCount cannot be empty！！！");
+        }
+
+        return true;
+    }
+
+    /**
+     * validate data directory for saving
+     *
+     * @param dataDir
+     * @return
+     */
+    private Boolean validateDataDir(String dataDir) {
+        if (StringUtils.isEmpty(dataDir)) {
+            throw new IllegalArgumentException("data.dir cannot be empty......");
+        }
+        return true;
+    }
+
+
+    private Boolean validateControllerCandidateServers(String controllerCandidateServers) throws IllegalArgumentException {
+        if (StringUtils.isEmpty(controllerCandidateServers)) {
+            throw new IllegalArgumentException("controller.candidate.servers cannot be empty！！！");
+        }
+
+        String[] controllerCandidateServersSplited = controllerCandidateServers.split(",");
+
+        final String regex = "(\\d+\\.\\d+\\.\\d+\\.\\d+):(\\d+)";
+
+        for (String controllerCandidateServer : controllerCandidateServersSplited) {
+            Boolean isMatch = Pattern.matches(regex, controllerCandidateServer);
+            if (!isMatch) {
+                throw new IllegalArgumentException("controller.candidate.servers format is incorrect！！！");
+            }
+        }
+
+        return true;
     }
 
     @Override
     public String getDataDir() {
-        String dataDir = configInstance.getStringProperty(namespace + "dataDir", "/").get();
+        String dataDir = configInstance.getStringProperty(CONFIG_KEY_DATA_DIR, "/").get();
         if (null != dataDir) {
             return dataDir.trim();
         } else {
@@ -87,25 +257,22 @@ public class DefaultPantheonServerConfig implements PantheonServerConfig {
         }
     }
 
+
     @Override
-    public String getControllerCandidateServers() {
-        String servers = configInstance.getStringProperty(namespace + "controllerCandidateServers", "/").get();
-        if (null != servers) {
-            return servers.trim();
-        } else {
-            return null;
-        }
+    public Integer getNodeId() {
+        return configInstance.getIntProperty(
+                CONFIG_KEY_NODE_ID, 0).get();
     }
 
     @Override
-    public int getHeartBeatInterval() {
+    public int getHeartBeatCheckInterval() {
         return configInstance.getIntProperty(
-                namespace + "heartBeatInterval", DEFAULT_HEARTBEAT_INTERVAL).get();
+                CONFIG_KEY_HEART_CHECK_INTERVAL, DEFAULT_HEARTBEAT_CHECK_INTERVAL).get();
     }
 
     @Override
     public String getNodeIp() {
-        String nodeIp = configInstance.getStringProperty(namespace + "nodeIp", null).get();
+        String nodeIp = configInstance.getStringProperty(CONFIG_KEY_NODE_IP, null).get();
         if (null != nodeIp) {
             return nodeIp.trim();
         } else {
@@ -114,35 +281,38 @@ public class DefaultPantheonServerConfig implements PantheonServerConfig {
     }
 
     @Override
-    public int getNodeId() {
+    public Integer getNodeInternTcpPort() {
         return configInstance.getIntProperty(
-                namespace + "nodeId", DEFAULT_NODE_ID).get();
-    }
-    @Override
-    public int getNodeInternTcpPort() {
-        return configInstance.getIntProperty(
-                namespace + "nodeInternTcpPort", DEFAULT_NODE_INTERN_TCP_PORT).get();
-    }
-
-
-    @Override
-    public int getNodeClientTcpPort() {
-        return configInstance.getIntProperty(
-                namespace + "clientTcpPort", DEFAULT_CLIENT_TCP_PORT).get();
+                CONFIG_KEY_INTERN_TCP_PORT, 0).get();
     }
 
     @Override
-    public boolean isControllerCandidate() {
-        configInstance.getBooleanProperty(namespace + "isControllerCandidate", false).get();
-        return false;
+    public Integer getNodeClientTcpPort() {
+        return configInstance.getIntProperty(
+                CONFIG_KEY_CLIENT_TCP_PORT, 0).get();
     }
 
     @Override
-    public int getClusterNodeCount() {
-        return configInstance.getIntProperty(
-                namespace + "clusterNodeCount", DEFAULT_CLUSTER_NODE_COUNT).get();
+    public Boolean isControllerCandidate() {
+        return configInstance.getBooleanProperty(CONFIG_KEY_CONTROLLER_CANDIDATE, false).get();
     }
 
+    @Override
+    public Integer getClusterNodeCount() {
+        return configInstance.getIntProperty(
+                CONFIG_KEY_CLUSTER_NODE_COUNT, 0).get();
+    }
+
+    @Override
+    public Integer getNodeClientHttpPort() {
+        return configInstance.getIntProperty(
+                CONFIG_KEY_NODE_CLIENT_HTTP_PORT, 0).get();
+    }
+
+    @Override
+    public String getControllerCandidateServers() {
+        return configInstance.getStringProperty(CONFIG_KEY_CONTROLLER_CANDIDATE_SERVERS, null).get();
+    }
 }
 
 

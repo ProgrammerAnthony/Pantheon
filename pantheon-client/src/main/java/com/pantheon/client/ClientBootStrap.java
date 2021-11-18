@@ -83,7 +83,7 @@ public class ClientBootStrap {
         requestHeader.setCount(1);
         requestHeader.setMessageTitle("Welcome");
         RemotingCommand request = RemotingCommand.createRequestCommand(0, requestHeader);
-        RemotingCommand response = remotingClient.invokeSync("localhost:9983", request, 1000 * 3);
+        RemotingCommand response = remotingClient.invokeSync("localhost:9991", request, 1000 * 3);
         System.out.println(response);
     }
 
@@ -93,7 +93,7 @@ public class ClientBootStrap {
 
         RemotingCommand request = RemotingCommand.createRequestCommand(0, null);
         request.setRemark("messi");
-        remotingClient.invokeOneway("localhost:9983", request, 1000 * 3);
+        remotingClient.invokeOneway("localhost:9991", request, 1000 * 3);
     }
 
 
@@ -103,7 +103,7 @@ public class ClientBootStrap {
         final CountDownLatch latch = new CountDownLatch(1);
         RemotingCommand request = RemotingCommand.createRequestCommand(0, null);
         request.setRemark("messi");
-        remotingClient.invokeAsync("localhost:9983", request, 1000 * 3, new InvokeCallback() {
+        remotingClient.invokeAsync("localhost:9991", request, 1000 * 3, new InvokeCallback() {
             @Override
             public void operationComplete(ResponseFuture responseFuture) {
                 latch.countDown();
