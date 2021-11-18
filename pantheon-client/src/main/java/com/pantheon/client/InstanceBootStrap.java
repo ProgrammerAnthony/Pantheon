@@ -1,6 +1,7 @@
 package com.pantheon.client;
 
-import com.pantheon.client.config.PropertiesInstanceConfig;
+import com.pantheon.client.config.DefaultInstanceConfig;
+import com.pantheon.common.ShutdownHookThread;
 import com.pantheon.remoting.ChannelEventListener;
 import com.pantheon.remoting.CommandCustomHeader;
 import com.pantheon.remoting.InvokeCallback;
@@ -9,71 +10,50 @@ import com.pantheon.remoting.annotation.CFNullable;
 import com.pantheon.remoting.exception.*;
 import com.pantheon.remoting.netty.NettyClientConfig;
 import com.pantheon.remoting.netty.NettyRemotingClient;
+import com.pantheon.remoting.netty.NettyServerConfig;
 import com.pantheon.remoting.netty.ResponseFuture;
-import com.pantheon.remoting.protocol.LanguageCode;
 import com.pantheon.remoting.protocol.RemotingCommand;
 import io.netty.channel.Channel;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.time.Instant;
+import java.util.concurrent.Callable;
 import java.util.concurrent.CountDownLatch;
 
 /**
  * @author Anthony
  * @create 2021/11/17
  * @desc
+ * todo how to get server address？？？
  **/
-public class ClientBootStrap {
-    private static final Logger logger = LoggerFactory.getLogger(ClientBootStrap.class);
+public class InstanceBootStrap {
+    private static final Logger logger = LoggerFactory.getLogger(InstanceBootStrap.class);
 
     static RemotingClient remotingClient;
 
     public static void main(String[] args) {
-        initClientConfig();
-        startClientNode();
+        logger.info("InstanceBootStrap initializing......");
+        DefaultInstanceConfig instanceConfig = DefaultInstanceConfig.getInstance();
+        NettyClientConfig nettyClientConfig = new NettyClientConfig();
+        InstanceController instanceController = new InstanceController(nettyClientConfig, instanceConfig);
+        startClientNode(instanceController);
     }
 
-
-    private static void initClientConfig() {
-        PropertiesInstanceConfig propertiesInstanceConfig = new PropertiesInstanceConfig();
-
-    }
-
-    private static void startClientNode() {
-        NettyClientConfig nettyClientConfig =new NettyClientConfig();
-        remotingClient = new NettyRemotingClient(new NettyClientConfig(), new ChannelEventListener() {
-            @Override
-            public void onChannelConnect(String remoteAddr, Channel channel) {
-                logger.info("onChannelConnect");
-            }
-
-            @Override
-            public void onChannelClose(String remoteAddr, Channel channel) {
-                logger.info("onChannelClose");
-            }
-
-            @Override
-            public void onChannelException(String remoteAddr, Channel channel) {
-                logger.info("onChannelException");
-            }
-
-            @Override
-            public void onChannelIdle(String remoteAddr, Channel channel) {
-                logger.info("onChannelIdle");
-            }
-        });
-        remotingClient.start();
-        try {
-            testInvokeSync();
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        } catch (RemotingConnectException e) {
-            e.printStackTrace();
-        } catch (RemotingSendRequestException e) {
-            e.printStackTrace();
-        } catch (RemotingTimeoutException e) {
-            e.printStackTrace();
+    private static InstanceController startClientNode(InstanceController instanceController) {
+        boolean initResult = instanceController.initialize();
+        if (!initResult) {
+            instanceController.shutdown();
+            System.exit(-3);
         }
+        Runtime.getRuntime().addShutdownHook(new ShutdownHookThread(logger, (Callable<Void>) () -> {
+            instanceController.shutdown();
+            return null;
+        }));
+        //start netty
+        instanceController.start();
+
+        return instanceController;
     }
 
 
@@ -114,7 +94,7 @@ public class ClientBootStrap {
     }
 
 
-   static class RequestHeader implements CommandCustomHeader {
+    static class RequestHeader implements CommandCustomHeader {
         @CFNullable
         private Integer count;
 

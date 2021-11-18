@@ -34,9 +34,9 @@ import java.util.concurrent.ExecutorService;
  **/
 public interface RemotingClient extends RemotingService {
 
-    void updateNameServerAddressList(final List<String> addrs);
+    void updateServerAddressList(final List<String> addrs);
 
-    List<String> getNameServerAddressList();
+    List<String> getServerAddressList();
 
     RemotingCommand invokeSync(final String addr, final RemotingCommand request,
                                final long timeoutMillis) throws InterruptedException, RemotingConnectException,

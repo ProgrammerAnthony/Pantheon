@@ -22,7 +22,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 /**
  * @author Anthony
  * @create 2021/11/17
- * @desc request and response command which include encode and decode process
+ * @desc Netty message wrapper for request and response command which include encode and decode process
  * protocol ：<length><header length><header data><body data>
  * 1，4 bytes total length
  * 2，4 bytes head length

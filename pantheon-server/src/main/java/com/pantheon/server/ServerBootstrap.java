@@ -22,11 +22,12 @@ public class ServerBootstrap {
     private static final String TEST = "test";
 
     public static void main(String[] args) {
-        logger.info("ServerBootstrap initializing");
+        logger.info("ServerBootstrap initializing......");
         PantheonServerConfig serverConfig = DefaultPantheonServerConfig.getInstance();
         initPantheonEnvironment();
         NettyServerConfig nettyServerConfig = new NettyServerConfig();
-        start(new ServerController(serverConfig, nettyServerConfig));
+        ServerController serverController = new ServerController(serverConfig, nettyServerConfig);
+        start(serverController);
     }
 
     private static ServerController start(ServerController serverController) {
@@ -54,12 +55,12 @@ public class ServerBootstrap {
      * Users can override to initialize the environment themselves.
      */
     protected static void initPantheonEnvironment() {
-        logger.info("Setting the Pantheon configuration..");
         String environment = ConfigurationManager.getConfigInstance().getString(PANTHEON_ENVIRONMENT);
         if (environment == null) {
             //default test environment
             ConfigurationManager.getConfigInstance().setProperty(ARCHAIUS_DEPLOYMENT_ENVIRONMENT, TEST);
-            logger.info("Pantheon environment value pantheon.environment is not set, defaulting to test");
+            logger.info(PANTHEON_ENVIRONMENT + " value is not set, defaulting to test");
         }
+        logger.info("Setting the Pantheon configuration withe environment " + environment);
     }
 }
