@@ -2,22 +2,17 @@ package com.pantheon.client;
 
 import com.pantheon.client.config.DefaultInstanceConfig;
 import com.pantheon.common.ShutdownHookThread;
-import com.pantheon.remoting.ChannelEventListener;
 import com.pantheon.remoting.CommandCustomHeader;
 import com.pantheon.remoting.InvokeCallback;
 import com.pantheon.remoting.RemotingClient;
 import com.pantheon.remoting.annotation.CFNullable;
 import com.pantheon.remoting.exception.*;
 import com.pantheon.remoting.netty.NettyClientConfig;
-import com.pantheon.remoting.netty.NettyRemotingClient;
-import com.pantheon.remoting.netty.NettyServerConfig;
 import com.pantheon.remoting.netty.ResponseFuture;
 import com.pantheon.remoting.protocol.RemotingCommand;
-import io.netty.channel.Channel;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.time.Instant;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CountDownLatch;
 
@@ -51,10 +46,11 @@ public class InstanceBootStrap {
             return null;
         }));
         //start netty
-        instanceController.start();
+//        instanceController.initia();
 
         return instanceController;
     }
+
 
 
     public static void testInvokeSync() throws InterruptedException, RemotingConnectException,

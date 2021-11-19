@@ -18,6 +18,8 @@ import io.netty.bootstrap.ServerBootstrap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.List;
+import java.util.Random;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -36,6 +38,8 @@ public class InstanceController {
     private final ScheduledExecutorService scheduledExecutorService = Executors.newSingleThreadScheduledExecutor(new ThreadFactoryImpl(
             "InstanceControllerScheduledThread"));
     private static final Logger logger = LoggerFactory.getLogger(ServerBootstrap.class);
+    private String excludedRemoteAddress;
+    private Server server;
 
     public InstanceController(NettyClientConfig nettyClientConfig, DefaultInstanceConfig instanceConfig) {
         this.nettyClientConfig = nettyClientConfig;
@@ -46,28 +50,78 @@ public class InstanceController {
         remotingClient = new NettyRemotingClient(nettyClientConfig);
         this.remotingExecutor =
                 Executors.newFixedThreadPool(nettyClientConfig.getClientWorkerThreads(), new ThreadFactoryImpl("RemotingExecutorThread_"));
+        String controllerCandidate = chooseControllerCandidate();
+        this.remotingClient.start();
+        server = new Server(controllerCandidate.split(":")[0], Integer.valueOf(controllerCandidate.split(":")[1]));
+        Integer nodeId = fetchServerNodeId(server);
+        server.setId(nodeId);
+        fetchSlotsAllocation(server);
+        fetchServerAddresses(server);
+        String serviceName = instanceConfig.getServiceName();
+        this.server=routeServer(serviceName);
+//        if(nodeId.equals(serviceName.))
         return true;
     }
 
-    public void start() {
-        this.remotingClient.start();
-        try {
-            invokeSync();
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        } catch (RemotingConnectException e) {
-            e.printStackTrace();
-        } catch (RemotingSendRequestException e) {
-            e.printStackTrace();
-        } catch (RemotingTimeoutException e) {
-            e.printStackTrace();
-        }
+    private Server routeServer(String serviceName) {
+        return null;
     }
+
+    /**
+     * fetch server node id
+     *
+     * @param controllerCandidate
+     * @return
+     */
+    private Integer fetchServerNodeId(Server controllerCandidate) {
+        return null;
+    }
+
+    /**
+     * fetch slots allocation
+     *
+     * @param controllerCandidate
+     */
+    private void fetchSlotsAllocation(Server controllerCandidate) {
+        return;
+    }
+
+    /**
+     * fetch server addresses
+     *
+     * @param controllerCandidate
+     */
+    private void fetchServerAddresses(Server controllerCandidate) {
+        return;
+    }
+
 
     public void shutdown() {
         this.remotingClient.shutdown();
         this.remotingExecutor.shutdown();
 
+    }
+
+    public String chooseControllerCandidate() {
+        List<String> serverList = instanceConfig.getServerList();
+        Random random = new Random();
+        boolean chosen = false;
+        while (!chosen) {
+            int index = random.nextInt(serverList.size());
+            String serverAddress = serverList.get(index);
+
+            if (excludedRemoteAddress == null) {
+                return serverAddress;
+            } else {
+                if (serverAddress.equals(excludedRemoteAddress)) {
+                    continue;
+                } else {
+                    return serverAddress;
+                }
+            }
+        }
+
+        return null;
     }
 
     public void invokeSync() throws InterruptedException, RemotingConnectException,

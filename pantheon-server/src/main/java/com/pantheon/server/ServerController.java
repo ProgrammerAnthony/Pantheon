@@ -20,6 +20,12 @@ import java.util.concurrent.ScheduledExecutorService;
  * @author Anthony
  * @create 2021/11/18
  * @desc
+ * 1 todo build BIO for server inside communication
+ * 2 todo rethink and build the mechanism of client and server RocketMq
+ * 3 todo build heartbeat mechanism of client and server
+ * 4 todo design the message protocol
+ * 5 todo design slots mechanism and treat it as topic in RocketMq
+ *
  **/
 public class ServerController {
     private NettyServerConfig nettyServerConfig;
