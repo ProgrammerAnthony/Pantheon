@@ -1,7 +1,9 @@
 package com.pantheon.server;
 
 import com.netflix.config.ConfigurationManager;
+import com.pantheon.common.ServiceState;
 import com.pantheon.common.ShutdownHookThread;
+import com.pantheon.common.exception.InitException;
 import com.pantheon.remoting.netty.NettyServerConfig;
 import com.pantheon.server.config.DefaultPantheonServerConfig;
 import com.pantheon.server.config.PantheonServerConfig;
@@ -21,6 +23,7 @@ public class ServerBootstrap {
     private static final String ARCHAIUS_DEPLOYMENT_ENVIRONMENT = "archaius.deployment.environment";
     private static final String TEST = "test";
 
+
     public static void main(String[] args) {
         logger.info("ServerBootstrap initializing......");
         PantheonServerConfig serverConfig = DefaultPantheonServerConfig.getInstance();
@@ -31,6 +34,7 @@ public class ServerBootstrap {
     }
 
     private static ServerController start(ServerController serverController) {
+
         boolean initResult = serverController.initialize();
         if (!initResult) {
             serverController.shutdown();
@@ -40,9 +44,6 @@ public class ServerBootstrap {
             serverController.shutdown();
             return null;
         }));
-        //start netty
-        serverController.start();
-
         return serverController;
     }
 

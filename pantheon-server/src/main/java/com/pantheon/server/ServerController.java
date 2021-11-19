@@ -1,7 +1,9 @@
 package com.pantheon.server;
 
 import com.pantheon.common.RequestCode;
+import com.pantheon.common.ServiceState;
 import com.pantheon.common.ThreadFactoryImpl;
+import com.pantheon.common.exception.InitException;
 import com.pantheon.common.protocol.ResponseCode;
 import com.pantheon.common.protocol.header.GetServerNodeIdRequestHeader;
 import com.pantheon.common.protocol.header.GetServerNodeIdResponseHeader;
@@ -22,6 +24,8 @@ import org.slf4j.LoggerFactory;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ThreadFactory;
+import java.util.concurrent.TimeUnit;
 
 /**
  * @author Anthony
@@ -40,6 +44,7 @@ public class ServerController {
     private final ScheduledExecutorService scheduledExecutorService = Executors.newSingleThreadScheduledExecutor(new ThreadFactoryImpl(
             "ServerControllerScheduledThread"));
     private static final Logger logger = LoggerFactory.getLogger(ServerBootstrap.class);
+    private ServiceState serviceState = ServiceState.CREATE_JUST;
 
     public ServerController(PantheonServerConfig serverConfig, NettyServerConfig nettyServerConfig) {
         this.nettyServerConfig = nettyServerConfig;
@@ -47,23 +52,66 @@ public class ServerController {
     }
 
     public boolean initialize() {
-        //bind to nodeClientTcpPort
-        nettyServerConfig.setListenPort(serverConfig.getNodeClientTcpPort());
-        remotingServer = new NettyRemotingServer(nettyServerConfig);
-        this.remotingExecutor =
-                Executors.newFixedThreadPool(nettyServerConfig.getServerWorkerThreads(), new ThreadFactoryImpl("RemotingExecutorThread_"));
-
-        remotingServer.registerDefaultProcessor(new ServerNodeProcessor(this), remotingExecutor);
+        synchronized (ServerController.class) {
+            switch (serviceState) {
+                case CREATE_JUST:
+                    serviceState = ServiceState.START_FAILED;
+                    nettyServerConfig.setListenPort(serverConfig.getNodeClientTcpPort());
+                    remotingServer = new NettyRemotingServer(nettyServerConfig);
+                    this.remotingExecutor =
+                            Executors.newFixedThreadPool(nettyServerConfig.getServerWorkerThreads(), new ThreadFactoryImpl("RemotingExecutorThread_"));
+                    remotingServer.registerDefaultProcessor(new ServerNodeProcessor(this), remotingExecutor);
+                    remotingServer.start();
+                    this.startScheduledTask();
+                    serviceState = ServiceState.RUNNING;
+                    break;
+                case START_FAILED:
+                    throw new InitException("ServerBootstrap failed to initialize ");
+                default:
+                    break;
+            }
+        }
         return true;
     }
 
-    public void start() {
-        this.remotingServer.start();
+    private void startScheduledTask() {
+
+        //heartbeat check with connected instances，remove expired ones
+        this.scheduledExecutorService.scheduleAtFixedRate(new Runnable() {
+
+            @Override
+            public void run() {
+                try {
+                    ServerController.this.heartBeatCheck();
+                } catch (Exception e) {
+                    logger.error("ScheduledTask heartBeatCheck exception", e);
+                }
+            }
+        }, 5000, serverConfig.getHeartBeatCheckInterval(), TimeUnit.MILLISECONDS);
     }
 
+
+    private void heartBeatCheck() {
+
+    }
+
+
     public void shutdown() {
-        this.remotingServer.shutdown();
-        this.remotingExecutor.shutdown();
+        synchronized (this) {
+            switch (this.serviceState) {
+                case CREATE_JUST:
+                    break;
+                case RUNNING:
+                    this.remotingServer.shutdown();
+                    this.remotingExecutor.shutdown();
+                    logger.info("the server controller shutdown OK");
+                    break;
+                case SHUTDOWN_ALREADY:
+                    break;
+                default:
+                    break;
+            }
+        }
     }
 
     public PantheonServerConfig getServerConfig() {
