@@ -56,7 +56,7 @@ public class DefaultPantheonServerConfig implements PantheonServerConfig {
     final String CONFIG_KEY_CLUSTER_NODE_COUNT = namespace + "clusterNodeCount";
     final String CONFIG_KEY_CONTROLLER_CANDIDATE_SERVERS = namespace + "controllerCandidateServers";
     final String CONFIG_KEY_HEART_CHECK_INTERVAL = namespace + "heartbeatCheckInterval";
-    final String CONFIG_KEY_Heart_TIMEOUT_PERIOD = namespace + "heartbeatTimeoutPeriod";
+    final String CONFIG_KEY_HEART_TIMEOUT_PERIOD = namespace + "heartbeatTimeoutPeriod";
 
 
     public static final Integer DEFAULT_HEARTBEAT_CHECK_INTERVAL = 3;

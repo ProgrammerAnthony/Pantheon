@@ -1,7 +1,11 @@
 package com.pantheon.client;
 
 import com.pantheon.client.config.DefaultInstanceConfig;
+import com.pantheon.common.RequestCode;
 import com.pantheon.common.ThreadFactoryImpl;
+import com.pantheon.common.protocol.ResponseCode;
+import com.pantheon.common.protocol.header.GetServerNodeIdRequestHeader;
+import com.pantheon.common.protocol.header.GetServerNodeIdResponseHeader;
 import com.pantheon.remoting.CommandCustomHeader;
 import com.pantheon.remoting.InvokeCallback;
 import com.pantheon.remoting.annotation.CFNullable;
@@ -52,14 +56,27 @@ public class InstanceController {
                 Executors.newFixedThreadPool(nettyClientConfig.getClientWorkerThreads(), new ThreadFactoryImpl("RemotingExecutorThread_"));
         String controllerCandidate = chooseControllerCandidate();
         this.remotingClient.start();
-        server = new Server(controllerCandidate.split(":")[0], Integer.valueOf(controllerCandidate.split(":")[1]));
-        Integer nodeId = fetchServerNodeId(server);
-        server.setId(nodeId);
-        fetchSlotsAllocation(server);
-        fetchServerAddresses(server);
-        String serviceName = instanceConfig.getServiceName();
-        this.server=routeServer(serviceName);
+//        server = new Server(controllerCandidate.split(":")[0], Integer.valueOf(controllerCandidate.split(":")[1]));
+        Integer nodeId = null;
+        try {
+            nodeId = fetchServerNodeId(controllerCandidate, 30000);
+//            server.setId(nodeId);
+            fetchSlotsAllocation(server);
+            fetchServerAddresses(server);
+            String serviceName = instanceConfig.getServiceName();
+            this.server = routeServer(serviceName);
 //        if(nodeId.equals(serviceName.))
+        } catch (RemotingConnectException e) {
+            e.printStackTrace();
+        } catch (RemotingSendRequestException e) {
+            e.printStackTrace();
+        } catch (RemotingTimeoutException e) {
+            e.printStackTrace();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        } catch (RemotingCommandException e) {
+            e.printStackTrace();
+        }
         return true;
     }
 
@@ -70,10 +87,23 @@ public class InstanceController {
     /**
      * fetch server node id
      *
-     * @param controllerCandidate
+     * @param controllerCandidate server address
      * @return
      */
-    private Integer fetchServerNodeId(Server controllerCandidate) {
+    private Integer fetchServerNodeId(String controllerCandidate, final long timoutMills) throws RemotingConnectException, RemotingSendRequestException, RemotingTimeoutException, InterruptedException, RemotingCommandException {
+        GetServerNodeIdRequestHeader requestHeader =new GetServerNodeIdRequestHeader();
+        RemotingCommand request = RemotingCommand.createRequestCommand(RequestCode.GET_SERVER_NODE_ID, requestHeader);
+        RemotingCommand response = this.remotingClient.invokeSync(controllerCandidate, request, timoutMills);
+        assert response != null;
+        switch (response.getCode()) {
+            case ResponseCode.SUCCESS: {
+                GetServerNodeIdResponseHeader responseHeader =
+                        (GetServerNodeIdResponseHeader) response.decodeCommandCustomHeader(GetServerNodeIdResponseHeader.class);
+                return responseHeader.getServerNodeId();
+            }
+            default:
+                break;
+        }
         return null;
     }
 
