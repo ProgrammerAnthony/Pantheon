@@ -10,6 +10,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.regex.Pattern;
 
 /**
@@ -33,7 +35,7 @@ import java.util.regex.Pattern;
  * <p>
  * todo verify how to add config in application。properties
  **/
-public class DefaultPantheonServerConfig implements PantheonServerConfig {
+public class ArchaiusPantheonServerConfig implements PantheonServerConfig {
     private static final Logger logger = LoggerFactory.getLogger(ServerBootstrap.class);
     private static final String TEST = "test";
     private static final String PANTHEON_ENVIRONMENT = "pantheon.environment";
@@ -63,20 +65,13 @@ public class DefaultPantheonServerConfig implements PantheonServerConfig {
     public static final Integer DEFAULT_HEARTBEAT_TIMEOUT_PERIOD = 5;
 
 
-    private static class Singleton {
-        static DefaultPantheonServerConfig instance = new DefaultPantheonServerConfig();
-    }
 
-    public static DefaultPantheonServerConfig getInstance() {
-        return Singleton.instance;
-    }
-
-    private DefaultPantheonServerConfig() {
+    public ArchaiusPantheonServerConfig() {
         initConfig();
         validateConfig();
     }
 
-    public DefaultPantheonServerConfig(String namespace) {
+    public ArchaiusPantheonServerConfig(String namespace) {
         this.namespace = namespace;
         initConfig();
         validateConfig();
@@ -265,10 +260,17 @@ public class DefaultPantheonServerConfig implements PantheonServerConfig {
     }
 
     @Override
-    public int getHeartBeatCheckInterval() {
+    public Integer getHeartBeatCheckInterval() {
         return configInstance.getIntProperty(
                 CONFIG_KEY_HEART_CHECK_INTERVAL, DEFAULT_HEARTBEAT_CHECK_INTERVAL).get();
     }
+
+    //todo get timeout interval
+    public Integer getHeartbeatTimeoutPeriod() {
+        return configInstance.getIntProperty(
+                CONFIG_KEY_HEART_CHECK_INTERVAL, DEFAULT_HEARTBEAT_CHECK_INTERVAL).get();
+    }
+
 
     @Override
     public String getNodeIp() {
@@ -313,6 +315,8 @@ public class DefaultPantheonServerConfig implements PantheonServerConfig {
     public String getControllerCandidateServers() {
         return configInstance.getStringProperty(CONFIG_KEY_CONTROLLER_CANDIDATE_SERVERS, null).get();
     }
+
+
 }
 
 

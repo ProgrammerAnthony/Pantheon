@@ -1,11 +1,10 @@
 package com.pantheon.server;
 
 import com.netflix.config.ConfigurationManager;
-import com.pantheon.common.ServiceState;
 import com.pantheon.common.ShutdownHookThread;
-import com.pantheon.common.exception.InitException;
 import com.pantheon.remoting.netty.NettyServerConfig;
-import com.pantheon.server.config.DefaultPantheonServerConfig;
+import com.pantheon.server.config.ArchaiusPantheonServerConfig;
+import com.pantheon.server.config.CachedPantheonServerConfig;
 import com.pantheon.server.config.PantheonServerConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -26,7 +25,7 @@ public class ServerBootstrap {
 
     public static void main(String[] args) {
         logger.info("ServerBootstrap initializing......");
-        PantheonServerConfig serverConfig = DefaultPantheonServerConfig.getInstance();
+        PantheonServerConfig serverConfig = CachedPantheonServerConfig.getInstance();
         initPantheonEnvironment();
         NettyServerConfig nettyServerConfig = new NettyServerConfig();
         ServerController serverController = new ServerController(serverConfig, nettyServerConfig);

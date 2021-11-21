@@ -1,7 +1,7 @@
 package com.pantheon.client;
 
 import com.pantheon.client.config.DefaultInstanceConfig;
-import com.pantheon.common.RequestCode;
+import com.pantheon.common.protocol.RequestCode;
 import com.pantheon.common.ThreadFactoryImpl;
 import com.pantheon.common.protocol.ResponseCode;
 import com.pantheon.common.protocol.header.GetServerNodeIdRequestHeader;
@@ -60,6 +60,7 @@ public class InstanceController {
         Integer nodeId = null;
         try {
             nodeId = fetchServerNodeId(controllerCandidate, 30000);
+            logger.info("fetchServerNodeId ");
 //            server.setId(nodeId);
             fetchSlotsAllocation(server);
             fetchServerAddresses(server);

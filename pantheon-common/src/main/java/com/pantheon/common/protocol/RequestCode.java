@@ -1,4 +1,4 @@
-package com.pantheon.common;
+package com.pantheon.common.protocol;
 
 /**
  * @author Anthony

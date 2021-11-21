@@ -24,6 +24,6 @@ public interface PantheonServerConfig {
 
     String getControllerCandidateServers();
 
-    int getHeartBeatCheckInterval();
+    Integer getHeartBeatCheckInterval();
 
 }
