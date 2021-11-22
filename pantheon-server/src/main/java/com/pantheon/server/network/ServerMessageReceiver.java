@@ -142,7 +142,7 @@ public class ServerMessageReceiver extends Thread {
 //                            RegisterRequest.deserialize(message);
 //
 //                    replicaRequestQueue.put(registerRequest);
-
+//
 //                    LOGGER.info("收到给副本转发的服务注册请求: " + registerRequest);
                 } else if (messageType == MessageType.REPLICA_HEARTBEAT) {
                     Integer messageFlag = message.getInt();

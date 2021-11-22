@@ -34,23 +34,24 @@ public class ServerNetworkManager {
     private static final Logger LOGGER = LoggerFactory.getLogger(ServerNetworkManager.class);
 
     /**
-     * 默认的主动连接的重试次数
+     * default retry connect times
+     * todo config
      */
     private static final int DEFAULT_CONNECT_RETRIES = 3;
     /**
-     * 连接超时时间
+     * default connect timeout
      */
     private static final int CONNECT_TIMEOUT = 5000;
     /**
-     * 重试连接master node的时间间隔
+     * interval for retrying connect with master
      */
     private static final long RETRY_CONNECT_MASTER_NODE_INTERVAL = 1 * 60 * 1000;
     /**
-     * 检查跟其他所有节点的连接状态的时间间隔
+     * interval for checking all other nodes connection
      */
     private static final long CHECK_ALL_OTHER_NODES_CONNECT_INTERVAL = 10 * 1000;
     /**
-     * 等待所有master节点连接过来的检查间隔
+     * interval for waiting all other master nodes connection
      */
     private static final Long ALL_MASTER_NODE_CONNECT_CHECK_INTERVAL = 100L;
 
@@ -82,12 +83,12 @@ public class ServerNetworkManager {
     private ConcurrentHashMap<Integer, IOThreadRunningSignal> ioThreadRunningSignals =
             new ConcurrentHashMap<>();
     /**
-     * 发送请求队列
+     * send messages queue
      */
     private ConcurrentHashMap<Integer/*nodeId*/, LinkedBlockingQueue<ByteBuffer>> sendQueues =
             new ConcurrentHashMap<Integer, LinkedBlockingQueue<ByteBuffer>>();
     /**
-     * 接收请求队列
+     * receive messages queue
      */
     private LinkedBlockingQueue<ByteBuffer> receiveQueue =
             new LinkedBlockingQueue<ByteBuffer>();
@@ -176,10 +177,9 @@ public class ServerNetworkManager {
 
                 startServerIOThreads(remoteServerNode.getNodeId(), socket);
                 addRemoteNodeSocket(remoteServerNode.getNodeId(), socket);
-                RemoteServerNodeManager remoteServerNodeManager = RemoteServerNodeManager.getInstance();
-                remoteServerNodeManager.addRemoteServerNode(remoteServerNode);
+                RemoteServerNodeManager.getInstance().addRemoteServerNode(remoteServerNode);
 
-                LOGGER.info("complete he connection with server node：" + remoteServerNode + "......");
+                LOGGER.info("complete the connection with server node：" + remoteServerNode + "......");
 
                 if (ServerController.isController()) {
 //                    AutoRebalanceManager autoRebalanceManager = AutoRebalanceManager.getInstance();
@@ -246,7 +246,7 @@ public class ServerNetworkManager {
     }
 
     /**
-     * 读取其他节点发送过来的信息
+     * blocking read information from other nodes
      *
      * @param socket
      * @return
@@ -276,29 +276,28 @@ public class ServerNetworkManager {
 
             return remoteServerNode;
         } catch (IOException e) {
-            LOGGER.error("从刚刚连接连接的server节点读取信息发生异常！！！", e);
+            LOGGER.error("read information from other server node exception！！！", e);
 
             try {
                 socket.close();
             } catch (IOException ex) {
-                LOGGER.error("Socket关闭异常！！！", ex);
+                LOGGER.error("Socket close exception！！！", ex);
             }
         }
         return null;
     }
 
     /**
-     * 为建立成功的连接启动IO线程
+     * background write and read thread after connecting
      *
      * @param socket
      */
     public void startServerIOThreads(Integer remoteNodeId, Socket socket) {
-        // 初始化发送请求队列
+        // init send message queue
         LinkedBlockingQueue<ByteBuffer> sendQueue =
                 new LinkedBlockingQueue<ByteBuffer>();
         sendQueues.put(remoteNodeId, sendQueue);
 
-        // 除了初始化IO线程，还应该初始化IO线程使用的队列
         IOThreadRunningSignal ioThreadRunningSignal = new IOThreadRunningSignal(true);
         ioThreadRunningSignals.put(remoteNodeId, ioThreadRunningSignal);
 
@@ -312,12 +311,7 @@ public class ServerNetworkManager {
         sendQueues.remove(remoteNodeId);
     }
 
-    /**
-     * 添加跟远程节点建立好的连接
-     *
-     * @param remoteNodeId
-     * @param socket
-     */
+
     public void addRemoteNodeSocket(Integer remoteNodeId, Socket socket) {
         this.remoteNodeSockets.put(remoteNodeId, socket);
     }

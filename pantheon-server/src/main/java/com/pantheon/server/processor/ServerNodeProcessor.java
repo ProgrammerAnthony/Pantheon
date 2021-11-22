@@ -1,6 +1,7 @@
 package com.pantheon.server.processor;
 
-import com.pantheon.common.RequestCode;
+
+import com.pantheon.common.protocol.RequestCode;
 import com.pantheon.common.protocol.ResponseCode;
 import com.pantheon.common.protocol.header.GetServerNodeIdRequestHeader;
 import com.pantheon.common.protocol.header.GetServerNodeIdResponseHeader;

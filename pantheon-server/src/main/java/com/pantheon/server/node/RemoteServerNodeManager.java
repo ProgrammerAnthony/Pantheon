@@ -24,7 +24,7 @@ public class RemoteServerNodeManager {
     /**
      * save remote server nodes
      */
-    private ConcurrentHashMap<Integer/**nodeId**/, RemoteServerNode> remoteServerNodes =
+    private ConcurrentHashMap<Integer/*nodeId*/, RemoteServerNode> remoteServerNodes =
             new ConcurrentHashMap<Integer,RemoteServerNode>();
 
 

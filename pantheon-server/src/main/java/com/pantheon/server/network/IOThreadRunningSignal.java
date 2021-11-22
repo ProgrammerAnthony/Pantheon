@@ -1,7 +1,7 @@
 package com.pantheon.server.network;
 
 /**
- * io线程运行信号量
+ * io thread running signal
  */
 public class IOThreadRunningSignal {
 
