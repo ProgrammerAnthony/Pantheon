@@ -84,7 +84,7 @@ public class ServerNetworkManager {
     /**
      * 发送请求队列
      */
-    private ConcurrentHashMap<Integer/**nodeId**/, LinkedBlockingQueue<ByteBuffer>> sendQueues =
+    private ConcurrentHashMap<Integer/*nodeId*/, LinkedBlockingQueue<ByteBuffer>> sendQueues =
             new ConcurrentHashMap<Integer, LinkedBlockingQueue<ByteBuffer>>();
     /**
      * 接收请求队列
@@ -212,11 +212,7 @@ public class ServerNetworkManager {
         return false;
     }
 
-    /**
-     * 发送自己的信息对对方节点
-     *
-     * @param socket
-     */
+
     public boolean sendSelfInformation(Socket socket) {
 
         Integer nodeId = CachedPantheonServerConfig.getInstance().getNodeId();
@@ -235,12 +231,12 @@ public class ServerNetworkManager {
             outputStream.writeBoolean(ServerController.isController());
             outputStream.flush();
         } catch (IOException e) {
-            LOGGER.error("发送本节点信息给刚建立连接的server节点，出现通信异常！！！", e);
+            LOGGER.error("exception occurs when connect with server node！！！", e);
 
             try {
                 socket.close();
             } catch (IOException ex) {
-                LOGGER.error("关闭Socket连接异常！！！", ex);
+                LOGGER.error("close socket with exception！！！", ex);
             }
 
             return false;

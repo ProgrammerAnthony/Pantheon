@@ -16,5 +16,10 @@ public enum ServiceState {
     /**
      * Service Start failure
      */
-    START_FAILED;
+    START_FAILED,
+
+    /**
+     * Service running failure
+     */
+    SERVICE_FAILED;
 }

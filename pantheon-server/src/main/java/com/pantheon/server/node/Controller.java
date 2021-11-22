@@ -25,7 +25,7 @@ public class Controller {
     private static final Logger LOGGER = LoggerFactory.getLogger(Controller.class);
 
     /**
-     * total slots count
+     * default total slots count
      */
     private static final int SLOTS_COUNT = 16384;
     /**
@@ -58,12 +58,12 @@ public class Controller {
     /**
      * slots allocation
      */
-    private ConcurrentHashMap<Integer/*nodeId*/, List<String>/*slots scope*/> slotsAllocation =
+    private ConcurrentHashMap<Integer/*nodeId*/, List<String>/*multi slots scope*/> slotsAllocation =
             new ConcurrentHashMap<Integer, List<String>>();
     /**
      * replica of slots allocation
      */
-    private ConcurrentHashMap<Integer/*nodeId*/, List<String>/*slots replica scope*/> slotsReplicaAllocation =
+    private ConcurrentHashMap<Integer/*nodeId*/, List<String>/*multi slots replica scope*/> slotsReplicaAllocation =
             new ConcurrentHashMap<>();
     /**
      * nodeId and location of my replica
@@ -76,6 +76,7 @@ public class Controller {
      * allocate all slots to master node
      */
     public void allocateSlots() {
+        //after the slots' allocation, save it to memory and disk,
         executeSlotsAllocation();
 
         executeSlotsReplicaAllocation();
@@ -93,7 +94,7 @@ public class Controller {
             return;
         }
 
-        // after the slots' allocation, save it to memory and disk, sync to other node
+        //  sync to other node
         syncSlotsAllocation();
         syncSlotsReplicaAllocation();
         syncReplicaNodeIds();

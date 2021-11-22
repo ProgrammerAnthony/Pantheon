@@ -40,10 +40,6 @@ public class ServerWriteIOThread extends Thread {
      */
     private IOThreadRunningSignal ioThreadRunningSignal;
 
-    /**
-     * 构造函数
-     * @param socket
-     */
     public ServerWriteIOThread(
             Integer remoteNodeId,
             Socket socket,

@@ -36,7 +36,7 @@ public class CachedPantheonServerConfig extends ArchaiusPantheonServerConfig {
     }
 
 
-
+    @Override
     public String getDataDir() {
         if (ObjectUtils.isEmpty(dataDir)) {
             dataDir = super.getDataDir();
@@ -44,6 +44,7 @@ public class CachedPantheonServerConfig extends ArchaiusPantheonServerConfig {
         return dataDir;
     }
 
+    @Override
     public Boolean isControllerCandidate() {
         if (ObjectUtils.isEmpty(isControllerCandidate)) {
             isControllerCandidate = super.isControllerCandidate();
@@ -51,6 +52,7 @@ public class CachedPantheonServerConfig extends ArchaiusPantheonServerConfig {
         return isControllerCandidate;
     }
 
+    @Override
     public Integer getNodeId() {
         if (ObjectUtils.isEmpty(nodeId)) {
             nodeId = super.getNodeId();
@@ -58,6 +60,7 @@ public class CachedPantheonServerConfig extends ArchaiusPantheonServerConfig {
         return nodeId;
     }
 
+    @Override
     public String getNodeIp() {
         if (ObjectUtils.isEmpty(nodeIp)) {
             nodeIp = super.getNodeIp();
@@ -65,6 +68,7 @@ public class CachedPantheonServerConfig extends ArchaiusPantheonServerConfig {
         return nodeIp;
     }
 
+    @Override
     public Integer getNodeInternTcpPort() {
         if (ObjectUtils.isEmpty(nodeInternTcpPort)) {
             nodeInternTcpPort = super.getNodeInternTcpPort();
@@ -72,13 +76,15 @@ public class CachedPantheonServerConfig extends ArchaiusPantheonServerConfig {
         return nodeInternTcpPort;
     }
 
-    public  Integer getNodeClientHttpPort() {
+     @Override
+    public Integer getNodeClientHttpPort() {
         if (ObjectUtils.isEmpty(nodeClientHttpPort)) {
             nodeClientHttpPort = super.getNodeClientHttpPort();
         }
         return nodeClientHttpPort;
     }
 
+    @Override
     public Integer getNodeClientTcpPort() {
         if (ObjectUtils.isEmpty(nodeClientTcpPort)) {
             nodeClientTcpPort = super.getNodeClientTcpPort();
@@ -86,6 +92,7 @@ public class CachedPantheonServerConfig extends ArchaiusPantheonServerConfig {
         return nodeClientTcpPort;
     }
 
+    @Override
     public Integer getClusterNodeCount() {
         if (ObjectUtils.isEmpty(clusterNodeCount)) {
             clusterNodeCount = super.getClusterNodeCount();
@@ -93,6 +100,7 @@ public class CachedPantheonServerConfig extends ArchaiusPantheonServerConfig {
         return clusterNodeCount;
     }
 
+    @Override
     public String getControllerCandidateServers() {
         if (ObjectUtils.isEmpty(controllerCandidateServers)) {
             controllerCandidateServers = super.getControllerCandidateServers();
@@ -100,7 +108,8 @@ public class CachedPantheonServerConfig extends ArchaiusPantheonServerConfig {
         return controllerCandidateServers;
     }
 
-     public Integer getHeartBeatCheckInterval() {
+    @Override
+    public Integer getHeartBeatCheckInterval() {
         if (ObjectUtils.isEmpty(heartBeatCheckInterval)) {
             heartBeatCheckInterval = super.getHeartBeatCheckInterval();
         }
