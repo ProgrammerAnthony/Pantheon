@@ -2,6 +2,7 @@ package com.pantheon.server.network;
 
 import com.pantheon.common.MessageType;
 import com.pantheon.common.ServiceState;
+import com.pantheon.common.ThreadFactoryImpl;
 import com.pantheon.server.ServerController;
 import com.pantheon.server.config.CachedPantheonServerConfig;
 import com.pantheon.server.node.RemoteServerNode;
@@ -21,6 +22,8 @@ import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.ScheduledThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 
 /**
  * 集群内部的master节点之间进行网络通信的管理组件
@@ -35,11 +38,12 @@ public class ServerNetworkManager {
 
     /**
      * default retry connect times
-     * todo config
+     * todo config-able
      */
     private static final int DEFAULT_CONNECT_RETRIES = 3;
     /**
      * default connect timeout
+     * todo config-able
      */
     private static final int CONNECT_TIMEOUT = 5000;
     /**
@@ -56,7 +60,10 @@ public class ServerNetworkManager {
     private static final Long ALL_MASTER_NODE_CONNECT_CHECK_INTERVAL = 100L;
 
     private ServerNetworkManager() {
-        new RetryConnectMasterNodeThread().start();
+        ScheduledThreadPoolExecutor scheduledExecutorService = new ScheduledThreadPoolExecutor(2,
+                new ThreadFactoryImpl("RetryConnectMasterNodeThread")
+        );
+        scheduledExecutorService.scheduleAtFixedRate(new RetryConnectMasterNodeThread(), 10, RETRY_CONNECT_MASTER_NODE_INTERVAL, TimeUnit.MILLISECONDS);
     }
 
     static class Singleton {
@@ -68,17 +75,17 @@ public class ServerNetworkManager {
     }
 
     /**
-     * 等待重试发起连接的master节点列表
+     * nodes waiting for retrying
      */
     private CopyOnWriteArrayList<String> retryConnectMasterNodes =
             new CopyOnWriteArrayList<String>();
     /**
-     * 跟其他的远程master节点建立好的连接
+     * connection with other master nodes
      */
     private ConcurrentHashMap<Integer, Socket> remoteNodeSockets =
             new ConcurrentHashMap<Integer, Socket>();
     /**
-     * 每个节点连接的读写IO线程是否运行的boolean变量
+     * read & write thread is running or not
      */
     private ConcurrentHashMap<Integer, IOThreadRunningSignal> ioThreadRunningSignals =
             new ConcurrentHashMap<>();
@@ -320,15 +327,7 @@ public class ServerNetworkManager {
         remoteNodeSockets.remove(remoteNodeId);
     }
 
-    /**
-     * 添加一个建立好连接的远程master节点
-     *
-     * @param remoteServerNode
-     */
-    public void addRemoteServerNode(RemoteServerNode remoteServerNode) {
-        RemoteServerNodeManager remoteServerNodeManager = RemoteServerNodeManager.getInstance();
-        remoteServerNodeManager.addRemoteServerNode(remoteServerNode);
-    }
+
 
     /**
      * when {@link CachedPantheonServerConfig#getClusterNodeCount()} in config equals
@@ -392,7 +391,7 @@ public class ServerNetworkManager {
     }
 
     /**
-     * 发送网络请求给远程的其他节点
+     * send message to other nodes
      *
      * @param remoteNodeId
      * @param message
@@ -412,7 +411,7 @@ public class ServerNetworkManager {
     }
 
     /**
-     * 阻塞在这里获取消息
+     * blocking take
      *
      * @return
      */
@@ -426,16 +425,16 @@ public class ServerNetworkManager {
     }
 
     /**
-     * 重试连接master node的线程
+     * retry connection with master node
      */
-    class RetryConnectMasterNodeThread extends Thread {
+    class RetryConnectMasterNodeThread implements Runnable {
 
         private final Logger LOGGER = LoggerFactory.getLogger(RetryConnectMasterNodeThread.class);
 
         @Override
         public void run() {
             while (ServerController.isRunning()) {
-                // 每隔5分钟运行一次定时重试机制
+
                 List<String> retryConnectSuccessMasterNodes = new ArrayList<String>();
 
                 for (String retryConnectMasterNode : retryConnectMasterNodes) {
@@ -445,51 +444,40 @@ public class ServerNetworkManager {
                     }
                 }
 
-                // 只要重试成功了，就可以把这个节点从定时重试列表里移除就可以了
+                //remove from retry list after success
                 for (String retryConnectSuccessMasterNode : retryConnectSuccessMasterNodes) {
                     retryConnectMasterNodes.remove(retryConnectSuccessMasterNode);
-                }
-
-                try {
-                    Thread.sleep(RETRY_CONNECT_MASTER_NODE_INTERVAL);
-                } catch (InterruptedException e) {
-                    LOGGER.error("RetryConnectMasterNodeThread is interrupted because of unknown reasons......");
                 }
             }
         }
     }
 
     /**
-     * 网络连接监听线程
+     * server connection listener
      */
     class ServerConnectionListener extends Thread {
 
         private final Logger LOGGER = LoggerFactory.getLogger(ServerConnectionListener.class);
 
         /**
-         * 默认的监听端口号的重试次数
+         * default retry times
          */
         public static final int DEFAULT_RETRIES = 3;
 
-        /**
-         * 网络连接监听服务器
-         */
+
         private ServerSocket serverSocket;
         /**
-         * 当前已经尝试重试监听端口号的次数
+         * retried times
          */
         private int retries = 0;
 
-        /**
-         * 线程的运行逻辑
-         */
+
         @Override
         public void run() {
 
-            // 在线程运行期间是否遇到了出乎意料之外的崩溃异常
+
             boolean fatal = false;
 
-            // 只要系统还在运行，而且监听端口号的重试次数小于默认重试次数
             while (ServerController.isRunning()
                     && retries <= DEFAULT_RETRIES) {
                 try {
@@ -524,7 +512,7 @@ public class ServerNetworkManager {
                         // 维护这个建立成功的连接
                         addRemoteNodeSocket(remoteServerNode.getNodeId(), socket);
                         // 添加建立连接的远程节点
-                        addRemoteServerNode(remoteServerNode);
+                        RemoteServerNodeManager.getInstance().addRemoteServerNode(remoteServerNode);
 
                         // 发送自己的信息过去给对方
                         if (!sendSelfInformation(socket)) {
