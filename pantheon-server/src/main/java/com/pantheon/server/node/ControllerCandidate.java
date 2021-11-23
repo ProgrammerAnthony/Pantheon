@@ -107,7 +107,7 @@ public class ControllerCandidate {
         List<ControllerVote> votes = new ArrayList<ControllerVote>();
         votes.add(currentVote);
 
-        // 发送初始的选票（都是投给自己的），给其他的候选节点
+        // initial vote to self
         ByteBuffer voteMessage = currentVote.getMessageByteBuffer();
         for(RemoteServerNode remoteNode : otherControllerCandidates) {
             Integer remoteNodeId = remoteNode.getNodeId();
@@ -124,7 +124,7 @@ public class ControllerCandidate {
             }
 
             votes.add(receivedVote);
-            LOGGER.info("从server节点接收到Controller选举投票: " + receivedVote);
+            LOGGER.info("receive votes from: " + receivedVote);
 
             // votes num > quorum leads to controller judge
             if(votes.size() >= quorum) {

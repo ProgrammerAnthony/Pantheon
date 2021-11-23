@@ -17,14 +17,7 @@ import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.LinkedBlockingQueue;
 
-/**
- * master节点的消息接收组件（线程）
- * <p>
- * 1、不停的从网络通信组件的receiver队列里获取最新的消息
- * 2、判断消息的类型，对消息进行对象转化
- * 3、把消息推送到不同的业务模块所对应的队列里去
- * 4、对各种不同的业务模块提供获取自己业务的消息的接口
- */
+
 public class ServerMessageReceiver extends Thread {
 
     static final Logger LOGGER = LoggerFactory.getLogger(ServerMessageReceiver.class);
@@ -43,7 +36,7 @@ public class ServerMessageReceiver extends Thread {
     }
 
     private LinkedBlockingQueue<ControllerVote> voteReceiveQueue =
-            new LinkedBlockingQueue<ControllerVote>();
+            new LinkedBlockingQueue<>();
     private LinkedBlockingQueue<ConcurrentHashMap<Integer, List<String>>> slotsAllocationReceiveQueue =
             new LinkedBlockingQueue<>();
     private LinkedBlockingQueue<ConcurrentHashMap<Integer, List<String>>> slotsReplicaAllocationReceiveQueue =
@@ -62,6 +55,7 @@ public class ServerMessageReceiver extends Thread {
             new LinkedBlockingQueue<>();
 
 
+    @Override
     public void run() {
         ServerNetworkManager serverNetworkManager = ServerNetworkManager.getInstance();
 

@@ -183,7 +183,7 @@ public class ServerNetworkManager {
                 }
 
                 startServerIOThreads(remoteServerNode.getNodeId(), socket);
-                addRemoteNodeSocket(remoteServerNode.getNodeId(), socket);
+                this.remoteNodeSockets.put(remoteServerNode.getNodeId(), socket);
                 RemoteServerNodeManager.getInstance().addRemoteServerNode(remoteServerNode);
 
                 LOGGER.info("complete the connection with server node：" + remoteServerNode + "......");
@@ -319,9 +319,6 @@ public class ServerNetworkManager {
     }
 
 
-    public void addRemoteNodeSocket(Integer remoteNodeId, Socket socket) {
-        this.remoteNodeSockets.put(remoteNodeId, socket);
-    }
 
     public void remoteRemoteNodeSocket(Integer remoteNodeId) {
         remoteNodeSockets.remove(remoteNodeId);
@@ -481,40 +478,31 @@ public class ServerNetworkManager {
             while (ServerController.isRunning()
                     && retries <= DEFAULT_RETRIES) {
                 try {
-                    // 获取master节点内部网络通信的端口号
+                    // connect using intern tcp port
                     int port = CachedPantheonServerConfig.getInstance().getNodeInternTcpPort();
                     InetSocketAddress endpoint = new InetSocketAddress(port);
-
-                    // 基于ServerSocket监听master节点内部网络通信的端口号
                     this.serverSocket = new ServerSocket();
                     this.serverSocket.setReuseAddress(true);
                     this.serverSocket.bind(endpoint);
 
-                    LOGGER.info("server连接请求线程，已经绑定端口号: " + port + "，等待监听连接请求......");
+                    LOGGER.info("server connection thread bind to: " + port + "，waiting for connection......");
 
-                    // 跟发起连接请求的master建立网络连接
                     while (ServerController.getServiceState() == ServiceState.RUNNING) {
-                        // id比自己大的master节点发送网络连接请求过来
-                        // BIO，建立网路连接
+                        // BIO
                         Socket socket = this.serverSocket.accept();
-                        socket.setTcpNoDelay(true); // 网络通信不允许延迟
-                        socket.setSoTimeout(0); // 读取数据时的超时时间为0，没有超时，阻塞读取
+                        socket.setTcpNoDelay(true);
+                        socket.setSoTimeout(0);
 
-                        // 读取对方传输过来的信息
                         RemoteServerNode remoteServerNode = readRemoteNodeInformation(socket);
                         if (remoteServerNode == null) {
                             fatal = true;
                             break;
                         }
-
-                        // 为建立好的网络连接，启动IO线程
                         startServerIOThreads(remoteServerNode.getNodeId(), socket);
-                        // 维护这个建立成功的连接
-                        addRemoteNodeSocket(remoteServerNode.getNodeId(), socket);
-                        // 添加建立连接的远程节点
+                        ServerNetworkManager.this.remoteNodeSockets.put(remoteServerNode.getNodeId(), socket);
                         RemoteServerNodeManager.getInstance().addRemoteServerNode(remoteServerNode);
 
-                        // 发送自己的信息过去给对方
+                        // send self information
                         if (!sendSelfInformation(socket)) {
                             fatal = true;
                             break;
@@ -525,46 +513,39 @@ public class ServerNetworkManager {
 //                            autoRebalanceManager.rebalance(remoteServerNode.getNodeId());
                         }
 
-                        LOGGER.info("连接监听线程已经跟远程server节点建立连接：" + remoteServerNode + ", IO线程全部启动......");
+                        LOGGER.info("connected with server node：" + remoteServerNode + ", IO thread started......");
                     }
                 } catch (IOException e) {
-                    LOGGER.error("连接监听线程在监听连接请求的过程中发生异常！！！", e);
+                    LOGGER.error("IOException when monitor connecting！！！", e);
 
-                    // 重试次数加1
                     this.retries++;
                     if (this.retries <= DEFAULT_RETRIES) {
-                        LOGGER.error("本次是第" + retries + "次重试去监听连接请求......");
+                        LOGGER.error("retry times:" + retries + "for monitoring connecting......");
                     }
                 } finally {
-                    // 将ServerSocket进行关闭
+                    // close ServerSocket
                     try {
                         this.serverSocket.close();
                     } catch (IOException ex) {
-                        LOGGER.error("关闭ServerSocket异常！！！", ex);
+                        LOGGER.error("IOException when close socket！！！", ex);
                     }
                 }
 
-                // 如果是遇到了系统不可逆的异常，直接崩溃
                 if (fatal) {
                     break;
                 }
             }
 
-            // 在这里，就说明这个master节点无法监听其他节点的连接请求
-            ServerController.setServiceState(ServiceState.START_FAILED);
+            ServerController.setServiceState(ServiceState.SERVICE_FAILED);
 
-            LOGGER.error("无法正常监听其他server节点的连接请求，系统即将崩溃！！！");
+            LOGGER.error("unable to monitor other servers' connection！！！");
         }
 
     }
 
-    /**
-     * 删除跟指定节点的网络连接数据
-     *
-     * @param remoteNodeId
-     */
+
     public void clearConnection(Integer remoteNodeId) {
-        LOGGER.info("跟节点【" + remoteNodeId + "】的网络连接断开，清理相关数据......");
+        LOGGER.info("broker connection with【" + remoteNodeId + "】，cleaning......");
 
         remoteNodeSockets.remove(remoteNodeId);
         RemoteServerNodeManager remoteServerNodeManager = RemoteServerNodeManager.getInstance();
