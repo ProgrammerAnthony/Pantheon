@@ -115,8 +115,7 @@ public class Controller {
      * controller node initialization
      */
     public void initControllerNode() {
-        Integer nodeId = CachedPantheonServerConfig.getInstance().getNodeId();
-        ControllerNode.setNodeId(nodeId);
+        ControllerNode.setNodeId(CachedPantheonServerConfig.getInstance().getNodeId());
     }
 
     /**

@@ -95,7 +95,7 @@ public class ControllerCandidate {
         ServerNetworkManager serverNetworkManager = ServerNetworkManager.getInstance();
         ServerMessageReceiver serverMessageReceiver = ServerMessageReceiver.getInstance();
 
-        LOGGER.info("start round: " + voteRound + "votes......");
+        LOGGER.info("start round: " + voteRound + " votes......");
 
         Integer nodeId = CachedPantheonServerConfig.getInstance().getNodeId();
 
@@ -124,7 +124,7 @@ public class ControllerCandidate {
             }
 
             votes.add(receivedVote);
-            LOGGER.info("receive votes from: " + receivedVote);
+            LOGGER.info("received vote : " + receivedVote);
 
             // votes num > quorum leads to controller judge
             if(votes.size() >= quorum) {
@@ -134,12 +134,12 @@ public class ControllerCandidate {
                 // controller found after judgement
                 if(judgedControllerNodeId != null) {
                     if(votes.size() == candidateCount) {
-                        LOGGER.info("Affirm Controller: " + judgedControllerNodeId + ", get all votes......");
+                        LOGGER.info(" Controller Selected : " + judgedControllerNodeId + ", with all votes......");
                         return judgedControllerNodeId;
                     }
-                    LOGGER.info("Affirm Controller: " + judgedControllerNodeId + ", haven't get all votes......");
+                    LOGGER.info("Controller Selected: " + judgedControllerNodeId + ", with not all votes......");
                 } else {
-                    LOGGER.info("not Affirm who is the Controller: " + votes);
+                    LOGGER.info("Not yet affirm who is the Controller: " + votes);
                 }
             }
 
@@ -189,7 +189,7 @@ public class ControllerCandidate {
     }
 
     /**
-     * get bigger controller id
+     * get least controller id
      * @param votes
      * @return
      */

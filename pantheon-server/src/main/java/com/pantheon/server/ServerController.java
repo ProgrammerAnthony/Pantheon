@@ -24,7 +24,7 @@ import java.util.concurrent.TimeUnit;
 /**
  * @author Anthony
  * @create 2021/11/18
- * @desc 1 todo build BIO for server inside communication
+ * @desc
  * 2 todo rethink and build the mechanism of client and server RocketMq
  * 3 todo build heartbeat mechanism of client and server
  * 4 todo design the message protocol
@@ -134,7 +134,7 @@ public class ServerController {
             controllerCandidate.waitReplicaNodeIds();
         } else {
             serverNodeRole = controllerCandidate.electController();
-            logger.info("after election, the role of server node：" + (serverNodeRole == ServerNodeRole.CONTROLLER_NODE ? "Controller" : "Controller candidate"));
+            logger.info("after election, the role of this server node：" + (serverNodeRole == ServerNodeRole.CONTROLLER_NODE ? "Controller" : "Controller candidate"));
 
             if (serverNodeRole == ServerNodeRole.CONTROLLER_NODE) {
                 //controller determine slots allocation
