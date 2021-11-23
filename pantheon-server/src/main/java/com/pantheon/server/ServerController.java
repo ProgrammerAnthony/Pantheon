@@ -52,8 +52,6 @@ public class ServerController {
             switch (serviceState) {
                 case CREATE_JUST:
                     serviceState = ServiceState.RUNNING;
-                    logger.info("server with id :{}, listen to tcp on port :{}", serverConfig.getNodeId(), serverConfig.getNodeClientTcpPort());
-
 
                     ServerNodeRole serverNodeRole = ServerNodeRole.COMMON_NODE;
 
@@ -87,6 +85,7 @@ public class ServerController {
     }
 
     private void startNettyClientServer() {
+        logger.info("server with id :{}, listen to tcp on port :{}", serverConfig.getNodeId(), serverConfig.getNodeClientTcpPort());
         nettyServerConfig.setListenPort(serverConfig.getNodeClientTcpPort());
         remotingServer = new NettyRemotingServer(nettyServerConfig);
         this.remotingExecutor =

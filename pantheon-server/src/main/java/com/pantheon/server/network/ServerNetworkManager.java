@@ -196,10 +196,10 @@ public class ServerNetworkManager {
                 return true;
             } catch (IOException e) {
                 LOGGER.error("exception when connecting with (" + endpoint + ") ！！！");
-
+                e.printStackTrace();
                 retries++;
                 if (retries <= DEFAULT_CONNECT_RETRIES) {
-                    LOGGER.error("round :" + retries + "retry connect with server node: (" + endpoint + ")......");
+                    LOGGER.error("round :" + retries + " retry connect with server node: (" + endpoint + ")......");
                 }
             }
         }
@@ -350,7 +350,7 @@ public class ServerNetworkManager {
             }
         }
 
-        LOGGER.info("all servers node connected......");
+        LOGGER.info("all servers node connected!!!!");
     }
 
     /**
