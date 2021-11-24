@@ -85,13 +85,13 @@ public class ServerController {
     }
 
     private void startNettyClientServer() {
-        logger.info("server with id :{}, listen to tcp on port :{}", serverConfig.getNodeId(), serverConfig.getNodeClientTcpPort());
         nettyServerConfig.setListenPort(serverConfig.getNodeClientTcpPort());
         remotingServer = new NettyRemotingServer(nettyServerConfig);
         this.remotingExecutor =
                 Executors.newFixedThreadPool(nettyServerConfig.getServerWorkerThreads(), new ThreadFactoryImpl("RemotingExecutorThread_"));
         remotingServer.registerDefaultProcessor(new ServerNodeProcessor(this), remotingExecutor);
         remotingServer.start();
+        logger.info("server with id :{}, listen to client connection on tcp port :{}", serverConfig.getNodeId(), serverConfig.getNodeClientTcpPort());
     }
 
     private boolean manageServerNetwork(Boolean isControllerCandidate) {
@@ -141,7 +141,7 @@ public class ServerController {
                 Controller controller = Controller.getInstance();
                 controller.allocateSlots();
                 controller.initControllerNode();
-                controller.sendControllerNodeId();
+                controller.broadcastControllerId();
             } else if (serverNodeRole == ServerNodeRole.CONTROLLER_CANDIDATE_NODE) {
                 //controller candidate wait for slots allocation
                 controllerCandidate.waitForSlotsAllocation();
