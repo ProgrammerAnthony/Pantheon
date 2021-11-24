@@ -107,8 +107,8 @@ public class Controller {
         sendNodeSlots();
 
         //these nodes will init and persist slots' scope and slots scopes replica
-        sendNodeSlotsReplicas();
-        sendReplicaNodeId();
+        broadcastNodeSlotsReplicas();
+        broadcastReplicaNodeId();
     }
 
     /**
@@ -161,7 +161,7 @@ public class Controller {
         slotsList.add(nextStartSlot + "," + (nextEndSlot + remainSlotsCount));
         slotsAllocation.put(myNodeId, slotsList);
 
-        LOGGER.info("allocate slots complete：" + slotsAllocation);
+        LOGGER.info("after election, allocate slots complete：" + slotsAllocation);
     }
 
     /**
@@ -209,7 +209,7 @@ public class Controller {
             replicaNodeIds.put(nodeId, replicaNodeId);
         }
 
-        LOGGER.info("allocate slots replica complete：" + slotsReplicaAllocation);
+        LOGGER.info("after election, allocate slots replica complete：" + slotsReplicaAllocation);
     }
 
 
@@ -275,7 +275,7 @@ public class Controller {
             serverNetworkManager.sendMessage(controllerCandidate.getNodeId(), slotsAllocationByteBuffer);
         }
 
-        LOGGER.info("sync slots allocation data to other node already......");
+        LOGGER.info("after slots allocation, sync slots allocation data to other node already......");
     }
 
     public void syncSlotsReplicaAllocation() {
@@ -294,7 +294,7 @@ public class Controller {
             serverNetworkManager.sendMessage(controllerCandidate.getNodeId(), byteBuffer);
         }
 
-        LOGGER.info("sync slots allocation data to other node already......");
+        LOGGER.info("after slots allocation, sync slots replica node id data to other node already......");
     }
 
     public void syncReplicaNodeIds() {
@@ -313,7 +313,7 @@ public class Controller {
             serverNetworkManager.sendMessage(controllerCandidate.getNodeId(), byteBuffer);
         }
 
-        LOGGER.info("sync slots replica id data to other node already......");
+        LOGGER.info("after slots allocation, sync slots replica allocation data to other node already......");
     }
 
     public void syncSlotsAllocation(Integer candidateNodeId) {
@@ -385,7 +385,7 @@ public class Controller {
             serverNetworkManager.sendMessage(node.getNodeId(), buffer);
         }
 
-        LOGGER.info("send slots allocation to other node successfully......");
+        LOGGER.info("broadcast slots allocation to other node successfully......");
     }
 
     public void sendNodeSlots(Integer nodeId) {
@@ -400,7 +400,7 @@ public class Controller {
         serverNetworkManager.sendMessage(nodeId, buffer);
     }
 
-    private void sendNodeSlotsReplicas() {
+    private void broadcastNodeSlotsReplicas() {
         RemoteServerNodeManager remoteServerNodeManager = RemoteServerNodeManager.getInstance();
         List<RemoteServerNode> nodes = remoteServerNodeManager.getRemoteServerNodes();
 
@@ -419,10 +419,10 @@ public class Controller {
             serverNetworkManager.sendMessage(node.getNodeId(), buffer);
         }
 
-        LOGGER.info("send node slots replica to other node successfully......");
+        LOGGER.info("broadcast node slots replica to other node successfully......");
     }
 
-    private void sendReplicaNodeId() {
+    private void broadcastReplicaNodeId() {
         RemoteServerNodeManager remoteServerNodeManager = RemoteServerNodeManager.getInstance();
         List<RemoteServerNode> nodes =
                 remoteServerNodeManager.getRemoteServerNodes();
@@ -438,10 +438,10 @@ public class Controller {
             serverNetworkManager.sendMessage(node.getNodeId(), buffer);
         }
 
-        LOGGER.info("send replica node id to other node successfully......");
+        LOGGER.info("broadcast replica node id to other node successfully......");
     }
 
-    public void sendReplicaNodeId(Integer nodeId) {
+    public void broadcastReplicaNodeId(Integer nodeId) {
         Integer replicaNodeId = replicaNodeIds.get(nodeId);
 
         ByteBuffer buffer = ByteBuffer.allocate(4 + 4);
@@ -465,7 +465,7 @@ public class Controller {
         serverNetworkManager.sendMessage(sourceNodeId, buffer);
     }
 
-    public void sendControllerNodeId() {
+    public void broadcastControllerId() {
         Integer nodeId = CachedPantheonServerConfig.getInstance().getNodeId();
 
         RemoteServerNodeManager remoteServerNodeManager = RemoteServerNodeManager.getInstance();
@@ -480,7 +480,7 @@ public class Controller {
             serverNetworkManager.sendMessage(node.getNodeId(), buffer);
         }
 
-        LOGGER.info("send controller id successfully......");
+        LOGGER.info("broadcast controller id successfully......");
     }
 
     public Map<Integer, List<String>> getSlotsAllocation() {

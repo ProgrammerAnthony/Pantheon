@@ -53,6 +53,10 @@ public class SlotManager {
     private Map<String/*slotScope*/, SlotsReplica> slotsReplicas = new ConcurrentHashMap<>();
 
 
+    /**
+     * if slotsList is empty will blocking in this method
+     * @param slotsList
+     */
     public void initSlots(List<String> slotsList) {
         if (slotsList == null) {
             ServerMessageReceiver serverMessageReceiver = ServerMessageReceiver.getInstance();
@@ -68,6 +72,11 @@ public class SlotManager {
     }
 
 
+    /**
+     * if slotScopes is empty and a controller candidate will blocking in this method
+     * @param slotScopes
+     * @param isController
+     */
     public void initSlotsReplicas(List<String> slotScopes, boolean isController) {
         ServerMessageReceiver serverMessageReceiver = ServerMessageReceiver.getInstance();
         if (slotScopes == null && !isController) {
@@ -88,7 +97,7 @@ public class SlotManager {
     }
 
     /**
-     * init replica node id
+     * if replicaNodeId is empty , will blocking in this method
      */
     public void initReplicaNodeId(Integer replicaNodeId) {
         ServerMessageReceiver serverMessageReceiver = ServerMessageReceiver.getInstance();
