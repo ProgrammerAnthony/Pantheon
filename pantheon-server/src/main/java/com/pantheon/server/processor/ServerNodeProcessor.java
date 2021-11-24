@@ -1,19 +1,27 @@
 package com.pantheon.server.processor;
 
 
+import com.pantheon.common.ServerNodeRole;
 import com.pantheon.common.protocol.RequestCode;
 import com.pantheon.common.protocol.ResponseCode;
 import com.pantheon.common.protocol.header.GetServerNodeIdRequestHeader;
 import com.pantheon.common.protocol.header.GetServerNodeIdResponseHeader;
+import com.pantheon.common.protocol.header.GetSlotsRequestHeader;
+import com.pantheon.common.protocol.header.GetSlotsResponseHeader;
 import com.pantheon.remoting.common.RemotingHelper;
 import com.pantheon.remoting.exception.RemotingCommandException;
 import com.pantheon.remoting.netty.AsyncNettyRequestProcessor;
 import com.pantheon.remoting.netty.NettyRequestProcessor;
 import com.pantheon.remoting.protocol.RemotingCommand;
 import com.pantheon.server.ServerController;
+import com.pantheon.server.node.Controller;
+import com.pantheon.server.node.ControllerCandidate;
 import io.netty.channel.ChannelHandlerContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.util.List;
+import java.util.Map;
 
 /**
  * @author Anthony
@@ -64,8 +72,21 @@ public class ServerNodeProcessor extends AsyncNettyRequestProcessor implements N
     }
 
     private synchronized RemotingCommand getSlotsAllocation(ChannelHandlerContext ctx,
-                                                            RemotingCommand request) {
-        return null;
+                                                            RemotingCommand request) throws RemotingCommandException {
+        final RemotingCommand response = RemotingCommand.createResponseCommand(GetSlotsResponseHeader.class);
+        final GetSlotsRequestHeader requestHeader =
+                (GetSlotsRequestHeader) request.decodeCommandCustomHeader(GetSlotsRequestHeader.class);
+        logger.info("getSlotsAllocation called by {}", RemotingHelper.parseChannelRemoteAddr(ctx.channel()));
+        final GetSlotsResponseHeader responseHeader = (GetSlotsResponseHeader) response.readCustomHeader();
+        if(ServerController.getServerNodeRole()==ServerNodeRole.CONTROLLER_CANDIDATE_NODE){
+            responseHeader.setSlotsAllocation(ControllerCandidate.getInstance().getSlotsAllocation());
+        }else if(ServerController.getServerNodeRole()==ServerNodeRole.CONTROLLER_NODE){
+            responseHeader.setSlotsAllocation(Controller.getInstance().getSlotsAllocation());
+        }
+        response.setCode(ResponseCode.SUCCESS);
+        response.setRemark(null);
+        response.setOpaque(request.getOpaque());
+        return response;
     }
 
     private synchronized RemotingCommand getServerAddresses(ChannelHandlerContext ctx,

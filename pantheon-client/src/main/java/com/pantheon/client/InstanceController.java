@@ -6,6 +6,8 @@ import com.pantheon.common.ThreadFactoryImpl;
 import com.pantheon.common.protocol.ResponseCode;
 import com.pantheon.common.protocol.header.GetServerNodeIdRequestHeader;
 import com.pantheon.common.protocol.header.GetServerNodeIdResponseHeader;
+import com.pantheon.common.protocol.header.GetSlotsRequestHeader;
+import com.pantheon.common.protocol.header.GetSlotsResponseHeader;
 import com.pantheon.remoting.CommandCustomHeader;
 import com.pantheon.remoting.InvokeCallback;
 import com.pantheon.remoting.annotation.CFNullable;
@@ -23,6 +25,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Random;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
@@ -45,24 +48,31 @@ public class InstanceController {
     private String excludedRemoteAddress;
     private Server server;
 
+    private Map<Integer, List<String>> slotsAllocation;
+
+
     public InstanceController(NettyClientConfig nettyClientConfig, DefaultInstanceConfig instanceConfig) {
         this.nettyClientConfig = nettyClientConfig;
         this.instanceConfig = instanceConfig;
     }
 
     public boolean initialize() {
+
         remotingClient = new NettyRemotingClient(nettyClientConfig);
         this.remotingExecutor =
                 Executors.newFixedThreadPool(nettyClientConfig.getClientWorkerThreads(), new ThreadFactoryImpl("RemotingExecutorThread_"));
+        //choose a controller candidate to link
         String controllerCandidate = chooseControllerCandidate();
         this.remotingClient.start();
 //        server = new Server(controllerCandidate.split(":")[0], Integer.valueOf(controllerCandidate.split(":")[1]));
         Integer nodeId = null;
         try {
-            nodeId = fetchServerNodeId(controllerCandidate, 30000);
-            logger.info("fetchServerNodeId ");
+            nodeId = fetchServerNodeId(controllerCandidate, 10000);
+            logger.info("fetchServerNodeId successful load nodeId: "+nodeId);
 //            server.setId(nodeId);
-            fetchSlotsAllocation(server);
+            Map<Integer, List<String>> integerListMap = fetchSlotsAllocation(controllerCandidate, 10000);
+            logger.info("fetchSlotsAllocation successful load map: "+integerListMap);
+
             fetchServerAddresses(server);
             String serviceName = instanceConfig.getServiceName();
             this.server = routeServer(serviceName);
@@ -91,8 +101,8 @@ public class InstanceController {
      * @param controllerCandidate server address
      * @return
      */
-    private Integer fetchServerNodeId(String controllerCandidate, final long timoutMills) throws RemotingConnectException, RemotingSendRequestException, RemotingTimeoutException, InterruptedException, RemotingCommandException {
-        GetServerNodeIdRequestHeader requestHeader =new GetServerNodeIdRequestHeader();
+    private Integer fetchServerNodeId(final String controllerCandidate, final long timoutMills) throws RemotingConnectException, RemotingSendRequestException, RemotingTimeoutException, InterruptedException, RemotingCommandException {
+        GetServerNodeIdRequestHeader requestHeader = new GetServerNodeIdRequestHeader();
         RemotingCommand request = RemotingCommand.createRequestCommand(RequestCode.GET_SERVER_NODE_ID, requestHeader);
         RemotingCommand response = this.remotingClient.invokeSync(controllerCandidate, request, timoutMills);
         assert response != null;
@@ -112,9 +122,23 @@ public class InstanceController {
      * fetch slots allocation
      *
      * @param controllerCandidate
+     * @return
      */
-    private void fetchSlotsAllocation(Server controllerCandidate) {
-        return;
+    private Map<Integer, List<String>> fetchSlotsAllocation(final String controllerCandidate, final long timoutMills) throws RemotingConnectException, RemotingSendRequestException, RemotingTimeoutException, InterruptedException, RemotingCommandException {
+        GetSlotsRequestHeader requestHeader = new GetSlotsRequestHeader();
+        RemotingCommand request = RemotingCommand.createRequestCommand(RequestCode.GET_SLOTS_ALLOCATION, requestHeader);
+        RemotingCommand response = this.remotingClient.invokeSync(controllerCandidate, request, timoutMills);
+        assert response != null;
+        switch (response.getCode()) {
+            case ResponseCode.SUCCESS: {
+                GetSlotsResponseHeader responseHeader =
+                        (GetSlotsResponseHeader) response.decodeCommandCustomHeader(GetSlotsResponseHeader.class);
+                return responseHeader.getSlotsAllocation();
+            }
+            default:
+                break;
+        }
+        return null;
     }
 
     /**

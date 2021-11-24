@@ -423,7 +423,7 @@ public class NettyRemotingClient extends NettyRemotingAbstract implements Remoti
 
     private Channel getAndCreateChannel(final String addr) throws RemotingConnectException, InterruptedException {
         if (null == addr) {
-            return getAndCreateNameserverChannel();
+            return getAndCreateServerChannel();
         }
 
         ChannelWrapper cw = this.channelTables.get(addr);
@@ -434,7 +434,7 @@ public class NettyRemotingClient extends NettyRemotingAbstract implements Remoti
         return this.createChannel(addr);
     }
 
-    private Channel getAndCreateNameserverChannel() throws RemotingConnectException, InterruptedException {
+    private Channel getAndCreateServerChannel() throws RemotingConnectException, InterruptedException {
         String addr = this.serverAddressChoosed.get();
         if (addr != null) {
             ChannelWrapper cw = this.channelTables.get(addr);
@@ -462,7 +462,6 @@ public class NettyRemotingClient extends NettyRemotingAbstract implements Remoti
                         String newAddr = addrList.get(index);
 
                         this.serverAddressChoosed.set(newAddr);
-//                        log.info("new name server is chosen. OLD: {} , NEW: {}. namesrvIndex = {}", addr, newAddr, namesrvIndex);
                         Channel channelNew = this.createChannel(newAddr);
                         if (channelNew != null) {
                             return channelNew;
@@ -474,15 +473,14 @@ public class NettyRemotingClient extends NettyRemotingAbstract implements Remoti
                 this.lockServerChannel.unlock();
             }
         } else {
-            log.warn("getAndCreateNameserverChannel: try to lock name server, but timeout, {}ms", LOCK_TIMEOUT_MILLIS);
+            log.warn("getAndCreateNameserverChannel: try to lock server, but timeout, {}ms", LOCK_TIMEOUT_MILLIS);
         }
 
         return null;
     }
 
     /**
-     * 创建Channel连接，封装到ChannelWrapper，所有的连接放入到channelTables的map里去
-     * 如果是新创建的channel，会对应connect
+     * create channel and wrap it with ChannelWrapper ,channelTables map save the connection for reusing
      *
      * @param addr
      * @return
@@ -513,7 +511,7 @@ public class NettyRemotingClient extends NettyRemotingAbstract implements Remoti
                 }
 
                 if (createNewConnection) {
-                    //异步创建channel链接，下方需要同步等待的方式返回
+                    //async create channel
                     ChannelFuture channelFuture = this.bootstrap.connect(RemotingHelper.string2SocketAddress(addr));
                     log.info("createChannel: begin to connect remote host[{}] asynchronously", addr);
                     cw = new ChannelWrapper(channelFuture);
@@ -530,7 +528,7 @@ public class NettyRemotingClient extends NettyRemotingAbstract implements Remoti
 
         if (cw != null) {
             ChannelFuture channelFuture = cw.getChannelFuture();
-            //同步等待，默认3s超时
+            //blocking
             if (channelFuture.awaitUninterruptibly(this.nettyClientConfig.getConnectTimeoutMillis())) {
                 if (cw.isOK()) {
                     log.info("createChannel: connect remote host[{}] success, {}", addr, channelFuture.toString());
