@@ -1,6 +1,7 @@
 package com.pantheon.server.processor;
 
 
+import com.alibaba.fastjson.JSON;
 import com.pantheon.common.ServerNodeRole;
 import com.pantheon.common.protocol.RequestCode;
 import com.pantheon.common.protocol.ResponseCode;
@@ -79,9 +80,9 @@ public class ServerNodeProcessor extends AsyncNettyRequestProcessor implements N
         logger.info("getSlotsAllocation called by {}", RemotingHelper.parseChannelRemoteAddr(ctx.channel()));
         final GetSlotsResponseHeader responseHeader = (GetSlotsResponseHeader) response.readCustomHeader();
         if(ServerController.getServerNodeRole()==ServerNodeRole.CONTROLLER_CANDIDATE_NODE){
-            responseHeader.setSlotsAllocation(ControllerCandidate.getInstance().getSlotsAllocation());
+            responseHeader.setSlotsAllocation(JSON.toJSONString(ControllerCandidate.getInstance().getSlotsAllocation()));
         }else if(ServerController.getServerNodeRole()==ServerNodeRole.CONTROLLER_NODE){
-            responseHeader.setSlotsAllocation(Controller.getInstance().getSlotsAllocation());
+            responseHeader.setSlotsAllocation(JSON.toJSONString(Controller.getInstance().getSlotsAllocation()));
         }
         response.setCode(ResponseCode.SUCCESS);
         response.setRemark(null);

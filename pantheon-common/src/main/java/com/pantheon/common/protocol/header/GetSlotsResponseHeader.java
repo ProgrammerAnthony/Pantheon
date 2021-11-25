@@ -31,16 +31,16 @@ public class GetSlotsResponseHeader implements CommandCustomHeader {
     /**
      * slots allocation info
      */
-    private Map<Integer, List<String>> slotsAllocation;
+    private String slotsAllocation;
     @Override
     public void checkFields() throws RemotingCommandException {
     }
 
-    public Map<Integer, List<String>> getSlotsAllocation() {
+    public String getSlotsAllocation() {
         return slotsAllocation;
     }
 
-    public void setSlotsAllocation(Map<Integer, List<String>> slotsAllocation) {
+    public void setSlotsAllocation(String slotsAllocation) {
         this.slotsAllocation = slotsAllocation;
     }
 }

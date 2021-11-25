@@ -1,5 +1,6 @@
 package com.pantheon.client;
 
+import com.alibaba.fastjson.JSON;
 import com.pantheon.client.config.DefaultInstanceConfig;
 import com.pantheon.common.protocol.RequestCode;
 import com.pantheon.common.ThreadFactoryImpl;
@@ -68,12 +69,12 @@ public class InstanceController {
         Integer nodeId = null;
         try {
             nodeId = fetchServerNodeId(controllerCandidate, 10000);
-            logger.info("fetchServerNodeId successful load nodeId: "+nodeId);
+            logger.info("fetchServerNodeId successful load nodeId: " + nodeId);
 //            server.setId(nodeId);
             Map<Integer, List<String>> integerListMap = fetchSlotsAllocation(controllerCandidate, 10000);
-            logger.info("fetchSlotsAllocation successful load map: "+integerListMap);
+            logger.info("fetchSlotsAllocation successful load map: " + integerListMap);
 
-            fetchServerAddresses(server);
+            fetchServerAddresses(controllerCandidate);
             String serviceName = instanceConfig.getServiceName();
             this.server = routeServer(serviceName);
 //        if(nodeId.equals(serviceName.))
@@ -133,7 +134,7 @@ public class InstanceController {
             case ResponseCode.SUCCESS: {
                 GetSlotsResponseHeader responseHeader =
                         (GetSlotsResponseHeader) response.decodeCommandCustomHeader(GetSlotsResponseHeader.class);
-                return responseHeader.getSlotsAllocation();
+                return (Map<Integer, List<String>>) JSON.parse(responseHeader.getSlotsAllocation());
             }
             default:
                 break;
@@ -146,7 +147,7 @@ public class InstanceController {
      *
      * @param controllerCandidate
      */
-    private void fetchServerAddresses(Server controllerCandidate) {
+    private void fetchServerAddresses(String controllerCandidate) {
         return;
     }
 
