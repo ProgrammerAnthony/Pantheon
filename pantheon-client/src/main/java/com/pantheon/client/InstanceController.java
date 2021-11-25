@@ -5,6 +5,8 @@ import com.pantheon.client.config.DefaultInstanceConfig;
 import com.pantheon.common.protocol.RequestCode;
 import com.pantheon.common.ThreadFactoryImpl;
 import com.pantheon.common.protocol.ResponseCode;
+import com.pantheon.common.protocol.header.GetServerAddressRequestHeader;
+import com.pantheon.common.protocol.header.GetServerAddressResponseHeader;
 import com.pantheon.common.protocol.header.GetServerNodeIdRequestHeader;
 import com.pantheon.common.protocol.header.GetServerNodeIdResponseHeader;
 import com.pantheon.common.protocol.header.GetSlotsRequestHeader;
@@ -25,6 +27,7 @@ import io.netty.bootstrap.ServerBootstrap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
@@ -142,13 +145,41 @@ public class InstanceController {
         return null;
     }
 
+
+    /**
+     * server地址列表
+     */
+    private Map<Integer, Server> servers = new HashMap<Integer, Server>();
     /**
      * fetch server addresses
      *
      * @param controllerCandidate
      */
-    private void fetchServerAddresses(String controllerCandidate) {
-        return;
+    private void fetchServerAddresses(String controllerCandidate, final long timoutMills) throws RemotingConnectException, RemotingSendRequestException, RemotingTimeoutException, InterruptedException, RemotingCommandException {
+        GetServerAddressRequestHeader requestHeader = new GetServerAddressRequestHeader();
+        RemotingCommand request = RemotingCommand.createRequestCommand(RequestCode.GET_SERVER_ADDRESSES, requestHeader);
+        RemotingCommand response = this.remotingClient.invokeSync(controllerCandidate, request, timoutMills);
+        assert response != null;
+        switch (response.getCode()) {
+            case ResponseCode.SUCCESS: {
+                GetServerAddressResponseHeader responseHeader =
+                        (GetServerAddressResponseHeader) response.decodeCommandCustomHeader(GetServerAddressResponseHeader.class);
+                List<String> serverAddresses = (List<String>) JSON.parse(responseHeader.getServerAddresses());
+                for(String serverAddress : serverAddresses) {
+                    String[] serverAddressSplited =  serverAddress.split(":");
+
+                    Integer id = Integer.valueOf(serverAddressSplited[0]);
+
+                    String ip = serverAddressSplited[1];
+                    Integer port = Integer.valueOf(serverAddressSplited[2]);
+                    Server server = new Server(id, ip, port);
+
+                    servers.put(id, server);
+                }
+            }
+            default:
+                break;
+        }
     }
 
 
