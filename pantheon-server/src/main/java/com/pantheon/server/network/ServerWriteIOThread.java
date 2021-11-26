@@ -1,7 +1,7 @@
 package com.pantheon.server.network;
 
-import com.pantheon.common.ServiceState;
-import com.pantheon.server.ServerController;
+import com.pantheon.common.component.Lifecycle;
+import com.pantheon.server.ServerNode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -58,7 +58,9 @@ public class ServerWriteIOThread extends Thread {
 
     @Override
     public void run() {
-        while (ServerController.isRunning() && ioThreadRunningSignal.isRunning()) {
+        ServerNode serverNode = ServerNode.getInstance();
+        while ((serverNode.lifecycleState().equals(Lifecycle.State.INITIALIZED)
+                || serverNode.lifecycleState().equals(Lifecycle.State.STARTED)) && ioThreadRunningSignal.isRunning()) {
             try {
                 // blocking take message
                 ByteBuffer message = sendQueue.take();
@@ -72,15 +74,15 @@ public class ServerWriteIOThread extends Thread {
                 outputStream.flush();
             } catch (InterruptedException e) {
                 LOGGER.error("get message from send queue error......", e);
-                ServerController.setServiceState(ServiceState.SERVICE_FAILED);
+                serverNode.stop();
             } catch (IOException e) {
                 LOGGER.error("send message to remote node error: " + socket.getRemoteSocketAddress());
-                ServerController.setServiceState(ServiceState.SERVICE_FAILED);
+                serverNode.stop();
             }
         }
 
         LOGGER.info("write connection with【" + remoteNodeId + "】will finish......");
-        if (ServerController.getServiceState() == ServiceState.SERVICE_FAILED) {
+        if (serverNode.lifecycleState().equals(Lifecycle.State.STOPPED)) {
             LOGGER.error("write connection with【" + remoteNodeId + "】collapsed......");
         }
     }

@@ -1,9 +1,9 @@
 package com.pantheon.server.network;
 
 import com.pantheon.common.MessageType;
-import com.pantheon.common.ServiceState;
 import com.pantheon.common.ThreadFactoryImpl;
-import com.pantheon.server.ServerController;
+import com.pantheon.common.component.Lifecycle;
+import com.pantheon.server.ServerNode;
 import com.pantheon.server.config.CachedPantheonServerConfig;
 import com.pantheon.server.node.RemoteServerNode;
 import com.pantheon.server.node.RemoteServerNodeManager;
@@ -150,21 +150,21 @@ public class ServerNetworkManager {
     /**
      * connect server node
      *
-     * @param serverNode
+     * @param serverNodeStr
      * @return
      */
-    public Boolean connectServerNode(String serverNode) {
+    public Boolean connectServerNode(String serverNodeStr) {
         boolean fatal = false;
 
-        String[] serverNodeSplited = serverNode.split(":");
+        String[] serverNodeSplited = serverNodeStr.split(":");
         String ip = serverNodeSplited[0];
         int port = Integer.valueOf(serverNodeSplited[1]);
 
         InetSocketAddress endpoint = new InetSocketAddress(ip, port);
 
         int retries = 0;
-
-        while (ServerController.getServiceState() == ServiceState.RUNNING &&
+        ServerNode serverNode = ServerNode.getInstance();
+        while (serverNode.lifecycleState().equals(Lifecycle.State.INITIALIZED) &&
                 retries <= DEFAULT_CONNECT_RETRIES) {
             try {
                 Socket socket = new Socket();
@@ -188,7 +188,7 @@ public class ServerNetworkManager {
 
                 LOGGER.info("complete the connection with server node：" + remoteServerNode + "......");
 
-                if (ServerController.isController()) {
+                if (ServerNode.isController()) {
 //                    AutoRebalanceManager autoRebalanceManager = AutoRebalanceManager.getInstance();
 //                    autoRebalanceManager.rebalance(remoteServerNode.getNodeId());
                 }
@@ -206,14 +206,14 @@ public class ServerNetworkManager {
 
         // fatal error
         if (fatal) {
-            ServerController.setServiceState(ServiceState.START_FAILED);
+            serverNode.stop();
             return false;
         }
 
         // add to retry connect master list
-        if (!retryConnectMasterNodes.contains(serverNode)) {
-            retryConnectMasterNodes.add(serverNode);
-            LOGGER.error("connect to server node (" + serverNode + ") fail, add to retry connect master list......");
+        if (!retryConnectMasterNodes.contains(serverNodeStr)) {
+            retryConnectMasterNodes.add(serverNodeStr);
+            LOGGER.error("connect to server node (" + serverNodeStr + ") fail, add to retry connect master list......");
         }
 
         return false;
@@ -235,7 +235,7 @@ public class ServerNetworkManager {
             outputStream.writeInt(ip.length());
             outputStream.write(ip.getBytes());
             outputStream.writeInt(clientTcpPort);
-            outputStream.writeBoolean(ServerController.isController());
+            outputStream.writeBoolean(ServerNode.isController());
             outputStream.flush();
         } catch (IOException e) {
             LOGGER.error("exception occurs when connect with server node！！！", e);
@@ -319,11 +319,9 @@ public class ServerNetworkManager {
     }
 
 
-
     public void remoteRemoteNodeSocket(Integer remoteNodeId) {
         remoteNodeSockets.remove(remoteNodeId);
     }
-
 
 
     /**
@@ -337,7 +335,7 @@ public class ServerNetworkManager {
 
         Boolean allServerNodeConnected = false;
 
-        LOGGER.info("waiting connection with all servers......");
+        LOGGER.info("waiting connection with all of {} servers......", clusterNodeCount);
 
         while (!allServerNodeConnected) {
             try {
@@ -364,8 +362,8 @@ public class ServerNetworkManager {
         List<String> otherControllerCandidateServers = CachedPantheonServerConfig.getInstance().getOtherControllerCandidateServers();
 
         LOGGER.info("waiting connection with controller candidates: " + otherControllerCandidateServers + "......");
-
-        while (ServerController.isRunning()) {
+        ServerNode serverNode = ServerNode.getInstance();
+        while (serverNode.lifecycleState().equals(Lifecycle.State.INITIALIZED)) {
             boolean allControllerCandidatesConnected = false;
 
             List<RemoteServerNode> connectedControllerCandidates =
@@ -430,7 +428,8 @@ public class ServerNetworkManager {
 
         @Override
         public void run() {
-            while (ServerController.isRunning()) {
+            ServerNode serverNode = ServerNode.getInstance();
+            while (serverNode.lifecycleState().equals(Lifecycle.State.INITIALIZED) || serverNode.lifecycleState().equals(Lifecycle.State.STARTED)) {
 
                 List<String> retryConnectSuccessMasterNodes = new ArrayList<String>();
 
@@ -475,7 +474,8 @@ public class ServerNetworkManager {
 
             boolean fatal = false;
 
-            while (ServerController.isRunning()
+            ServerNode serverNode = ServerNode.getInstance();
+            while (serverNode.lifecycleState().equals(Lifecycle.State.INITIALIZED)
                     && retries <= DEFAULT_RETRIES) {
                 try {
                     // connect using intern tcp port
@@ -487,7 +487,8 @@ public class ServerNetworkManager {
 
                     LOGGER.info("server connection thread bind to: " + port + "，waiting for connection......");
 
-                    while (ServerController.getServiceState() == ServiceState.RUNNING) {
+                    while (serverNode.lifecycleState().equals(Lifecycle.State.INITIALIZED)
+                            || serverNode.lifecycleState().equals(Lifecycle.State.STARTED)) {
                         // BIO
                         Socket socket = this.serverSocket.accept();
                         socket.setTcpNoDelay(true);
@@ -508,7 +509,7 @@ public class ServerNetworkManager {
                             break;
                         }
 
-                        if (ServerController.isController()) {
+                        if (ServerNode.isController()) {
 //                            AutoRebalanceManager autoRebalanceManager = AutoRebalanceManager.getInstance();
 //                            autoRebalanceManager.rebalance(remoteServerNode.getNodeId());
                         }
@@ -536,7 +537,7 @@ public class ServerNetworkManager {
                 }
             }
 
-            ServerController.setServiceState(ServiceState.SERVICE_FAILED);
+            serverNode.stop();
 
             LOGGER.error("unable to monitor other servers' connection！！！");
         }

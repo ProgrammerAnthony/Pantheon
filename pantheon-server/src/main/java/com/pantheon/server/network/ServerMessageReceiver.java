@@ -2,8 +2,9 @@ package com.pantheon.server.network;
 
 import com.alibaba.fastjson.JSONObject;
 import com.pantheon.common.MessageType;
+import com.pantheon.common.component.Lifecycle;
 import com.pantheon.common.entity.Request;
-import com.pantheon.server.ServerController;
+import com.pantheon.server.ServerNode;
 import com.pantheon.server.node.Controller;
 import com.pantheon.server.node.ControllerVote;
 import com.pantheon.server.slot.SlotManager;
@@ -58,8 +59,8 @@ public class ServerMessageReceiver extends Thread {
     @Override
     public void run() {
         ServerNetworkManager serverNetworkManager = ServerNetworkManager.getInstance();
-
-        while (ServerController.isRunning()) {
+        ServerNode serverNode = ServerNode.getInstance();
+        while (serverNode.lifecycleState().equals(Lifecycle.State.INITIALIZED)||serverNode.lifecycleState().equals(Lifecycle.State.STARTED))  {
             try {
                 ByteBuffer message = serverNetworkManager.takeMessage();
                 int messageType = message.getInt();

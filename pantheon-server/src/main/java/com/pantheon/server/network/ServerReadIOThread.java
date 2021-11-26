@@ -1,7 +1,7 @@
 package com.pantheon.server.network;
 
-import com.pantheon.common.ServiceState;
-import com.pantheon.server.ServerController;
+import com.pantheon.common.component.Lifecycle;
+import com.pantheon.server.ServerNode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -64,7 +64,9 @@ public class ServerReadIOThread extends Thread {
 
     @Override
     public void run() {
-        while (ServerController.isRunning() && ioThreadRunningSignal.isRunning()) {
+        ServerNode serverNode = ServerNode.getInstance();
+        while ((serverNode.lifecycleState().equals(Lifecycle.State.INITIALIZED)
+                || serverNode.lifecycleState().equals(Lifecycle.State.STARTED)) && ioThreadRunningSignal.isRunning()) {
             try {
                 // blocking read from DataInputStream
                 int messageLength = inputStream.readInt();
@@ -82,15 +84,15 @@ public class ServerReadIOThread extends Thread {
 //                highAvailabilityManager.handleDisconnectedException(remoteNodeId);
             } catch (IOException e) {
                 LOGGER.error("IOException when connection with node id: 【" + remoteNodeId + "】......", e);
-                ServerController.setServiceState(ServiceState.SERVICE_FAILED);
+                serverNode.stop();
             } catch (InterruptedException e) {
                 LOGGER.error("InterruptedException when connection with node id: 【" + remoteNodeId + "】......", e);
-                ServerController.setServiceState(ServiceState.SERVICE_FAILED);
+                serverNode.stop();
             }
         }
 
         LOGGER.info("read connection with【" + remoteNodeId + "】will finish......");
-        if (ServerController.getServiceState() == ServiceState.SERVICE_FAILED) {
+        if (serverNode.lifecycleState().equals(Lifecycle.State.STOPPED)) {
             LOGGER.error("read connection with【" + remoteNodeId + "】collapsed......");
         }
     }

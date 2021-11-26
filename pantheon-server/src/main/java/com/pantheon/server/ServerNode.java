@@ -1,12 +1,12 @@
 package com.pantheon.server;
 
 import com.pantheon.common.ServerNodeRole;
-import com.pantheon.common.ServiceState;
 import com.pantheon.common.ThreadFactoryImpl;
-import com.pantheon.common.exception.InitException;
+import com.pantheon.common.component.AbstractLifecycleComponent;
 import com.pantheon.remoting.RemotingServer;
 import com.pantheon.remoting.netty.NettyRemotingServer;
 import com.pantheon.remoting.netty.NettyServerConfig;
+import com.pantheon.server.config.CachedPantheonServerConfig;
 import com.pantheon.server.config.PantheonServerConfig;
 import com.pantheon.server.network.ServerMessageReceiver;
 import com.pantheon.server.network.ServerNetworkManager;
@@ -16,6 +16,7 @@ import com.pantheon.server.slot.SlotManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.IOException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -24,13 +25,12 @@ import java.util.concurrent.TimeUnit;
 /**
  * @author Anthony
  * @create 2021/11/18
- * @desc
- * 2 todo rethink and build the mechanism of client and server RocketMq
+ * @desc 2 todo rethink and build the mechanism of client and server RocketMq
  * 3 todo build heartbeat mechanism of client and server
  * 4 todo design the message protocol
  * 5 todo design slots mechanism and treat it as topic in RocketMq
  **/
-public class ServerController {
+public class ServerNode extends AbstractLifecycleComponent {
     private NettyServerConfig nettyServerConfig;
     private PantheonServerConfig serverConfig;
     private RemotingServer remotingServer;
@@ -38,50 +38,20 @@ public class ServerController {
     private final ScheduledExecutorService scheduledExecutorService = Executors.newSingleThreadScheduledExecutor(new ThreadFactoryImpl(
             "ServerControllerScheduledThread"));
     private static final Logger logger = LoggerFactory.getLogger(ServerBootstrap.class);
-    private static ServiceState serviceState = ServiceState.CREATE_JUST;
-    private static ServerNodeRole serverNodeRole = ServerNodeRole.COMMON_NODE;
 
+    private volatile static ServerNodeRole serverNodeRole = ServerNodeRole.COMMON_NODE;
 
-    public ServerController(PantheonServerConfig serverConfig, NettyServerConfig nettyServerConfig) {
-        this.nettyServerConfig = nettyServerConfig;
-        this.serverConfig = serverConfig;
+    private ServerNode() {
+        this.nettyServerConfig = new NettyServerConfig();
+        this.serverConfig = CachedPantheonServerConfig.getInstance();
     }
 
-    public boolean initialize() {
-        synchronized (ServerController.class) {
-            switch (serviceState) {
-                case CREATE_JUST:
-                    serviceState = ServiceState.RUNNING;
+    private static class Singleton {
+        static ServerNode instance = new ServerNode();
+    }
 
-                    ServerNodeRole serverNodeRole = ServerNodeRole.COMMON_NODE;
-
-                    this.startScheduledTask();
-
-                    Boolean isControllerCandidate = serverConfig.isControllerCandidate();
-
-                    manageServerNetwork(isControllerCandidate);
-                    if (isControllerCandidate) {
-                        controllerCandidateInit(serverNodeRole);
-                    }
-
-                    //master node (not controller) wait for slots data
-                    if (!isController()) {
-                        SlotManager slotManager = SlotManager.getInstance();
-                        slotManager.initSlots(null);
-                        slotManager.initSlotsReplicas(null, false);
-                        slotManager.initReplicaNodeId(null);
-                        ControllerNode.setNodeId(ServerMessageReceiver.getInstance().takeControllerNodeId());
-                    }
-
-                    startNettyClientServer();
-                    break;
-                case START_FAILED:
-                    throw new InitException("ServerBootstrap failed to initialize ");
-                default:
-                    break;
-            }
-        }
-        return true;
+    public static ServerNode getInstance() {
+        return ServerNode.Singleton.instance;
     }
 
     private void startNettyClientServer() {
@@ -103,7 +73,7 @@ public class ServerController {
         if (isControllerCandidate) {
             // connect before candidates (not all) avoid of nodes' duplicate connection
             if (!serverNetworkManager.connectBeforeControllerCandidateServers()) {
-                serviceState = ServiceState.START_FAILED;
+                ServerNode.this.stop();
                 return false;
             }
             //wait for other nodes' connection
@@ -161,7 +131,7 @@ public class ServerController {
             @Override
             public void run() {
                 try {
-                    ServerController.this.heartBeatCheck();
+                    ServerNode.this.heartBeatCheck();
                 } catch (Exception e) {
                     logger.error("ScheduledTask heartBeatCheck exception", e);
                 }
@@ -176,24 +146,6 @@ public class ServerController {
     }
 
 
-    public void shutdown() {
-        synchronized (this) {
-            switch (this.serviceState) {
-                case CREATE_JUST:
-                    break;
-                case RUNNING:
-                    this.remotingServer.shutdown();
-                    this.remotingExecutor.shutdown();
-                    logger.info("the server controller shutdown OK");
-                    break;
-                case SHUTDOWN_ALREADY:
-                    break;
-                default:
-                    break;
-            }
-        }
-    }
-
     public PantheonServerConfig getServerConfig() {
         return serverConfig;
     }
@@ -203,33 +155,57 @@ public class ServerController {
     }
 
 
-    public static boolean isRunning() {
-        return getServiceState() == ServiceState.RUNNING;
-    }
+//    public static boolean isRunning() {
+//        return getServiceState() == ServiceState.RUNNING;
+//    }
 
     public static boolean isController() {
         return getServerNodeRole() == ServerNodeRole.CONTROLLER_NODE;
     }
 
-    /**
-     * global state of current server
-     *
-     * @return
-     */
-    public static ServiceState getServiceState() {
-        return serviceState;
-    }
-
-    public static synchronized void setServiceState(ServiceState serviceState) {
-        ServerController.serviceState = serviceState;
-    }
-
-    public static synchronized ServerNodeRole setServerRole(ServerNodeRole serverNodeRole) {
-        ServerController.serverNodeRole = serverNodeRole;
-        return ServerController.serverNodeRole;
+    public static ServerNodeRole setServerRole(ServerNodeRole serverNodeRole) {
+        ServerNode.serverNodeRole = serverNodeRole;
+        return ServerNode.serverNodeRole;
     }
 
     public static ServerNodeRole getServerNodeRole() {
         return serverNodeRole;
+    }
+
+    @Override
+    protected void doStart() {
+        ServerNodeRole serverNodeRole = ServerNodeRole.COMMON_NODE;
+
+        this.startScheduledTask();
+
+        Boolean isControllerCandidate = serverConfig.isControllerCandidate();
+
+        manageServerNetwork(isControllerCandidate);
+        if (isControllerCandidate) {
+            controllerCandidateInit(serverNodeRole);
+        }
+
+        //master node (not controller) wait for slots data
+        if (!isController()) {
+            SlotManager slotManager = SlotManager.getInstance();
+            slotManager.initSlots(null);
+            slotManager.initSlotsReplicas(null, false);
+            slotManager.initReplicaNodeId(null);
+            ControllerNode.setNodeId(ServerMessageReceiver.getInstance().takeControllerNodeId());
+        }
+
+        startNettyClientServer();
+    }
+
+    @Override
+    protected void doStop() {
+        this.remotingServer.shutdown();
+        this.remotingExecutor.shutdown();
+        logger.info("the server controller shutdown OK");
+    }
+
+    @Override
+    protected void doClose() throws IOException {
+
     }
 }

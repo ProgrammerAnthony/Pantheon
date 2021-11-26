@@ -14,15 +14,12 @@ import com.pantheon.remoting.exception.RemotingCommandException;
 import com.pantheon.remoting.netty.AsyncNettyRequestProcessor;
 import com.pantheon.remoting.netty.NettyRequestProcessor;
 import com.pantheon.remoting.protocol.RemotingCommand;
-import com.pantheon.server.ServerController;
+import com.pantheon.server.ServerNode;
 import com.pantheon.server.node.Controller;
 import com.pantheon.server.node.ControllerCandidate;
 import io.netty.channel.ChannelHandlerContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.util.List;
-import java.util.Map;
 
 /**
  * @author Anthony
@@ -31,10 +28,10 @@ import java.util.Map;
  **/
 public class ServerNodeProcessor extends AsyncNettyRequestProcessor implements NettyRequestProcessor {
     private static final Logger logger = LoggerFactory.getLogger(ServerNodeProcessor.class);
-    private final ServerController serverController;
+    private final ServerNode serverNode;
 
-    public ServerNodeProcessor(final ServerController serverController) {
-        this.serverController = serverController;
+    public ServerNodeProcessor(final ServerNode serverNode) {
+        this.serverNode = serverNode;
     }
 
     @Override
@@ -65,7 +62,7 @@ public class ServerNodeProcessor extends AsyncNettyRequestProcessor implements N
                 (GetServerNodeIdRequestHeader) request.decodeCommandCustomHeader(GetServerNodeIdRequestHeader.class);
         logger.info("getServerNodeId called by {}", RemotingHelper.parseChannelRemoteAddr(ctx.channel()));
         final GetServerNodeIdResponseHeader responseHeader = (GetServerNodeIdResponseHeader) response.readCustomHeader();
-        responseHeader.setServerNodeId(serverController.getServerConfig().getNodeId());
+        responseHeader.setServerNodeId(serverNode.getServerConfig().getNodeId());
         response.setCode(ResponseCode.SUCCESS);
         response.setRemark(null);
         response.setOpaque(request.getOpaque());
@@ -79,9 +76,9 @@ public class ServerNodeProcessor extends AsyncNettyRequestProcessor implements N
                 (GetSlotsRequestHeader) request.decodeCommandCustomHeader(GetSlotsRequestHeader.class);
         logger.info("getSlotsAllocation called by {}", RemotingHelper.parseChannelRemoteAddr(ctx.channel()));
         final GetSlotsResponseHeader responseHeader = (GetSlotsResponseHeader) response.readCustomHeader();
-        if(ServerController.getServerNodeRole()==ServerNodeRole.CONTROLLER_CANDIDATE_NODE){
+        if(ServerNode.getServerNodeRole()==ServerNodeRole.CONTROLLER_CANDIDATE_NODE){
             responseHeader.setSlotsAllocation(JSON.toJSONString(ControllerCandidate.getInstance().getSlotsAllocation()));
-        }else if(ServerController.getServerNodeRole()==ServerNodeRole.CONTROLLER_NODE){
+        }else if(ServerNode.getServerNodeRole()==ServerNodeRole.CONTROLLER_NODE){
             responseHeader.setSlotsAllocation(JSON.toJSONString(Controller.getInstance().getSlotsAllocation()));
         }
         response.setCode(ResponseCode.SUCCESS);

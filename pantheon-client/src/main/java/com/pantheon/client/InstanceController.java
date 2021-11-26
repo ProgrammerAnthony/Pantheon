@@ -77,7 +77,7 @@ public class InstanceController {
             Map<Integer, List<String>> integerListMap = fetchSlotsAllocation(controllerCandidate, 10000);
             logger.info("fetchSlotsAllocation successful load map: " + integerListMap);
 
-            fetchServerAddresses(controllerCandidate);
+            fetchServerAddresses(controllerCandidate,1000);
             String serviceName = instanceConfig.getServiceName();
             this.server = routeServer(serviceName);
 //        if(nodeId.equals(serviceName.))

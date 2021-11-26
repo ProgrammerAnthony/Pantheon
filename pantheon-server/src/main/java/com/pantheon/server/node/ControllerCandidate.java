@@ -3,13 +3,12 @@ package com.pantheon.server.node;
 import com.alibaba.fastjson.JSONObject;
 import com.pantheon.common.MessageType;
 import com.pantheon.common.ServerNodeRole;
-import com.pantheon.server.ServerController;
-import com.pantheon.server.config.ArchaiusPantheonServerConfig;
+import com.pantheon.common.component.Lifecycle;
+import com.pantheon.server.ServerNode;
 import com.pantheon.server.config.CachedPantheonServerConfig;
 import com.pantheon.server.network.ServerMessageReceiver;
 import com.pantheon.server.network.ServerNetworkManager;
 import com.pantheon.server.persist.FilePersistUtils;
-import org.apache.log4j.pattern.CachedDateFormat;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -59,6 +58,7 @@ public class ControllerCandidate {
 
     /**
      * elect controller within controller candidate
+     *
      * @return
      */
     public ServerNodeRole electController() {
@@ -75,12 +75,12 @@ public class ControllerCandidate {
         this.currentVote = new ControllerVote(nodeId, nodeId, voteRound);
         Integer controllerNodeId = startNextRoundVote(otherControllerCandidates);
         //first round failed to elect controller
-        while(controllerNodeId == null) {
+        while (controllerNodeId == null) {
             controllerNodeId = startNextRoundVote(otherControllerCandidates);
         }
 
         // controller found!!
-        if(nodeId.equals(controllerNodeId)) {
+        if (nodeId.equals(controllerNodeId)) {
             return ServerNodeRole.CONTROLLER_NODE;
         } else {
             return ServerNodeRole.CONTROLLER_CANDIDATE_NODE;
@@ -109,17 +109,19 @@ public class ControllerCandidate {
 
         // initial vote to self
         ByteBuffer voteMessage = currentVote.getMessageByteBuffer();
-        for(RemoteServerNode remoteNode : otherControllerCandidates) {
+        for (RemoteServerNode remoteNode : otherControllerCandidates) {
             Integer remoteNodeId = remoteNode.getNodeId();
             serverNetworkManager.sendMessage(remoteNodeId, voteMessage);
             LOGGER.info("send controller votes to : " + remoteNode);
         }
 
         // waiting for others' votes
-        while(ServerController.isRunning()) {
+        ServerNode serverNode = ServerNode.getInstance();
+        while ((serverNode.lifecycleState().equals(Lifecycle.State.INITIALIZED)
+                || serverNode.lifecycleState().equals(Lifecycle.State.STARTED))) {
             ControllerVote receivedVote = serverMessageReceiver.takeVote();
 
-            if(receivedVote.getVoterNodeId() == null) {
+            if (receivedVote.getVoterNodeId() == null) {
                 continue;
             }
 
@@ -127,13 +129,13 @@ public class ControllerCandidate {
             LOGGER.info("received vote : " + receivedVote);
 
             // votes num > quorum leads to controller judge
-            if(votes.size() >= quorum) {
+            if (votes.size() >= quorum) {
                 Integer judgedControllerNodeId =
                         getControllerFromVotes(votes, quorum);
 
                 // controller found after judgement
-                if(judgedControllerNodeId != null) {
-                    if(votes.size() == candidateCount) {
+                if (judgedControllerNodeId != null) {
+                    if (votes.size() == candidateCount) {
                         LOGGER.info(" Controller Selected : " + judgedControllerNodeId + ", with all votes......");
                         return judgedControllerNodeId;
                     }
@@ -143,7 +145,7 @@ public class ControllerCandidate {
                 }
             }
 
-            if(votes.size() == candidateCount) {
+            if (votes.size() == candidateCount) {
                 //fail round: after all votes received ,but have not affirmed controller
                 //start next round with a better controller node(the biggest one in all candidates)
                 voteRound++;
@@ -161,6 +163,7 @@ public class ControllerCandidate {
 
     /**
      * get controller node id from current votes
+     *
      * @param votes
      * @return
      */
@@ -168,19 +171,19 @@ public class ControllerCandidate {
         // <1, 1>, <2, 1>, <3, 2>
         Map<Integer, Integer> voteCountMap = new HashMap<Integer, Integer>();
 
-        for(ControllerVote vote : votes) {
+        for (ControllerVote vote : votes) {
             Integer controllerNodeId = vote.getControllerNodeId();
 
             Integer count = voteCountMap.get(controllerNodeId);
-            if(count == null) {
+            if (count == null) {
                 count = 0;
             }
 
             voteCountMap.put(controllerNodeId, ++count);
         }
 
-        for(Map.Entry<Integer, Integer> voteCountEntry : voteCountMap.entrySet()) {
-            if(voteCountEntry.getValue() >= quorum) {
+        for (Map.Entry<Integer, Integer> voteCountEntry : voteCountMap.entrySet()) {
+            if (voteCountEntry.getValue() >= quorum) {
                 return voteCountEntry.getKey();
             }
         }
@@ -190,15 +193,16 @@ public class ControllerCandidate {
 
     /**
      * get least controller id
+     *
      * @param votes
      * @return
      */
     private Integer getBetterControllerNodeId(List<ControllerVote> votes) {
         Integer betterControllerNodeId = 0;
 
-        for(ControllerVote vote : votes) {
+        for (ControllerVote vote : votes) {
             Integer controllerNodeId = vote.getControllerNodeId();
-            if(controllerNodeId > betterControllerNodeId) {
+            if (controllerNodeId > betterControllerNodeId) {
                 betterControllerNodeId = controllerNodeId;
             }
         }
@@ -232,12 +236,12 @@ public class ControllerCandidate {
 
         Integer nodeId = CachedPantheonServerConfig.getInstance().getNodeId();
         String ip = CachedPantheonServerConfig.getInstance().getNodeIp();
-        Integer clientTcpPort =  CachedPantheonServerConfig.getInstance().getNodeClientTcpPort();
+        Integer clientTcpPort = CachedPantheonServerConfig.getInstance().getNodeClientTcpPort();
 
         List<RemoteServerNode> servers = remoteServerNodeManager.getRemoteServerNodes();
         List<String> serverAddresses = new ArrayList<String>();
 
-        for(RemoteServerNode server : servers) {
+        for (RemoteServerNode server : servers) {
             serverAddresses.add(server.getNodeId() + ":" + server.getIp() + ":" + server.getClientPort());
         }
         serverAddresses.add(nodeId + ":" + ip + ":" + clientTcpPort);

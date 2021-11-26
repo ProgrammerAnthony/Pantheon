@@ -2,10 +2,7 @@ package com.pantheon.server;
 
 import com.netflix.config.ConfigurationManager;
 import com.pantheon.common.ShutdownHookThread;
-import com.pantheon.remoting.netty.NettyServerConfig;
-import com.pantheon.server.config.ArchaiusPantheonServerConfig;
-import com.pantheon.server.config.CachedPantheonServerConfig;
-import com.pantheon.server.config.PantheonServerConfig;
+import com.pantheon.common.component.Lifecycle;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -25,29 +22,27 @@ public class ServerBootstrap {
 
     public static void main(String[] args) {
         logger.info("ServerBootstrap initializing......");
-        PantheonServerConfig serverConfig = CachedPantheonServerConfig.getInstance();
+
         initPantheonEnvironment();
-        NettyServerConfig nettyServerConfig = new NettyServerConfig();
-        ServerController serverController = new ServerController(serverConfig, nettyServerConfig);
-        start(serverController);
+        startServerNode();
     }
 
-    private static ServerController start(ServerController serverController) {
-
-        boolean initResult = serverController.initialize();
-        if (!initResult) {
-            serverController.shutdown();
+    private static ServerNode startServerNode() {
+        ServerNode serverNode =ServerNode.getInstance();
+        serverNode.start();
+        if (!serverNode.lifecycleState().equals(Lifecycle.State.STARTED)) {
+            serverNode.stop();
             System.exit(-3);
         }
         Runtime.getRuntime().addShutdownHook(new ShutdownHookThread(logger, (Callable<Void>) () -> {
-            serverController.shutdown();
+            serverNode.stop();
             return null;
         }));
-        return serverController;
+        return serverNode;
     }
 
-    public static void shutdown(final ServerController controller) {
-        controller.shutdown();
+    public static void shutdown(final ServerNode serverNode) {
+        serverNode.stop();
     }
 
 

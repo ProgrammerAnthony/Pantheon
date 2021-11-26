@@ -2,8 +2,7 @@ package com.pantheon.server.node;
 
 import com.alibaba.fastjson.JSONObject;
 import com.pantheon.common.MessageType;
-import com.pantheon.common.ServiceState;
-import com.pantheon.server.ServerController;
+import com.pantheon.server.ServerNode;
 import com.pantheon.server.config.ArchaiusPantheonServerConfig;
 import com.pantheon.server.config.CachedPantheonServerConfig;
 import com.pantheon.server.network.ServerNetworkManager;
@@ -81,16 +80,17 @@ public class Controller {
 
         executeSlotsReplicaAllocation();
 
+        ServerNode serverNode = ServerNode.getInstance();
         if (!persistSlotsAllocation()) {
-            ServerController.setServiceState(ServiceState.START_FAILED);
+            serverNode.stop();
             return;
         }
         if (!persistSlotsReplicaAllocation()) {
-            ServerController.setServiceState(ServiceState.START_FAILED);
+            serverNode.stop();
             return;
         }
         if (!persistReplicaNodeIds()) {
-            ServerController.setServiceState(ServiceState.START_FAILED);
+            serverNode.stop();
             return;
         }
 
