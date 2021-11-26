@@ -2,7 +2,7 @@ package com.pantheon.server.network;
 
 import com.pantheon.common.MessageType;
 import com.pantheon.common.ThreadFactoryImpl;
-import com.pantheon.common.component.Lifecycle;
+import com.pantheon.common.lifecycle.Lifecycle;
 import com.pantheon.server.ServerNode;
 import com.pantheon.server.config.CachedPantheonServerConfig;
 import com.pantheon.server.node.RemoteServerNode;

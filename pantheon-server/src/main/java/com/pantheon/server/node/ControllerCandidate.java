@@ -3,7 +3,7 @@ package com.pantheon.server.node;
 import com.alibaba.fastjson.JSONObject;
 import com.pantheon.common.MessageType;
 import com.pantheon.common.ServerNodeRole;
-import com.pantheon.common.component.Lifecycle;
+import com.pantheon.common.lifecycle.Lifecycle;
 import com.pantheon.server.ServerNode;
 import com.pantheon.server.config.CachedPantheonServerConfig;
 import com.pantheon.server.network.ServerMessageReceiver;

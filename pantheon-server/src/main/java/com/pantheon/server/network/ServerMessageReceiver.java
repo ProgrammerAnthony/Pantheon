@@ -2,7 +2,7 @@ package com.pantheon.server.network;
 
 import com.alibaba.fastjson.JSONObject;
 import com.pantheon.common.MessageType;
-import com.pantheon.common.component.Lifecycle;
+import com.pantheon.common.lifecycle.Lifecycle;
 import com.pantheon.common.entity.Request;
 import com.pantheon.server.ServerNode;
 import com.pantheon.server.node.Controller;

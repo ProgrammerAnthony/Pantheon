@@ -2,7 +2,7 @@ package com.pantheon.server;
 
 import com.pantheon.common.ServerNodeRole;
 import com.pantheon.common.ThreadFactoryImpl;
-import com.pantheon.common.component.AbstractLifecycleComponent;
+import com.pantheon.common.lifecycle.AbstractLifecycleComponent;
 import com.pantheon.remoting.RemotingServer;
 import com.pantheon.remoting.netty.NettyRemotingServer;
 import com.pantheon.remoting.netty.NettyServerConfig;

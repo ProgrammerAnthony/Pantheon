@@ -2,7 +2,7 @@ package com.pantheon.server;
 
 import com.netflix.config.ConfigurationManager;
 import com.pantheon.common.ShutdownHookThread;
-import com.pantheon.common.component.Lifecycle;
+import com.pantheon.common.lifecycle.Lifecycle;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

@@ -1,5 +1,5 @@
 
-package com.pantheon.common.component;
+package com.pantheon.common.lifecycle;
 
 public abstract class LifecycleListener {
 

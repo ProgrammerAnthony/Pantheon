@@ -1,5 +1,5 @@
 
-package com.pantheon.common.component;
+package com.pantheon.common.lifecycle;
 
 import java.io.IOException;
 import java.io.UncheckedIOException;

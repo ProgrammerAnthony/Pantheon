@@ -1,6 +1,6 @@
 package com.pantheon.server.network;
 
-import com.pantheon.common.component.Lifecycle;
+import com.pantheon.common.lifecycle.Lifecycle;
 import com.pantheon.server.ServerNode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
