@@ -19,7 +19,7 @@ import java.util.concurrent.CountDownLatch;
 /**
  * @author Anthony
  * @create 2021/11/17
- * @desc todo how to subscribe to server’s data and get notified
+ * @desc
  **/
 public class InstanceBootStrap {
     private static final Logger logger = LoggerFactory.getLogger(InstanceBootStrap.class);
@@ -35,7 +35,7 @@ public class InstanceBootStrap {
     }
 
     private static InstanceNode startClientNode(InstanceNode instanceNode) {
-        boolean initResult = instanceNode.initialize();
+        boolean initResult = instanceNode.start();
         if (!initResult) {
             instanceNode.shutdown();
             System.exit(-3);
@@ -44,8 +44,8 @@ public class InstanceBootStrap {
             instanceNode.shutdown();
             return null;
         }));
-        //start netty
-
+//        sendRegister()
+//        startHeartBeatScheduler();
         return instanceNode;
     }
 
