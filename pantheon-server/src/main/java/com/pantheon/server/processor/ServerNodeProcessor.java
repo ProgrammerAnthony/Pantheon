@@ -5,10 +5,7 @@ import com.alibaba.fastjson.JSON;
 import com.pantheon.common.ServerNodeRole;
 import com.pantheon.common.protocol.RequestCode;
 import com.pantheon.common.protocol.ResponseCode;
-import com.pantheon.common.protocol.header.GetServerNodeIdRequestHeader;
-import com.pantheon.common.protocol.header.GetServerNodeIdResponseHeader;
-import com.pantheon.common.protocol.header.GetSlotsRequestHeader;
-import com.pantheon.common.protocol.header.GetSlotsResponseHeader;
+import com.pantheon.common.protocol.header.*;
 import com.pantheon.remoting.common.RemotingHelper;
 import com.pantheon.remoting.exception.RemotingCommandException;
 import com.pantheon.remoting.netty.AsyncNettyRequestProcessor;
@@ -20,6 +17,8 @@ import com.pantheon.server.node.ControllerCandidate;
 import io.netty.channel.ChannelHandlerContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.util.List;
 
 /**
  * @author Anthony
@@ -88,8 +87,27 @@ public class ServerNodeProcessor extends AsyncNettyRequestProcessor implements N
     }
 
     private synchronized RemotingCommand getServerAddresses(ChannelHandlerContext ctx,
-                                                            RemotingCommand request) {
-        return null;
+                                                            RemotingCommand request) throws RemotingCommandException {
+        List<String> serverAddresses = null;
+        final RemotingCommand response = RemotingCommand.createResponseCommand(GetServerAddressResponseHeader.class);
+        final GetServerAddressRequestHeader requestHeader =
+                (GetServerAddressRequestHeader) request.decodeCommandCustomHeader(GetServerAddressRequestHeader.class);
+        logger.info("getServerAddresses called by {}", RemotingHelper.parseChannelRemoteAddr(ctx.channel()));
+        final GetServerAddressResponseHeader responseHeader = (GetServerAddressResponseHeader) response.readCustomHeader();
+        if(ServerNode.getServerNodeRole()==ServerNodeRole.CONTROLLER_CANDIDATE_NODE){
+            ControllerCandidate controllerCandidate = ControllerCandidate.getInstance();
+            serverAddresses = controllerCandidate.getServerAddresses();
+            responseHeader.setServerAddresses(JSON.toJSONString(serverAddresses));
+        }else if(ServerNode.getServerNodeRole()==ServerNodeRole.CONTROLLER_NODE){
+            Controller controller = Controller.getInstance();
+            serverAddresses = controller.getServerAddresses();
+            responseHeader.setServerAddresses(JSON.toJSONString(serverAddresses));
+        }
+
+        response.setCode(ResponseCode.SUCCESS);
+        response.setRemark(null);
+        response.setOpaque(request.getOpaque());
+        return response;
     }
 
 }

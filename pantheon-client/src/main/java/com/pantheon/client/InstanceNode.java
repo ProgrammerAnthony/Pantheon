@@ -41,7 +41,7 @@ import java.util.concurrent.ScheduledExecutorService;
  * @create 2021/11/19
  * @desc
  **/
-public class InstanceController {
+public class InstanceNode {
     private NettyClientConfig nettyClientConfig;
     private DefaultInstanceConfig instanceConfig;
     private ExecutorService remotingExecutor;
@@ -51,11 +51,13 @@ public class InstanceController {
     private static final Logger logger = LoggerFactory.getLogger(ServerBootstrap.class);
     private String excludedRemoteAddress;
     private Server server;
+    private static final Integer SLOT_COUNT = 16384;
 
-    private Map<Integer, List<String>> slotsAllocation;
+
+    private Map<String, List<String>> slotsAllocation;
 
 
-    public InstanceController(NettyClientConfig nettyClientConfig, DefaultInstanceConfig instanceConfig) {
+    public InstanceNode(NettyClientConfig nettyClientConfig, DefaultInstanceConfig instanceConfig) {
         this.nettyClientConfig = nettyClientConfig;
         this.instanceConfig = instanceConfig;
     }
@@ -65,22 +67,21 @@ public class InstanceController {
         remotingClient = new NettyRemotingClient(nettyClientConfig);
         this.remotingExecutor =
                 Executors.newFixedThreadPool(nettyClientConfig.getClientWorkerThreads(), new ThreadFactoryImpl("RemotingExecutorThread_"));
-        //choose a controller candidate to link
-        String controllerCandidate = chooseControllerCandidate();
         this.remotingClient.start();
-//        server = new Server(controllerCandidate.split(":")[0], Integer.valueOf(controllerCandidate.split(":")[1]));
+        //choose a controller candidate from local config
+        String controllerCandidate = chooseControllerCandidate();
         Integer nodeId = null;
         try {
             nodeId = fetchServerNodeId(controllerCandidate, 10000);
             logger.info("fetchServerNodeId successful load nodeId: " + nodeId);
-//            server.setId(nodeId);
-            Map<Integer, List<String>> integerListMap = fetchSlotsAllocation(controllerCandidate, 10000);
+            Map<String, List<String>> integerListMap = fetchSlotsAllocation(controllerCandidate, 10000);
             logger.info("fetchSlotsAllocation successful load map: " + integerListMap);
 
-            fetchServerAddresses(controllerCandidate,1000);
+            Map<String, Server> serverMap = fetchServerAddresses(controllerCandidate, 1000);
+            logger.info("fetchServerAddresses successful load map: " + serverMap);
+
             String serviceName = instanceConfig.getServiceName();
             this.server = routeServer(serviceName);
-//        if(nodeId.equals(serviceName.))
         } catch (RemotingConnectException e) {
             e.printStackTrace();
         } catch (RemotingSendRequestException e) {
@@ -96,8 +97,55 @@ public class InstanceController {
     }
 
     private Server routeServer(String serviceName) {
+        Integer slot = routeSlot(serviceName);
+        String serverId = locateServerBySlot(slot);
+        Server server = servers.get(serverId);
+        logger.info(serviceName + " route to serverId: {}", serverId);
+        logger.info(serviceName + " route to slot: {} to server: {}", slot, server);
+        return server;
+    }
+
+
+    /**
+     * locate a server node id by slot
+     *
+     * @param slot
+     * @return
+     */
+    private String locateServerBySlot(Integer slot) {
+        for (String serverNodeId : slotsAllocation.keySet()) {
+            List<String> slotsList = slotsAllocation.get(serverNodeId);
+
+            for (String slots : slotsList) {
+                String[] slotsSpited = slots.split(",");
+                Integer startSlot = Integer.valueOf(slotsSpited[0]);
+                Integer endSlot = Integer.valueOf(slotsSpited[1]);
+
+                if (slot >= startSlot && slot <= endSlot) {
+                    return serverNodeId;
+                }
+            }
+        }
         return null;
     }
+
+
+    /**
+     * route server to a specific slot
+     *
+     * @return
+     */
+    private Integer routeSlot(String serviceName) {
+        int hashCode = serviceName.hashCode() & Integer.MAX_VALUE;
+        Integer slot = hashCode % SLOT_COUNT;
+
+        if (slot == 0) {
+            slot = slot + 1;
+        }
+
+        return slot;
+    }
+
 
     /**
      * fetch server node id
@@ -128,7 +176,7 @@ public class InstanceController {
      * @param controllerCandidate
      * @return
      */
-    private Map<Integer, List<String>> fetchSlotsAllocation(final String controllerCandidate, final long timoutMills) throws RemotingConnectException, RemotingSendRequestException, RemotingTimeoutException, InterruptedException, RemotingCommandException {
+    private Map<String, List<String>> fetchSlotsAllocation(final String controllerCandidate, final long timoutMills) throws RemotingConnectException, RemotingSendRequestException, RemotingTimeoutException, InterruptedException, RemotingCommandException {
         GetSlotsRequestHeader requestHeader = new GetSlotsRequestHeader();
         RemotingCommand request = RemotingCommand.createRequestCommand(RequestCode.GET_SLOTS_ALLOCATION, requestHeader);
         RemotingCommand response = this.remotingClient.invokeSync(controllerCandidate, request, timoutMills);
@@ -137,7 +185,8 @@ public class InstanceController {
             case ResponseCode.SUCCESS: {
                 GetSlotsResponseHeader responseHeader =
                         (GetSlotsResponseHeader) response.decodeCommandCustomHeader(GetSlotsResponseHeader.class);
-                return (Map<Integer, List<String>>) JSON.parse(responseHeader.getSlotsAllocation());
+                slotsAllocation = (Map<String, List<String>>) JSON.parse(responseHeader.getSlotsAllocation());
+                return slotsAllocation;
             }
             default:
                 break;
@@ -149,13 +198,14 @@ public class InstanceController {
     /**
      * server地址列表
      */
-    private Map<Integer, Server> servers = new HashMap<Integer, Server>();
+    private Map<String/*server node id*/, Server> servers = new HashMap<String, Server>();
+
     /**
-     * fetch server addresses
+     * fetch server addresses to local map
      *
      * @param controllerCandidate
      */
-    private void fetchServerAddresses(String controllerCandidate, final long timoutMills) throws RemotingConnectException, RemotingSendRequestException, RemotingTimeoutException, InterruptedException, RemotingCommandException {
+    private Map<String, Server> fetchServerAddresses(String controllerCandidate, final long timoutMills) throws RemotingConnectException, RemotingSendRequestException, RemotingTimeoutException, InterruptedException, RemotingCommandException {
         GetServerAddressRequestHeader requestHeader = new GetServerAddressRequestHeader();
         RemotingCommand request = RemotingCommand.createRequestCommand(RequestCode.GET_SERVER_ADDRESSES, requestHeader);
         RemotingCommand response = this.remotingClient.invokeSync(controllerCandidate, request, timoutMills);
@@ -165,21 +215,23 @@ public class InstanceController {
                 GetServerAddressResponseHeader responseHeader =
                         (GetServerAddressResponseHeader) response.decodeCommandCustomHeader(GetServerAddressResponseHeader.class);
                 List<String> serverAddresses = (List<String>) JSON.parse(responseHeader.getServerAddresses());
-                for(String serverAddress : serverAddresses) {
-                    String[] serverAddressSplited =  serverAddress.split(":");
+                for (String serverAddress : serverAddresses) {
+                    String[] serverAddressSplited = serverAddress.split(":");
 
-                    Integer id = Integer.valueOf(serverAddressSplited[0]);
+                    String id = serverAddressSplited[0];
 
                     String ip = serverAddressSplited[1];
                     Integer port = Integer.valueOf(serverAddressSplited[2]);
                     Server server = new Server(id, ip, port);
 
                     servers.put(id, server);
+                    return servers;
                 }
             }
             default:
                 break;
         }
+        return null;
     }
 
 

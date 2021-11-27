@@ -10,7 +10,7 @@ public class Server {
     /**
      * node id
      */
-    private Integer id;
+    private String id;
     /**
      * ip/hostname address
      */
@@ -20,7 +20,7 @@ public class Server {
      */
     private int port;
 
-    public Server(Integer id, String address, int port) {
+    public Server(String id, String address, int port) {
         this.id = id;
         this.address = address;
         this.port = port;
@@ -31,11 +31,11 @@ public class Server {
         this.port = port;
     }
 
-    public Integer getId() {
+    public String getId() {
         return id;
     }
 
-    public void setId(Integer id) {
+    public void setId(String id) {
         this.id = id;
     }
 

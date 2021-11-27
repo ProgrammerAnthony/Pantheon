@@ -30,24 +30,23 @@ public class InstanceBootStrap {
         logger.info("InstanceBootStrap initializing......");
         DefaultInstanceConfig instanceConfig = DefaultInstanceConfig.getInstance();
         NettyClientConfig nettyClientConfig = new NettyClientConfig();
-        InstanceController instanceController = new InstanceController(nettyClientConfig, instanceConfig);
-        startClientNode(instanceController);
+        InstanceNode instanceNode = new InstanceNode(nettyClientConfig, instanceConfig);
+        startClientNode(instanceNode);
     }
 
-    private static InstanceController startClientNode(InstanceController instanceController) {
-        boolean initResult = instanceController.initialize();
+    private static InstanceNode startClientNode(InstanceNode instanceNode) {
+        boolean initResult = instanceNode.initialize();
         if (!initResult) {
-            instanceController.shutdown();
+            instanceNode.shutdown();
             System.exit(-3);
         }
         Runtime.getRuntime().addShutdownHook(new ShutdownHookThread(logger, (Callable<Void>) () -> {
-            instanceController.shutdown();
+            instanceNode.shutdown();
             return null;
         }));
         //start netty
-//        instanceController.initia();
 
-        return instanceController;
+        return instanceNode;
     }
 
 
