@@ -19,6 +19,8 @@ public abstract class AbstractInstanceConfig implements PantheonInstanceConfig {
 
     private static final int LEASE_EXPIRATION_DURATION_SECONDS = 10;
     private static final int LEASE_RENEWAL_INTERVAL_SECONDS = 3;
+    private static final int DEFAULT_INSTANCE_PORT = 6755;
+
     private static final Pair<String, String> hostInfo = getHostInfo();
 
     protected AbstractInstanceConfig() {
@@ -43,6 +45,11 @@ public abstract class AbstractInstanceConfig implements PantheonInstanceConfig {
     @Override
     public Integer getLeaseExpirationDurationInSeconds() {
         return LEASE_EXPIRATION_DURATION_SECONDS;
+    }
+
+    @Override
+    public Integer getInstancePort() {
+        return DEFAULT_INSTANCE_PORT;
     }
 
     private static Pair<String, String> getHostInfo() {

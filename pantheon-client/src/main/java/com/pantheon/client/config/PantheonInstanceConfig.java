@@ -30,7 +30,10 @@ public interface PantheonInstanceConfig {
 
     /**
      * instances connect one of these servers
+     *
      * @return
      */
     List<String> getServerList();
+
+    Integer getInstancePort();
 }

@@ -10,5 +10,6 @@ public class RequestCode {
     public static final int GET_SLOTS_ALLOCATION = 11;
     public static final int GET_SERVER_ADDRESSES= 12;
     public static final int GET_CONSUMER_RUNNING_INFO = 13;
+    public static final int SERVICE_REGISTRY = 14;
 
 }

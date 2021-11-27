@@ -44,7 +44,8 @@ public class InstanceBootStrap {
             instanceNode.shutdown();
             return null;
         }));
-//        sendRegister()
+
+        instanceNode.sendRegister();
 //        startHeartBeatScheduler();
         return instanceNode;
     }

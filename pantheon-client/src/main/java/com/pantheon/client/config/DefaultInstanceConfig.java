@@ -36,6 +36,8 @@ public class DefaultInstanceConfig extends AbstractInstanceConfig implements Pan
     final String CONFIG_KEY_CONTROLLER_CANDIDATE_SERVERS = namespace + "controllerCandidateServers";
     final String CONFIG_KEY_LEASE_RENEWAL_INTERVAL = namespace + "leaseRenewalInterval";
     final String CONFIG_KEY_LEASE_EXPIRATION_DURATION = namespace + "leaseDuration";
+    final String CONFIG_KEY_INSTANCE_PORT = namespace + "instancePort";
+
 
     private List<String> serverList = new ArrayList<>();
 
@@ -123,4 +125,9 @@ public class DefaultInstanceConfig extends AbstractInstanceConfig implements Pan
         return configInstance.getIntProperty(CONFIG_KEY_LEASE_EXPIRATION_DURATION, super.getLeaseExpirationDurationInSeconds()).get();
     }
 
+
+    @Override
+    public Integer getInstancePort() {
+        return configInstance.getIntProperty(CONFIG_KEY_INSTANCE_PORT,super.getInstancePort()).get();
+    }
 }
