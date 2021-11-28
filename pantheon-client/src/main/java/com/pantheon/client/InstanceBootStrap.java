@@ -30,7 +30,7 @@ public class InstanceBootStrap {
         logger.info("InstanceBootStrap initializing......");
         DefaultInstanceConfig instanceConfig = DefaultInstanceConfig.getInstance();
         NettyClientConfig nettyClientConfig = new NettyClientConfig();
-        InstanceNode instanceNode = new InstanceNode(nettyClientConfig, instanceConfig);
+        InstanceNode instanceNode = new InstanceNode(nettyClientConfig, instanceConfig,"testClientId");
         startClientNode(instanceNode);
     }
 

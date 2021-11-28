@@ -6,6 +6,7 @@ import com.pantheon.client.config.PantheonInstanceConfig;
 import com.pantheon.common.protocol.RequestCode;
 import com.pantheon.common.protocol.ResponseCode;
 import com.pantheon.common.protocol.header.*;
+import com.pantheon.common.protocol.heartBeat.ServiceHeartBeat;
 import com.pantheon.remoting.CommandCustomHeader;
 import com.pantheon.remoting.InvokeCallback;
 import com.pantheon.remoting.RPCHook;
@@ -198,43 +199,6 @@ public class ClientAPIImpl {
     }
 
 
-    public void invokeSync() throws InterruptedException, RemotingConnectException,
-            RemotingSendRequestException, RemotingTimeoutException {
-        logger.info("sync message to " + instanceConfig.getServerList().get(0));
-        RequestHeader requestHeader = new RequestHeader();
-        requestHeader.setCount(1);
-        requestHeader.setMessageTitle("Welcome");
-        RemotingCommand request = RemotingCommand.createRequestCommand(0, requestHeader);
-        RemotingCommand response = remotingClient.invokeSync(instanceConfig.getServerList().get(0), request, 1000 * 3);
-        System.out.println(response);
-    }
-
-
-    public void invokeOneway() throws InterruptedException, RemotingConnectException,
-            RemotingTimeoutException, RemotingTooMuchRequestException, RemotingSendRequestException {
-
-        RemotingCommand request = RemotingCommand.createRequestCommand(0, null);
-        request.setRemark("messi");
-        remotingClient.invokeOneway(instanceConfig.getServerList().get(0), request, 1000 * 3);
-    }
-
-
-    public void invokeAsync() throws InterruptedException, RemotingConnectException,
-            RemotingTimeoutException, RemotingTooMuchRequestException, RemotingSendRequestException {
-
-        final CountDownLatch latch = new CountDownLatch(1);
-        RemotingCommand request = RemotingCommand.createRequestCommand(0, null);
-        request.setRemark("messi");
-        remotingClient.invokeAsync(instanceConfig.getServerList().get(0), request, 1000 * 3, new InvokeCallback() {
-            @Override
-            public void operationComplete(ResponseFuture responseFuture) {
-                latch.countDown();
-                System.out.println(responseFuture.getResponseCommand());
-            }
-        });
-        latch.await();
-    }
-
 
     /**
      * locate a server node id by slot
@@ -280,6 +244,28 @@ public class ClientAPIImpl {
         }
 
         return null;
+    }
+
+    public boolean sendHeartBeatToServer(final Server server, String clientId, final Long timoutMills) throws RemotingConnectException, RemotingSendRequestException, RemotingTimeoutException, InterruptedException {
+
+        ServiceHeartBeat heartBeat =new ServiceHeartBeat();
+        //todo clientid generate
+        heartBeat.setClientId(clientId);
+        heartBeat.setServiceName(instanceConfig.getServiceName());
+        heartBeat.setServiceInstancePort(instanceConfig.getInstancePort());
+        heartBeat.setServiceInstanceIp(instanceConfig.getInstanceIpAddress());
+        RemotingCommand request = RemotingCommand.createRequestCommand(RequestCode.HEART_BEAT, null);
+        request.setBody(heartBeat.encode());
+        RemotingCommand response = this.remotingClient.invokeSync(server.getRemoteSocketAddress(), request, timoutMills);
+        assert response != null;
+        switch (response.getCode()) {
+            case ResponseCode.SUCCESS: {
+                return true;
+            }
+            default:
+                break;
+        }
+        return false;
     }
 
 

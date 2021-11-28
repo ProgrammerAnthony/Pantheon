@@ -6,6 +6,7 @@ import com.pantheon.common.ServerNodeRole;
 import com.pantheon.common.protocol.RequestCode;
 import com.pantheon.common.protocol.ResponseCode;
 import com.pantheon.common.protocol.header.*;
+import com.pantheon.common.protocol.heartBeat.ServiceHeartBeat;
 import com.pantheon.remoting.common.RemotingHelper;
 import com.pantheon.remoting.exception.RemotingCommandException;
 import com.pantheon.remoting.netty.AsyncNettyRequestProcessor;
@@ -43,11 +44,29 @@ public class ServerNodeProcessor extends AsyncNettyRequestProcessor implements N
             case RequestCode.GET_SERVER_ADDRESSES:
                 return this.getServerAddresses(ctx, request);
             case RequestCode.SERVICE_REGISTRY:
-                return this.serviceRegistry(ctx,request);
+                return this.serviceRegistry(ctx, request);
+            case RequestCode.HEART_BEAT:
+                return this.heartBeat(ctx, request);
+            case RequestCode.SERVICE_UNREGISTER:
+                return this.serviceUnregister(ctx, request);
             default:
                 break;
         }
         return null;
+    }
+
+    private RemotingCommand serviceUnregister(ChannelHandlerContext ctx, RemotingCommand request) {
+        return null;
+    }
+
+    private RemotingCommand heartBeat(ChannelHandlerContext ctx, RemotingCommand request) {
+        RemotingCommand response = RemotingCommand.createResponseCommand(null);
+        ServiceHeartBeat heartbeatData = ServiceHeartBeat.decode(request.getBody(), ServiceHeartBeat.class);
+        logger.info("receive heartbeat from: {}",heartbeatData.getClientId());
+        response.setCode(ResponseCode.SUCCESS);
+        response.setRemark(null);
+        response.setOpaque(request.getOpaque());
+        return response;
     }
 
     private RemotingCommand serviceRegistry(ChannelHandlerContext ctx, RemotingCommand request) throws RemotingCommandException {
@@ -91,9 +110,9 @@ public class ServerNodeProcessor extends AsyncNettyRequestProcessor implements N
                 (GetSlotsRequestHeader) request.decodeCommandCustomHeader(GetSlotsRequestHeader.class);
         logger.info("getSlotsAllocation called by {}", RemotingHelper.parseChannelRemoteAddr(ctx.channel()));
         final GetSlotsResponseHeader responseHeader = (GetSlotsResponseHeader) response.readCustomHeader();
-        if(ServerNode.getServerNodeRole()==ServerNodeRole.CONTROLLER_CANDIDATE_NODE){
+        if (ServerNode.getServerNodeRole() == ServerNodeRole.CONTROLLER_CANDIDATE_NODE) {
             responseHeader.setSlotsAllocation(JSON.toJSONString(ControllerCandidate.getInstance().getSlotsAllocation()));
-        }else if(ServerNode.getServerNodeRole()==ServerNodeRole.CONTROLLER_NODE){
+        } else if (ServerNode.getServerNodeRole() == ServerNodeRole.CONTROLLER_NODE) {
             responseHeader.setSlotsAllocation(JSON.toJSONString(Controller.getInstance().getSlotsAllocation()));
         }
         response.setCode(ResponseCode.SUCCESS);
@@ -110,11 +129,11 @@ public class ServerNodeProcessor extends AsyncNettyRequestProcessor implements N
                 (GetServerAddressRequestHeader) request.decodeCommandCustomHeader(GetServerAddressRequestHeader.class);
         logger.info("getServerAddresses called by {}", RemotingHelper.parseChannelRemoteAddr(ctx.channel()));
         final GetServerAddressResponseHeader responseHeader = (GetServerAddressResponseHeader) response.readCustomHeader();
-        if(ServerNode.getServerNodeRole()==ServerNodeRole.CONTROLLER_CANDIDATE_NODE){
+        if (ServerNode.getServerNodeRole() == ServerNodeRole.CONTROLLER_CANDIDATE_NODE) {
             ControllerCandidate controllerCandidate = ControllerCandidate.getInstance();
             serverAddresses = controllerCandidate.getServerAddresses();
             responseHeader.setServerAddresses(JSON.toJSONString(serverAddresses));
-        }else if(ServerNode.getServerNodeRole()==ServerNodeRole.CONTROLLER_NODE){
+        } else if (ServerNode.getServerNodeRole() == ServerNodeRole.CONTROLLER_NODE) {
             Controller controller = Controller.getInstance();
             serverAddresses = controller.getServerAddresses();
             responseHeader.setServerAddresses(JSON.toJSONString(serverAddresses));

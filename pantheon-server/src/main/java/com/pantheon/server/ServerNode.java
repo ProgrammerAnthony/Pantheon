@@ -3,6 +3,7 @@ package com.pantheon.server;
 import com.pantheon.common.ServerNodeRole;
 import com.pantheon.common.ThreadFactoryImpl;
 import com.pantheon.common.lifecycle.AbstractLifecycleComponent;
+import com.pantheon.common.protocol.RequestCode;
 import com.pantheon.remoting.RemotingServer;
 import com.pantheon.remoting.netty.NettyRemotingServer;
 import com.pantheon.remoting.netty.NettyServerConfig;
@@ -11,16 +12,14 @@ import com.pantheon.server.config.PantheonServerConfig;
 import com.pantheon.server.network.ServerMessageReceiver;
 import com.pantheon.server.network.ServerNetworkManager;
 import com.pantheon.server.node.*;
+import com.pantheon.server.processor.ClientManageProcessor;
 import com.pantheon.server.processor.ServerNodeProcessor;
 import com.pantheon.server.slot.SlotManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.*;
 
 /**
  * @author Anthony
@@ -31,12 +30,15 @@ import java.util.concurrent.TimeUnit;
  * 5 todo design slots mechanism and treat it as topic in RocketMq
  **/
 public class ServerNode extends AbstractLifecycleComponent {
+    private final ThreadPoolExecutor heartbeatExecutor;
+    private final ThreadPoolExecutor serviceManageExecutor;
+
     private NettyServerConfig nettyServerConfig;
     private PantheonServerConfig serverConfig;
     private RemotingServer remotingServer;
     private ExecutorService remotingExecutor;
-    private final ScheduledExecutorService scheduledExecutorService = Executors.newSingleThreadScheduledExecutor(new ThreadFactoryImpl(
-            "ServerControllerScheduledThread"));
+//    private final ScheduledExecutorService scheduledExecutorService = Executors.newSingleThreadScheduledExecutor(new ThreadFactoryImpl(
+//            "ServerControllerScheduledThread"));
     private static final Logger logger = LoggerFactory.getLogger(ServerBootstrap.class);
 
     private volatile static ServerNodeRole serverNodeRole = ServerNodeRole.COMMON_NODE;
@@ -44,6 +46,21 @@ public class ServerNode extends AbstractLifecycleComponent {
     private ServerNode() {
         this.nettyServerConfig = new NettyServerConfig();
         this.serverConfig = CachedPantheonServerConfig.getInstance();
+        this.heartbeatExecutor = new ThreadPoolExecutor(
+                1,
+                1,
+                1000 * 60,
+                TimeUnit.MILLISECONDS,
+                new LinkedBlockingQueue<Runnable>(5000),
+                new ThreadFactoryImpl("InstanceHeartbeatThread_", true));
+
+        this.serviceManageExecutor = new ThreadPoolExecutor(
+                1,
+                1,
+                1000 * 60,
+                TimeUnit.MILLISECONDS,
+                new LinkedBlockingQueue<Runnable>(5000),
+                new ThreadFactoryImpl("ServiceManageThread_", true));
     }
 
     private static class Singleton {
@@ -59,7 +76,14 @@ public class ServerNode extends AbstractLifecycleComponent {
         remotingServer = new NettyRemotingServer(nettyServerConfig);
         this.remotingExecutor =
                 Executors.newFixedThreadPool(nettyServerConfig.getServerWorkerThreads(), new ThreadFactoryImpl("RemotingExecutorThread_"));
-        remotingServer.registerDefaultProcessor(new ServerNodeProcessor(this), remotingExecutor);
+        ServerNodeProcessor defaultProcessor = new ServerNodeProcessor(this);
+        remotingServer.registerDefaultProcessor(defaultProcessor, remotingExecutor);
+        //use threadpool to process management event
+        ClientManageProcessor clientManageProcessor =new ClientManageProcessor();
+        remotingServer.registerProcessor(RequestCode.HEART_BEAT,clientManageProcessor,heartbeatExecutor);
+        remotingServer.registerProcessor(RequestCode.SERVICE_UNREGISTER,clientManageProcessor,heartbeatExecutor);
+        remotingServer.registerProcessor(RequestCode.SERVICE_REGISTRY,clientManageProcessor,heartbeatExecutor);
+
         remotingServer.start();
         logger.info("server with id :{}, listen to client connection on tcp port :{}", serverConfig.getNodeId(), serverConfig.getNodeClientTcpPort());
     }
@@ -124,19 +148,18 @@ public class ServerNode extends AbstractLifecycleComponent {
     }
 
     private void startScheduledTask() {
-
         //heartbeat check with connected instances，remove expired ones
-        this.scheduledExecutorService.scheduleAtFixedRate(new Runnable() {
-
-            @Override
-            public void run() {
-                try {
-                    ServerNode.this.heartBeatCheck();
-                } catch (Exception e) {
-                    logger.error("ScheduledTask heartBeatCheck exception", e);
-                }
-            }
-        }, 5000, serverConfig.getHeartBeatCheckInterval(), TimeUnit.MILLISECONDS);
+//        this.scheduledExecutorService.scheduleAtFixedRate(new Runnable() {
+//
+//            @Override
+//            public void run() {
+//                try {
+//                    ServerNode.this.heartBeatCheck();
+//                } catch (Exception e) {
+//                    logger.error("ScheduledTask heartBeatCheck exception", e);
+//                }
+//            }
+//        }, 5000, serverConfig.getHeartBeatCheckInterval(), TimeUnit.MILLISECONDS);
     }
 
 

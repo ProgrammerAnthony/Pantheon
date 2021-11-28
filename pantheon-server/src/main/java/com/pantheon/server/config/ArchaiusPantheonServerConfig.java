@@ -265,10 +265,9 @@ public class ArchaiusPantheonServerConfig implements PantheonServerConfig {
                 CONFIG_KEY_HEART_CHECK_INTERVAL, DEFAULT_HEARTBEAT_CHECK_INTERVAL).get();
     }
 
-    //todo get timeout interval
     public Integer getHeartbeatTimeoutPeriod() {
         return configInstance.getIntProperty(
-                CONFIG_KEY_HEART_CHECK_INTERVAL, DEFAULT_HEARTBEAT_CHECK_INTERVAL).get();
+                CONFIG_KEY_HEART_TIMEOUT_PERIOD, DEFAULT_HEARTBEAT_TIMEOUT_PERIOD).get();
     }
 
 

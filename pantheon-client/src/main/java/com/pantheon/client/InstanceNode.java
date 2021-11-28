@@ -13,8 +13,9 @@ import org.slf4j.LoggerFactory;
 
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.*;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 /**
  * @author Anthony
@@ -29,17 +30,21 @@ public class InstanceNode {
     private static final Logger logger = LoggerFactory.getLogger(ServerBootstrap.class);
     private ClientAPIImpl clientAPI;
     private Server server;
+    private final Lock lockHeartbeat = new ReentrantLock();
+    private final String clientId;
 
-    public InstanceNode(NettyClientConfig nettyClientConfig, DefaultInstanceConfig instanceConfig) {
+
+    public InstanceNode(NettyClientConfig nettyClientConfig, DefaultInstanceConfig instanceConfig, String clientId) {
         this.nettyClientConfig = nettyClientConfig;
         this.instanceConfig = instanceConfig;
+        this.clientId = clientId;
         clientAPI = new ClientAPIImpl(nettyClientConfig, instanceConfig, new ClientRemotingProcessor(), null);
     }
 
 
     public boolean start() {
         clientAPI.start();
-        this.startScheduledTask();
+
         //choose a controller candidate from local config
         String controllerCandidate = this.clientAPI.chooseControllerCandidate();
         Integer nodeId = null;
@@ -54,6 +59,8 @@ public class InstanceNode {
 
             String serviceName = instanceConfig.getServiceName();
             server = this.clientAPI.routeServer(serviceName);
+
+            this.startScheduledTask();
         } catch (RemotingConnectException e) {
             e.printStackTrace();
         } catch (RemotingSendRequestException e) {
@@ -69,7 +76,30 @@ public class InstanceNode {
     }
 
     private void startScheduledTask() {
+        this.scheduledExecutorService.scheduleAtFixedRate(new Runnable() {
+            @Override
+            public void run() {
+                sendHeartBeatToServer(server);
+            }
+        }, 1000, instanceConfig.getLeaseRenewalIntervalInSeconds() * 1000, TimeUnit.MILLISECONDS);
         //heartbeat
+    }
+
+    private void sendHeartBeatToServer(Server server) {
+        if (this.lockHeartbeat.tryLock()) {
+            try {
+                boolean successResult = this.clientAPI.sendHeartBeatToServer(server, clientId,3000L);
+                if (successResult){
+                    logger.info("heartbeat success!!!");
+                }
+            } catch (final Exception e) {
+                logger.error("sendHeartBeatToServer exception", e);
+            } finally {
+                this.lockHeartbeat.unlock();
+            }
+        } else {
+            logger.warn("lock heartBeat, but failed. [{}]", instanceConfig.getServiceName());
+        }
     }
 
     public void shutdown() {
@@ -79,7 +109,7 @@ public class InstanceNode {
     public void sendRegister() {
         try {
             boolean registryResult = this.clientAPI.serviceRegistry(server.getRemoteSocketAddress(), 1000);
-            if(registryResult){
+            if (registryResult) {
                 logger.info("service registry success!!!");
             }
         } catch (RemotingConnectException e) {
