@@ -37,6 +37,7 @@ public class DefaultInstanceConfig extends AbstractInstanceConfig implements Pan
     final String CONFIG_KEY_LEASE_RENEWAL_INTERVAL = namespace + "leaseRenewalInterval";
     final String CONFIG_KEY_LEASE_EXPIRATION_DURATION = namespace + "leaseDuration";
     final String CONFIG_KEY_INSTANCE_PORT = namespace + "instancePort";
+    final String CONFIG_KEY_SHOULD_FETCH_REGISTRY = namespace + "leaseDuration";
 
 
     private List<String> serverList = new ArrayList<>();
@@ -128,6 +129,16 @@ public class DefaultInstanceConfig extends AbstractInstanceConfig implements Pan
 
     @Override
     public Integer getInstancePort() {
-        return configInstance.getIntProperty(CONFIG_KEY_INSTANCE_PORT,super.getInstancePort()).get();
+        return configInstance.getIntProperty(CONFIG_KEY_INSTANCE_PORT, super.getInstancePort()).get();
+    }
+
+    @Override
+    public boolean shouldFetchRegistry() {
+        return configInstance.getBooleanProperty(CONFIG_KEY_SHOULD_FETCH_REGISTRY, true).get();
+    }
+
+    //todo add from eureka
+    public int getRegistryFetchIntervalSeconds() {
+        return 1;
     }
 }

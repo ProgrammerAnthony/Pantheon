@@ -1,6 +1,7 @@
 package com.pantheon.client;
 
 import com.alibaba.fastjson.JSON;
+import com.pantheon.client.appinfo.Applications;
 import com.pantheon.client.config.DefaultInstanceConfig;
 import com.pantheon.client.config.PantheonInstanceConfig;
 import com.pantheon.common.protocol.RequestCode;
@@ -173,6 +174,7 @@ public class ClientAPIImpl {
         return null;
     }
 
+    //todo build slots cache
     public Server routeServer(String serviceName) {
         Integer slot = routeSlot(serviceName);
         String serverId = locateServerBySlot(slot);
@@ -269,6 +271,11 @@ public class ClientAPIImpl {
     }
 
 
+    public Applications getApplications(Server server, long timeoutMills) {
+        return null;
+    }
 
-
+    public Applications getDelta(Server server, long timeoutMills) {
+        return null;
+    }
 }

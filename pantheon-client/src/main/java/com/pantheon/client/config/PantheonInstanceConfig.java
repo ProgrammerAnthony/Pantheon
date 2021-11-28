@@ -37,5 +37,11 @@ public interface PantheonInstanceConfig {
 
     Integer getInstancePort();
 
+    /**
+     * should fetch registry ,default true
+     * @return
+     */
+    boolean shouldFetchRegistry();
+
     boolean shouldFilterOnlyUpInstances();
 }

@@ -1,6 +1,6 @@
 package com.pantheon.client.appinfo;
 
-import com.pantheon.client.config.PantheonInstanceConfig;
+import com.pantheon.client.config.DefaultInstanceConfig;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
@@ -9,10 +9,10 @@ import java.util.concurrent.atomic.AtomicReference;
 /**
  * @author Anthony
  * @create 2021/11/28
- * @desc The application class holds the list of instances for a particular
+ * @desc
+ * The Application class holds the list of instances for a particular
  * application.
  */
-
 public class Application {
 
     @Override
@@ -21,9 +21,14 @@ public class Application {
                 + ", instances=" + instances + ", instancesMap=" + instancesMap + "]";
     }
 
+
+
     private String name;
 
     private volatile boolean isDirty = false;
+
+    private AtomicReference<List<InstanceInfo>> shuffledInstances = new AtomicReference<List<InstanceInfo>>();
+
 
     private final Set<InstanceInfo> instances;
 
@@ -71,15 +76,6 @@ public class Application {
         removeInstance(i, true);
     }
 
-    /**
-     * Gets the list of instances associated with this particular application.
-     *
-     * @return the list of shuffled instances associated with this application.
-     */
-    public List<InstanceInfo> getInstances() {
-        return null;
-    }
-
 
     /**
      * Get the instance info that matches the given id.
@@ -116,6 +112,69 @@ public class Application {
         return instances.size();
     }
 
+
+    /**
+     * Gets the list of non-shuffled and non-filtered instances associated with this particular
+     * application.
+     *
+     * @return list of non-shuffled and non-filtered instances associated with this particular
+     *         application.
+     */
+    public List<InstanceInfo> getInstancesAsIsFromPantheon() {
+        synchronized (instances) {
+            return new ArrayList<InstanceInfo>(this.instances);
+        }
+    }
+    /**
+     * Gets the list of instances associated with this particular application.
+     * <p>
+     * Note that the instances are always returned with random order after
+     * shuffling to avoid traffic to the same instances during startup. The
+     * shuffling always happens once after every fetch cycle as specified in
+     * {@link DefaultInstanceConfig#getRegistryFetchIntervalSeconds()}.
+     * </p>
+     *
+     * @return the list of shuffled instances associated with this application.
+     */
+    public List<InstanceInfo> getInstances() {
+        if (this.shuffledInstances.get() == null) {
+            return this.getInstancesAsIsFromPantheon();
+        } else {
+            return this.shuffledInstances.get();
+        }
+    }
+
+
+    /**
+     * Shuffles the list of instances in the application and stores it for
+     * future retrievals.
+     *
+     * @param filterUpInstances
+     *            indicates whether only the instances with status
+     *            {@link InstanceInfo.InstanceStatus#UP} needs to be stored.
+     */
+    public void shuffleAndStoreInstances(boolean filterUpInstances) {
+        _shuffleAndStoreInstances(filterUpInstances);
+    }
+
+    private void _shuffleAndStoreInstances(boolean filterUpInstances) {
+        List<InstanceInfo> instanceInfoList;
+        synchronized (instances) {
+            instanceInfoList = new ArrayList<InstanceInfo>(instances);
+        }
+        if (filterUpInstances) {
+            Iterator<InstanceInfo> it = instanceInfoList.iterator();
+            while (it.hasNext()) {
+                InstanceInfo instanceInfo = it.next();
+                if (filterUpInstances && !InstanceInfo.InstanceStatus.UP.equals(instanceInfo.getStatus())) {
+                    it.remove();
+                }
+            }
+
+        }
+        Collections.shuffle(instanceInfoList);
+        this.shuffledInstances.set(instanceInfoList);
+    }
 
     private void removeInstance(InstanceInfo i, boolean markAsDirty) {
         instancesMap.remove(i.getId());
