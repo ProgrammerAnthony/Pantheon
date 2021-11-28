@@ -36,4 +36,6 @@ public interface PantheonInstanceConfig {
     List<String> getServerList();
 
     Integer getInstancePort();
+
+    boolean shouldFilterOnlyUpInstances();
 }

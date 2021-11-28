@@ -22,7 +22,7 @@ import java.util.concurrent.locks.ReentrantLock;
  * @create 2021/11/19
  * @desc
  **/
-public class InstanceNode {
+public class ClientNode {
     private NettyClientConfig nettyClientConfig;
     private DefaultInstanceConfig instanceConfig;
     private final ScheduledExecutorService scheduledExecutorService = Executors.newSingleThreadScheduledExecutor(new ThreadFactoryImpl(
@@ -34,7 +34,7 @@ public class InstanceNode {
     private final String clientId;
 
 
-    public InstanceNode(NettyClientConfig nettyClientConfig, DefaultInstanceConfig instanceConfig, String clientId) {
+    public ClientNode(NettyClientConfig nettyClientConfig, DefaultInstanceConfig instanceConfig, String clientId) {
         this.nettyClientConfig = nettyClientConfig;
         this.instanceConfig = instanceConfig;
         this.clientId = clientId;

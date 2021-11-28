@@ -52,6 +52,11 @@ public abstract class AbstractInstanceConfig implements PantheonInstanceConfig {
         return DEFAULT_INSTANCE_PORT;
     }
 
+    @Override
+    public boolean shouldFilterOnlyUpInstances() {
+        return true;
+    }
+
     private static Pair<String, String> getHostInfo() {
         Pair<String, String> pair;
         try {
