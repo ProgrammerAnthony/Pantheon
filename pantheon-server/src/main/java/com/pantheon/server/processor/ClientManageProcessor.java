@@ -2,6 +2,8 @@ package com.pantheon.server.processor;
 
 
 import com.alibaba.fastjson.JSON;
+import com.apple.eawt.Application;
+import com.pantheon.client.appinfo.InstanceInfo;
 import com.pantheon.common.ServerNodeRole;
 import com.pantheon.common.protocol.RequestCode;
 import com.pantheon.common.protocol.ResponseCode;
@@ -20,6 +22,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * @author Anthony
@@ -79,5 +82,6 @@ public class ClientManageProcessor extends AsyncNettyRequestProcessor implements
     public boolean rejectRequest() {
         return false;
     }
+
 
 }

@@ -116,24 +116,24 @@ public class ClientAPIImpl {
     }
 
 
-    public boolean serviceRegistry(final String serverAddress, final long timoutMills) throws RemotingConnectException, RemotingSendRequestException, RemotingTimeoutException, InterruptedException {
-        ServiceRegistryRequestHeader requestHeader =new ServiceRegistryRequestHeader();
-        requestHeader.setServiceName(instanceConfig.getServiceName());
-        requestHeader.setServiceInstancePort(instanceConfig.getInstancePort());
-        requestHeader.setServiceInstanceIp(instanceConfig.getInstanceIpAddress());
-        RemotingCommand request = RemotingCommand.createRequestCommand(RequestCode.SERVICE_REGISTRY, requestHeader);
-
-        RemotingCommand response = this.remotingClient.invokeSync(serverAddress, request, timoutMills);
-        assert response != null;
-        switch (response.getCode()) {
-            case ResponseCode.SUCCESS: {
-                return true;
-            }
-            default:
-                break;
-        }
-        return false;
-    }
+//    public boolean serviceRegistry(final String serverAddress, final long timoutMills) throws RemotingConnectException, RemotingSendRequestException, RemotingTimeoutException, InterruptedException {
+//        ServiceRegistryRequestHeader requestHeader =new ServiceRegistryRequestHeader();
+//        requestHeader.setServiceName(instanceConfig.getServiceName());
+//        requestHeader.setServiceInstancePort(instanceConfig.getInstancePort());
+//        requestHeader.setServiceInstanceIp(instanceConfig.getInstanceIpAddress());
+//        RemotingCommand request = RemotingCommand.createRequestCommand(RequestCode.SERVICE_REGISTRY, requestHeader);
+//
+//        RemotingCommand response = this.remotingClient.invokeSync(serverAddress, request, timoutMills);
+//        assert response != null;
+//        switch (response.getCode()) {
+//            case ResponseCode.SUCCESS: {
+//                return true;
+//            }
+//            default:
+//                break;
+//        }
+//        return false;
+//    }
 
     /**
      * server地址列表

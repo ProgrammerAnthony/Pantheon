@@ -59,7 +59,7 @@ public class ClientNode {
         this.clientId = clientId;
         fetchRegistryGeneration = new AtomicLong(0);
         localRegionApps.set(new Applications());
-        instanceInfo = new InstanceInfo();//todo build mysql instance info
+        instanceInfo = new InstanceInfo();//todo build myself instance info
         clientAPI = new ClientAPIImpl(nettyClientConfig, instanceConfig, new ClientRemotingProcessor(), null);
     }
 
@@ -129,20 +129,27 @@ public class ClientNode {
     }
 
     public void sendRegister() {
-        try {
-            boolean registryResult = this.clientAPI.serviceRegistry(server.getRemoteSocketAddress(), 1000);
-            if (registryResult) {
+        if (instanceConfig.shouldFetchRegistry()) {
+            boolean fetchRegistryResult = fetchRegistry(false);
+            if (fetchRegistryResult) {
                 logger.info("service registry success!!!");
             }
-        } catch (RemotingConnectException e) {
-            e.printStackTrace();
-        } catch (RemotingSendRequestException e) {
-            e.printStackTrace();
-        } catch (RemotingTimeoutException e) {
-            e.printStackTrace();
-        } catch (InterruptedException e) {
-            e.printStackTrace();
         }
+
+//            try {
+//            boolean registryResult = this.clientAPI.serviceRegistry(server.getRemoteSocketAddress(), 1000);
+//            if (registryResult) {
+//                logger.info("service registry success!!!");
+//            }
+//        } catch (RemotingConnectException e) {
+//            e.printStackTrace();
+//        } catch (RemotingSendRequestException e) {
+//            e.printStackTrace();
+//        } catch (RemotingTimeoutException e) {
+//            e.printStackTrace();
+//        } catch (InterruptedException e) {
+//            e.printStackTrace();
+//        }
     }
 
     /**
@@ -173,7 +180,7 @@ public class ClientNode {
      *
      * <p>
      * This method tries to get only deltas after the first fetch unless there
-     * is an issue in reconciling eureka server and client registry information.
+     * is an issue in reconciling pantheon server and client registry information.
      * </p>
      *
      * @param forceFullRegistryFetch Forces a full registry fetch.
@@ -198,6 +205,7 @@ public class ClientNode {
                 getAndUpdateDelta(applications);
             }
             applications.setAppsHashCode(applications.getReconcileHashCode());
+            logTotalInstances();
         } catch (Throwable e) {
             logger.error("ClientNode was unable to refresh its cache! status = " + e.getMessage(), e);
             return false;
@@ -211,6 +219,19 @@ public class ClientNode {
 
         // registry was fetched successfully, so return true
         return true;
+    }
+
+    /**
+     * Logs the total number of non-filtered instances stored locally.
+     */
+    private void logTotalInstances() {
+        if (logger.isDebugEnabled()) {
+            int totInstances = 0;
+            for (Application application : getApplications().getRegisteredApplications()) {
+                totInstances += application.getInstancesAsIsFromPantheon().size();
+            }
+            logger.debug("The total number of all instances in the client now is {}", totInstances);
+        }
     }
 
     /**

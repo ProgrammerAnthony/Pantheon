@@ -43,45 +43,12 @@ public class ServerNodeProcessor extends AsyncNettyRequestProcessor implements N
                 return this.getSlotsAllocation(ctx, request);
             case RequestCode.GET_SERVER_ADDRESSES:
                 return this.getServerAddresses(ctx, request);
-            case RequestCode.SERVICE_REGISTRY:
-                return this.serviceRegistry(ctx, request);
-            case RequestCode.HEART_BEAT:
-                return this.heartBeat(ctx, request);
-            case RequestCode.SERVICE_UNREGISTER:
-                return this.serviceUnregister(ctx, request);
             default:
                 break;
         }
         return null;
     }
 
-    private RemotingCommand serviceUnregister(ChannelHandlerContext ctx, RemotingCommand request) {
-        return null;
-    }
-
-    private RemotingCommand heartBeat(ChannelHandlerContext ctx, RemotingCommand request) {
-        RemotingCommand response = RemotingCommand.createResponseCommand(null);
-        ServiceHeartBeat heartbeatData = ServiceHeartBeat.decode(request.getBody(), ServiceHeartBeat.class);
-        logger.info("receive heartbeat from: {}",heartbeatData.getClientId());
-        response.setCode(ResponseCode.SUCCESS);
-        response.setRemark(null);
-        response.setOpaque(request.getOpaque());
-        return response;
-    }
-
-    private RemotingCommand serviceRegistry(ChannelHandlerContext ctx, RemotingCommand request) throws RemotingCommandException {
-        List<String> serverAddresses = null;
-        final RemotingCommand response = RemotingCommand.createResponseCommand(ServiceRegistryResponseHeader.class);
-        final ServiceRegistryRequestHeader requestHeader =
-                (ServiceRegistryRequestHeader) request.decodeCommandCustomHeader(ServiceRegistryRequestHeader.class);
-        logger.info("serviceRegistry called by {}", RemotingHelper.parseChannelRemoteAddr(ctx.channel()));
-        final ServiceRegistryResponseHeader responseHeader = (ServiceRegistryResponseHeader) response.readCustomHeader();
-        //todo add more operation here
-        response.setCode(ResponseCode.SUCCESS);
-        response.setRemark(null);
-        response.setOpaque(request.getOpaque());
-        return response;
-    }
 
     @Override
     public boolean rejectRequest() {

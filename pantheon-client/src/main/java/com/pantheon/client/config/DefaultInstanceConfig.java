@@ -37,7 +37,7 @@ public class DefaultInstanceConfig extends AbstractInstanceConfig implements Pan
     final String CONFIG_KEY_LEASE_RENEWAL_INTERVAL = namespace + "leaseRenewalInterval";
     final String CONFIG_KEY_LEASE_EXPIRATION_DURATION = namespace + "leaseDuration";
     final String CONFIG_KEY_INSTANCE_PORT = namespace + "instancePort";
-    final String CONFIG_KEY_SHOULD_FETCH_REGISTRY = namespace + "leaseDuration";
+    final String CONFIG_KEY_SHOULD_FETCH_REGISTRY = namespace + "shouldFetchRegistry";
 
 
     private List<String> serverList = new ArrayList<>();
