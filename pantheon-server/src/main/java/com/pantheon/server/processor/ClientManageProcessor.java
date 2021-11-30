@@ -1,10 +1,6 @@
 package com.pantheon.server.processor;
 
 
-import com.alibaba.fastjson.JSON;
-import com.apple.eawt.Application;
-import com.pantheon.client.appinfo.InstanceInfo;
-import com.pantheon.common.ServerNodeRole;
 import com.pantheon.common.protocol.RequestCode;
 import com.pantheon.common.protocol.ResponseCode;
 import com.pantheon.common.protocol.header.*;
@@ -14,15 +10,15 @@ import com.pantheon.remoting.exception.RemotingCommandException;
 import com.pantheon.remoting.netty.AsyncNettyRequestProcessor;
 import com.pantheon.remoting.netty.NettyRequestProcessor;
 import com.pantheon.remoting.protocol.RemotingCommand;
-import com.pantheon.server.ServerNode;
-import com.pantheon.server.node.Controller;
-import com.pantheon.server.node.ControllerCandidate;
+import com.pantheon.server.registry.InstanceRegistry;
+import com.pantheon.server.registry.Key;
+import com.pantheon.server.registry.ResponseCache;
+import com.pantheon.server.registry.ResponseCacheImpl;
 import io.netty.channel.ChannelHandlerContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.List;
-import java.util.Map;
 
 /**
  * @author Anthony
@@ -31,8 +27,12 @@ import java.util.Map;
  **/
 public class ClientManageProcessor extends AsyncNettyRequestProcessor implements NettyRequestProcessor {
     private static final Logger logger = LoggerFactory.getLogger(ClientManageProcessor.class);
+    private final ResponseCache responseCache;
+    private final InstanceRegistry instanceRegistry;
 
     public ClientManageProcessor() {
+        this.instanceRegistry = new InstanceRegistry();
+        this.responseCache = instanceRegistry.getResponseCache();
     }
 
     @Override
@@ -57,7 +57,7 @@ public class ClientManageProcessor extends AsyncNettyRequestProcessor implements
     private RemotingCommand heartBeat(ChannelHandlerContext ctx, RemotingCommand request) {
         RemotingCommand response = RemotingCommand.createResponseCommand(null);
         ServiceHeartBeat heartbeatData = ServiceHeartBeat.decode(request.getBody(), ServiceHeartBeat.class);
-        logger.info("receive heartbeat from: {}",heartbeatData.getClientId());
+        logger.info("receive heartbeat from: {}", heartbeatData.getClientId());
         response.setCode(ResponseCode.SUCCESS);
         response.setRemark(null);
         response.setOpaque(request.getOpaque());
@@ -76,6 +76,30 @@ public class ClientManageProcessor extends AsyncNettyRequestProcessor implements
         response.setRemark(null);
         response.setOpaque(request.getOpaque());
         return response;
+    }
+
+    /**
+     * get applications info from cache
+     * @return
+     */
+    public byte[] getApplications() {
+        Key cacheKey = new Key(
+                ResponseCacheImpl.ALL_APPS,
+                Key.ACCEPT.COMPACT
+        );
+        return responseCache.getGZIP(cacheKey);
+    }
+
+    /**
+     * get applications delta info from cache
+     * @return
+     */
+    public byte[] getApplicationsDelta() {
+        Key cacheKey = new Key(
+                ResponseCacheImpl.ALL_APPS_DELTA,
+                Key.ACCEPT.COMPACT
+        );
+        return responseCache.getGZIP(cacheKey);
     }
 
     @Override

@@ -315,7 +315,25 @@ public class ArchaiusPantheonServerConfig implements PantheonServerConfig {
         return configInstance.getStringProperty(CONFIG_KEY_CONTROLLER_CANDIDATE_SERVERS, null).get();
     }
 
+    @Override
+    public long getResponseCacheAutoExpirationInSeconds() {
+        return 180;
+    }
 
+    @Override
+    public long getResponseCacheUpdateIntervalMs() {
+        return 30;
+    }
+
+    @Override
+    public long getRetentionTimeInMSInDeltaQueue() {
+        return 180;
+    }
+
+    @Override
+    public long getDeltaRetentionTimerIntervalInMs() {
+        return 30;
+    }
 }
 
 

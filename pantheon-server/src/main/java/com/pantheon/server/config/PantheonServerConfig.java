@@ -26,4 +26,11 @@ public interface PantheonServerConfig {
 
     Integer getHeartBeatCheckInterval();
 
+    long getResponseCacheAutoExpirationInSeconds();
+
+    long getResponseCacheUpdateIntervalMs();
+
+    long getRetentionTimeInMSInDeltaQueue();
+
+    long getDeltaRetentionTimerIntervalInMs();
 }
