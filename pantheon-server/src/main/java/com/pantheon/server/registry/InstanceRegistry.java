@@ -23,8 +23,7 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 /**
  * @author Anthony
  * @create 2021/11/28
- * @desc
- * todo singleton
+ * @desc todo singleton
  */
 public class InstanceRegistry {
     private static final Logger logger = LoggerFactory.getLogger(InstanceRegistry.class);
@@ -221,6 +220,79 @@ public class InstanceRegistry {
             return apps;
         } finally {
             write.unlock();
+        }
+    }
+
+    public InstanceInfo getInstanceByAppAndId(String appName, String id) {
+        Map<String, Lease<InstanceInfo>> leaseMap = registry.get(appName);
+        Lease<InstanceInfo> lease = null;
+        if (leaseMap != null) {
+            lease = leaseMap.get(id);
+        }
+        if (lease != null
+                && (!lease.isExpired())) {
+            return decorateInstanceInfo(lease);
+        }
+        return null;
+    }
+
+    /**
+     * Marks the given instance of the given app name as renewed, and also marks whether it originated from
+     * replication.
+     *
+     * @see LeaseManager#renew(java.lang.String, java.lang.String)
+     */
+    public boolean renew(String appName, String id) {
+        Map<String, Lease<InstanceInfo>> gMap = registry.get(appName);
+        Lease<InstanceInfo> leaseToRenew = null;
+        if (gMap != null) {
+            leaseToRenew = gMap.get(id);
+        }
+        if (leaseToRenew == null) {
+            logger.warn("DS: Registry: lease doesn't exist, registering resource: {} - {}", appName, id);
+            return false;
+        } else {
+            InstanceInfo instanceInfo = leaseToRenew.getHolder();
+            if (instanceInfo != null) {
+                // touchASGCache(instanceInfo.getASGName());
+                //todo
+//                InstanceInfo.InstanceStatus overriddenInstanceStatus = this.getOverriddenInstanceStatus(
+//                        instanceInfo, leaseToRenew);
+//                if (overriddenInstanceStatus == InstanceInfo.InstanceStatus.UNKNOWN) {
+//                    logger.info("Instance status UNKNOWN possibly due to deleted override for instance {}"
+//                            + "; re-register required", instanceInfo.getId());
+//                    return false;
+//                }
+//                if (!instanceInfo.getStatus().equals(overriddenInstanceStatus)) {
+//                    Object[] args = {
+//                            instanceInfo.getStatus().name(),
+//                            instanceInfo.getOverriddenStatus().name(),
+//                            instanceInfo.getId()
+//                    };
+//                    logger.info(
+//                            "The instance status {} is different from overridden instance status {} for instance {}. "
+//                                    + "Hence setting the status to overridden status", args);
+//                    instanceInfo.setStatusWithoutDirty(overriddenInstanceStatus);
+//                }
+            }
+            leaseToRenew.renew();
+            return true;
+        }
+    }
+
+    public void storeOverriddenStatusIfRequired(String appName, String id, InstanceInfo.InstanceStatus overriddenStatus) {
+        InstanceInfo.InstanceStatus instanceStatus = overriddenInstanceStatusMap.get(id);
+        if ((instanceStatus == null) || (!overriddenStatus.equals(instanceStatus))) {
+            // We might not have the overridden status if the server got
+            // restarted -this will help us maintain the overridden state
+            // from the replica
+            logger.info("Adding overridden status for instance id {} and the value is {}",
+                    id, overriddenStatus.name());
+            overriddenInstanceStatusMap.put(id, overriddenStatus);
+            InstanceInfo instanceInfo = this.getInstanceByAppAndId(appName, id);
+            instanceInfo.setOverriddenStatus(overriddenStatus);
+            logger.info("Set the overridden status for instance (appname:{}} and the value is {} ",
+                    appName + ",id:" + id, overriddenStatus.name());
         }
     }
 
