@@ -33,7 +33,7 @@ import java.util.zip.GZIPOutputStream;
  */
 public class ResponseCacheImpl implements ResponseCache {
     private final PantheonServerConfig serverConfig;
-    private final InstanceRegistry instanceRegistry;
+    private final InstanceRegistryImpl instanceRegistryImpl;
     private static final Logger logger = LoggerFactory.getLogger(ResponseCacheImpl.class);
 
     public static final String ALL_APPS = "ALL_APPS";
@@ -47,9 +47,9 @@ public class ResponseCacheImpl implements ResponseCache {
     private final java.util.Timer timer = new java.util.Timer("Pantheon-CacheFillTimer", true);
 
 
-    public ResponseCacheImpl(CachedPantheonServerConfig serverConfig, InstanceRegistry instanceRegistry) {
+    public ResponseCacheImpl(CachedPantheonServerConfig serverConfig, InstanceRegistryImpl instanceRegistryImpl) {
         this.serverConfig = serverConfig;
-        this.instanceRegistry = instanceRegistry;
+        this.instanceRegistryImpl = instanceRegistryImpl;
         //default 30
         long responseCacheUpdateIntervalMs = serverConfig.getResponseCacheUpdateIntervalMs();
         this.readWriteCacheMap =
@@ -81,12 +81,12 @@ public class ResponseCacheImpl implements ResponseCache {
     private Value generatePayload(Key key) {
         String payload;
         if (ALL_APPS.equals(key.getName())) {
-            payload = getPayLoad(instanceRegistry.getApplications());
+            payload = getPayLoad(instanceRegistryImpl.getApplications());
         } else if (ALL_APPS_DELTA.equals(key.getName())) {
             versionDelta.incrementAndGet();
-            payload = getPayLoad(instanceRegistry.getApplicationDeltas());
+            payload = getPayLoad(instanceRegistryImpl.getApplicationDeltas());
         } else {
-            payload = getPayLoad(instanceRegistry.getApplication(key.getName()));
+            payload = getPayLoad(instanceRegistryImpl.getApplication(key.getName()));
         }
         return new Value(payload);
     }

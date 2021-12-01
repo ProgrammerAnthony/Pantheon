@@ -13,10 +13,7 @@ import com.pantheon.remoting.exception.RemotingCommandException;
 import com.pantheon.remoting.netty.AsyncNettyRequestProcessor;
 import com.pantheon.remoting.netty.NettyRequestProcessor;
 import com.pantheon.remoting.protocol.RemotingCommand;
-import com.pantheon.server.registry.InstanceRegistry;
-import com.pantheon.server.registry.Key;
-import com.pantheon.server.registry.ResponseCache;
-import com.pantheon.server.registry.ResponseCacheImpl;
+import com.pantheon.server.registry.*;
 import io.netty.channel.ChannelHandlerContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -35,7 +32,7 @@ public class ClientManageProcessor extends AsyncNettyRequestProcessor implements
     private final InstanceRegistry instanceRegistry;
 
     public ClientManageProcessor() {
-        this.instanceRegistry = InstanceRegistry.getInstance();
+        this.instanceRegistry = InstanceRegistryImpl.getInstance();
         this.responseCache = instanceRegistry.getResponseCache();
     }
 
