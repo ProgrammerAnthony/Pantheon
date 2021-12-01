@@ -1,7 +1,9 @@
 package com.pantheon.server.processor;
 
 
+import com.pantheon.client.appinfo.Application;
 import com.pantheon.client.appinfo.InstanceInfo;
+import com.pantheon.common.ObjectUtils;
 import com.pantheon.common.protocol.RequestCode;
 import com.pantheon.common.protocol.ResponseCode;
 import com.pantheon.common.protocol.header.*;
@@ -33,7 +35,7 @@ public class ClientManageProcessor extends AsyncNettyRequestProcessor implements
     private final InstanceRegistry instanceRegistry;
 
     public ClientManageProcessor() {
-        this.instanceRegistry = new InstanceRegistry();
+        this.instanceRegistry = InstanceRegistry.getInstance();
         this.responseCache = instanceRegistry.getResponseCache();
     }
 
@@ -128,7 +130,7 @@ public class ClientManageProcessor extends AsyncNettyRequestProcessor implements
      * @return response indicating whether the operation was a success or
      * failure.
      */
-    public Object renewLease(
+    public Response renewLease(
             String id,
             String appName,
             String overriddenStatus,
@@ -165,6 +167,131 @@ public class ClientManageProcessor extends AsyncNettyRequestProcessor implements
             return true;
         }
         return false;
+    }
+
+    /**
+     * Registers information about a particular instance for an
+     * {@link Application}.
+     *
+     * @param info
+     *            {@link InstanceInfo} information of the instance.
+     */
+    public Response addInstance(String appName,InstanceInfo info) {
+        logger.debug("Registering instance {} ", info.getId());
+        // validate that the instanceinfo contains all the necessary required fields
+        if (ObjectUtils.isEmpty(info.getId())) {
+            return Response.status(400).entity("Missing instanceId").build();
+        } else if (ObjectUtils.isEmpty(info.getHostName())) {
+            return Response.status(400).entity("Missing hostname").build();
+        } else if (ObjectUtils.isEmpty(info.getIPAddr())) {
+            return Response.status(400).entity("Missing ip address").build();
+        } else if (ObjectUtils.isEmpty(info.getAppName())) {
+            return Response.status(400).entity("Missing appName").build();
+        } else if (!appName.equals(info.getAppName())) {
+            return Response.status(400).entity("Mismatched appName, expecting " + appName + " but was " + info.getAppName()).build();
+        }
+
+        instanceRegistry.register(info);
+        return Response.status(204).build();  // 204 to be backwards compatible
+    }
+
+
+    /**
+     * Handles {@link InstanceInfo.InstanceStatus} updates.
+     *
+     * <p>
+     * The status updates are normally done for administrative purposes to
+     * change the instance status between {@link InstanceInfo.InstanceStatus#UP} and
+     * {@link InstanceInfo.InstanceStatus#OUT_OF_SERVICE} to select or remove instances for
+     * receiving traffic.
+     * </p>
+     *
+     * @param newStatus
+     *            the new status of the instance.
+     * @param lastDirtyTimestamp
+     *            last timestamp when this instance information was updated.
+     * @return response indicating whether the operation was a success or
+     *         failure.
+     */
+    public Response statusUpdate(String appName,String id,
+             String newStatus, String lastDirtyTimestamp) {
+        try {
+            if (instanceRegistry.getInstanceByAppAndId(appName, id) == null) {
+                logger.warn("Instance not found: {}/{}", appName, id);
+                return Response.status(Response.Status.NOT_FOUND).build();
+            }
+            boolean isSuccess = instanceRegistry.statusUpdate(appName, id,
+                    InstanceInfo.InstanceStatus.valueOf(newStatus), lastDirtyTimestamp);
+
+            if (isSuccess) {
+                logger.info("Status updated: " +appName + " - " + id
+                        + " - " + newStatus);
+                return Response.ok().build();
+            } else {
+                logger.warn("Unable to update status: " +appName + " - "
+                        + id + " - " + newStatus);
+                return Response.serverError().build();
+            }
+        } catch (Throwable e) {
+            logger.error("Error updating instance {} for status {}", id,
+                    newStatus);
+            return Response.serverError().build();
+        }
+    }
+
+    /**
+     * Removes status override for an instance, set with
+     * {@link #statusUpdate(String,String, String, String)}.
+     *
+     * @param lastDirtyTimestamp
+     *            last timestamp when this instance information was updated.
+     * @return response indicating whether the operation was a success or
+     *         failure.
+     */
+    public Response deleteStatusUpdate(String appName,String id,
+           String newStatusValue,
+           String lastDirtyTimestamp) {
+        try {
+            if (instanceRegistry.getInstanceByAppAndId(appName, id) == null) {
+                logger.warn("Instance not found: {}/{}", appName, id);
+                return Response.status(Response.Status.NOT_FOUND).build();
+            }
+
+            InstanceInfo.InstanceStatus newStatus = newStatusValue == null ? InstanceInfo.InstanceStatus.UNKNOWN : InstanceInfo.InstanceStatus.valueOf(newStatusValue);
+            boolean isSuccess = instanceRegistry.deleteStatusOverride(appName, id,
+                    newStatus, lastDirtyTimestamp);
+
+            if (isSuccess) {
+                logger.info("Status override removed: " +appName + " - " + id);
+                return Response.ok().build();
+            } else {
+                logger.warn("Unable to remove status override: " + appName + " - " + id);
+                return Response.serverError().build();
+            }
+        } catch (Throwable e) {
+            logger.error("Error removing instance's {} status override", id);
+            return Response.serverError().build();
+        }
+    }
+
+
+
+    /**
+     * Handles cancellation of leases for this particular instance.
+     *
+     * @return response indicating whether the operation was a success or
+     *         failure.
+     */
+    public Response cancelLease(String appName,String id) {
+        boolean isSuccess = instanceRegistry.cancel(appName, id);
+
+        if (isSuccess) {
+            logger.debug("Found (Cancel): " + appName + " - " + id);
+            return Response.ok().build();
+        } else {
+            logger.info("Not Found (Cancel): " + appName + " - " + id);
+            return Response.status(Response.Status.NOT_FOUND).build();
+        }
     }
 
 

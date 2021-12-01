@@ -5,6 +5,7 @@ import com.pantheon.client.appinfo.Application;
 import com.pantheon.client.appinfo.Applications;
 import com.pantheon.client.appinfo.InstanceInfo;
 import com.pantheon.client.appinfo.LeaseInfo;
+import com.pantheon.server.ServerNode;
 import com.pantheon.server.config.CachedPantheonServerConfig;
 import com.pantheon.server.config.PantheonServerConfig;
 import com.pantheon.server.lease.Lease;
@@ -23,7 +24,7 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 /**
  * @author Anthony
  * @create 2021/11/28
- * @desc todo singleton
+ * @desc
  */
 public class InstanceRegistry {
     private static final Logger logger = LoggerFactory.getLogger(InstanceRegistry.class);
@@ -52,6 +53,22 @@ public class InstanceRegistry {
         this.deltaRetentionTimer.schedule(getDeltaRetentionTask(),
                 serverConfig.getDeltaRetentionTimerIntervalInMs(),
                 serverConfig.getDeltaRetentionTimerIntervalInMs());
+    }
+
+    private static class Singleton {
+        static InstanceRegistry instance = new InstanceRegistry();
+    }
+
+    public static InstanceRegistry getInstance() {
+        return InstanceRegistry.Singleton.instance;
+    }
+
+    public void register(final InstanceInfo info) {
+        int leaseDuration = Lease.DEFAULT_DURATION_IN_SECS;
+        if (info.getLeaseInfo() != null && info.getLeaseInfo().getDurationInSecs() > 0) {
+            leaseDuration = info.getLeaseInfo().getDurationInSecs();
+        }
+        this.register(info, leaseDuration);
     }
 
     /**
@@ -280,6 +297,69 @@ public class InstanceRegistry {
         }
     }
 
+    /**
+     * Updates the status of an instance. Normally happens to put an instance
+     * between {@link InstanceInfo.InstanceStatus#OUT_OF_SERVICE} and
+     * {@link InstanceInfo.InstanceStatus#UP} to put the instance in and out of traffic.
+     *
+     * @param appName            the application name of the instance.
+     * @param id                 the unique identifier of the instance.
+     * @param newStatus          the new {@link InstanceInfo.InstanceStatus}.
+     * @param lastDirtyTimestamp last timestamp when this instance information was updated.
+     * @return true if the status was successfully updated, false otherwise.
+     */
+    public boolean statusUpdate(String appName, String id,
+                                InstanceInfo.InstanceStatus newStatus, String lastDirtyTimestamp) {
+        try {
+            read.lock();
+            Map<String, Lease<InstanceInfo>> gMap = registry.get(appName);
+            Lease<InstanceInfo> lease = null;
+            if (gMap != null) {
+                lease = gMap.get(id);
+            }
+            if (lease == null) {
+                return false;
+            } else {
+                lease.renew();
+                InstanceInfo info = lease.getHolder();
+                // Lease is always created with its instance info object.
+                // This log statement is provided as a safeguard, in case this invariant is violated.
+                if (info == null) {
+                    logger.error("Found Lease without a holder for instance id {}", id);
+                }
+                if ((info != null) && !(info.getStatus().equals(newStatus))) {
+                    // Mark service as UP if needed
+                    if (InstanceInfo.InstanceStatus.UP.equals(newStatus)) {
+                        lease.serviceUp();
+                    }
+                    // This is NAC overriden status
+                    overriddenInstanceStatusMap.put(id, newStatus);
+                    // Set it for transfer of overridden status to replica on
+                    // replica start up
+                    info.setOverriddenStatus(newStatus);
+                    long replicaDirtyTimestamp = 0;
+                    info.setStatusWithoutDirty(newStatus);
+                    if (lastDirtyTimestamp != null) {
+                        replicaDirtyTimestamp = Long.valueOf(lastDirtyTimestamp);
+                    }
+                    // If the replication's dirty timestamp is more than the existing one, just update
+                    // it to the replica's.
+                    if (replicaDirtyTimestamp > info.getLastDirtyTimestamp()) {
+                        info.setLastDirtyTimestamp(replicaDirtyTimestamp);
+                    }
+                    info.setActionType(InstanceInfo.ActionType.MODIFIED);
+                    recentlyChangedQueue.add(new RecentlyChangedItem(lease));
+                    info.setLastUpdatedTimestamp();
+                    responseCache.invalidate(appName);
+
+                }
+                return true;
+            }
+        } finally {
+            read.unlock();
+        }
+    }
+
     public void storeOverriddenStatusIfRequired(String appName, String id, InstanceInfo.InstanceStatus overriddenStatus) {
         InstanceInfo.InstanceStatus instanceStatus = overriddenInstanceStatusMap.get(id);
         if ((instanceStatus == null) || (!overriddenStatus.equals(instanceStatus))) {
@@ -296,9 +376,120 @@ public class InstanceRegistry {
         }
     }
 
+    /**
+     * Removes status override for a give instance.
+     *
+     * @param appName            the application name of the instance.
+     * @param id                 the unique identifier of the instance.
+     * @param newStatus          the new {@link InstanceInfo.InstanceStatus}.
+     * @param lastDirtyTimestamp last timestamp when this instance information was updated.
+     * @return true if the status was successfully updated, false otherwise.
+     */
+    public boolean deleteStatusOverride(String appName, String id,
+                                        InstanceInfo.InstanceStatus newStatus,
+                                        String lastDirtyTimestamp) {
+        try {
+            read.lock();
+            Map<String, Lease<InstanceInfo>> gMap = registry.get(appName);
+            Lease<InstanceInfo> lease = null;
+            if (gMap != null) {
+                lease = gMap.get(id);
+            }
+            if (lease == null) {
+                return false;
+            } else {
+                lease.renew();
+                InstanceInfo info = lease.getHolder();
 
-    public Application getApplication(String name) {
-        return null;
+                // Lease is always created with its instance info object.
+                // This log statement is provided as a safeguard, in case this invariant is violated.
+                if (info == null) {
+                    logger.error("Found Lease without a holder for instance id {}", id);
+                }
+
+                InstanceInfo.InstanceStatus currentOverride = overriddenInstanceStatusMap.remove(id);
+                if (currentOverride != null && info != null) {
+                    info.setOverriddenStatus(InstanceInfo.InstanceStatus.UNKNOWN);
+                    info.setStatusWithoutDirty(newStatus);
+                    long replicaDirtyTimestamp = 0;
+                    if (lastDirtyTimestamp != null) {
+                        replicaDirtyTimestamp = Long.valueOf(lastDirtyTimestamp);
+                    }
+                    // If the replication's dirty timestamp is more than the existing one, just update
+                    // it to the replica's.
+                    if (replicaDirtyTimestamp > info.getLastDirtyTimestamp()) {
+                        info.setLastDirtyTimestamp(replicaDirtyTimestamp);
+                    }
+                    info.setActionType(InstanceInfo.ActionType.MODIFIED);
+                    recentlyChangedQueue.add(new RecentlyChangedItem(lease));
+                    info.setLastUpdatedTimestamp();
+                    responseCache.invalidate(appName);
+                }
+                return true;
+            }
+        } finally {
+            read.unlock();
+        }
+    }
+
+    /**
+     * Cancels the registration of an instance.
+     *
+     * <p>
+     * This is normally invoked by a client when it shuts down informing the
+     * server to remove the instance from traffic.
+     * </p>
+     *
+     * @param appName the application name of the application.
+     * @param id      the unique identifier of the instance.
+     * @return true if the instance was removed from the {@link InstanceRegistry} successfully, false otherwise.
+     */
+    public boolean cancel(String appName, String id) {
+        try {
+            read.lock();
+            Map<String, Lease<InstanceInfo>> gMap = registry.get(appName);
+            Lease<InstanceInfo> leaseToCancel = null;
+            if (gMap != null) {
+                leaseToCancel = gMap.remove(id);
+            }
+            InstanceInfo.InstanceStatus instanceStatus = overriddenInstanceStatusMap.remove(id);
+            if (instanceStatus != null) {
+                logger.debug("Removed instance id {} from the overridden map which has value {}", id, instanceStatus.name());
+            }
+            if (leaseToCancel == null) {
+                logger.warn("DS: Registry: cancel failed because Lease is not registered for: {}/{}", appName, id);
+                return false;
+            } else {
+                leaseToCancel.cancel();
+                InstanceInfo instanceInfo = leaseToCancel.getHolder();
+                if (instanceInfo != null) {
+                    instanceInfo.setActionType(InstanceInfo.ActionType.DELETED);
+                    recentlyChangedQueue.add(new RecentlyChangedItem(leaseToCancel));
+                    instanceInfo.setLastUpdatedTimestamp();
+                }
+                responseCache.invalidate(appName);
+                logger.info("Cancelled instance {}/{} ", appName, id);
+                return true;
+            }
+        } finally {
+            read.unlock();
+        }
+    }
+
+    public Application getApplication(String appName) {
+        Application app = null;
+
+        Map<String, Lease<InstanceInfo>> leaseMap = registry.get(appName);
+
+        if (leaseMap != null && leaseMap.size() > 0) {
+            for (Map.Entry<String, Lease<InstanceInfo>> entry : leaseMap.entrySet()) {
+                if (app == null) {
+                    app = new Application(appName);
+                }
+                app.addInstance(decorateInstanceInfo(entry.getValue()));
+            }
+        }
+        return app;
     }
 
     private static final class RecentlyChangedItem {
