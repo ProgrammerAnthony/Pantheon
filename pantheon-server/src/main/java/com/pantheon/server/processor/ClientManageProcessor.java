@@ -29,7 +29,7 @@ import java.util.List;
 public class ClientManageProcessor extends AsyncNettyRequestProcessor implements NettyRequestProcessor {
     private static final Logger logger = LoggerFactory.getLogger(ClientManageProcessor.class);
     private final ResponseCache responseCache;
-    private final InstanceRegistry instanceRegistry;
+    private final InstanceRegistryImpl instanceRegistry;
 
     public ClientManageProcessor() {
         this.instanceRegistry = InstanceRegistryImpl.getInstance();
@@ -66,13 +66,10 @@ public class ClientManageProcessor extends AsyncNettyRequestProcessor implements
     }
 
     private RemotingCommand serviceRegistry(ChannelHandlerContext ctx, RemotingCommand request) throws RemotingCommandException {
-        List<String> serverAddresses = null;
-        final RemotingCommand response = RemotingCommand.createResponseCommand(ServiceRegistryResponseHeader.class);
-        final ServiceRegistryRequestHeader requestHeader =
-                (ServiceRegistryRequestHeader) request.decodeCommandCustomHeader(ServiceRegistryRequestHeader.class);
-        logger.info("serviceRegistry called by {}", RemotingHelper.parseChannelRemoteAddr(ctx.channel()));
-        final ServiceRegistryResponseHeader responseHeader = (ServiceRegistryResponseHeader) response.readCustomHeader();
-        //todo add more operation here
+        RemotingCommand response = RemotingCommand.createResponseCommand(null);
+        InstanceInfo instanceInfo = InstanceInfo.decode(request.getBody(), InstanceInfo.class);
+        logger.info("receive register info: {}", instanceInfo);
+        register(instanceInfo.getAppName(),instanceInfo);
         response.setCode(ResponseCode.SUCCESS);
         response.setRemark(null);
         response.setOpaque(request.getOpaque());
@@ -173,7 +170,7 @@ public class ClientManageProcessor extends AsyncNettyRequestProcessor implements
      * @param info
      *            {@link InstanceInfo} information of the instance.
      */
-    public Response addInstance(String appName,InstanceInfo info) {
+    public Response register(String appName,InstanceInfo info) {
         logger.debug("Registering instance {} ", info.getId());
         // validate that the instanceinfo contains all the necessary required fields
         if (ObjectUtils.isEmpty(info.getId())) {

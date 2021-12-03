@@ -3,6 +3,7 @@ package com.pantheon.client;
 import com.pantheon.client.appinfo.Application;
 import com.pantheon.client.appinfo.Applications;
 import com.pantheon.client.appinfo.InstanceInfo;
+import com.pantheon.client.appinfo.LeaseInfo;
 import com.pantheon.client.config.DefaultInstanceConfig;
 import com.pantheon.common.ThreadFactoryImpl;
 import com.pantheon.remoting.exception.RemotingCommandException;
@@ -45,7 +46,7 @@ public class ClientNode {
     private volatile long lastSuccessfulRegistryFetchTimestamp = -1;
     private volatile long lastSuccessfulHeartbeatTimestamp = -1;
     private final Lock fetchRegistryUpdateLock = new ReentrantLock();
-    private final InstanceInfo instanceInfo;
+    private InstanceInfo instanceInfo;
     private volatile InstanceInfo.InstanceStatus lastRemoteInstanceStatus = InstanceInfo.InstanceStatus.UNKNOWN;
 
 
@@ -98,6 +99,18 @@ public class ClientNode {
     }
 
     private void startScheduledTask() {
+        if (instanceConfig.shouldFetchRegistry()) {
+            boolean fetchRegistryResult = fetchRegistry(true);
+            if (fetchRegistryResult) {
+                logger.info("service fetch registry success!!!");
+                if(localRegionApps.get().size()>0){
+                    logger.info("register success , then fetch {} apps !!!",localRegionApps.get());
+
+                }
+            }
+            scheduledExecutorService.scheduleAtFixedRate(new CacheRefreshThread(), instanceConfig.getRegistryFetchIntervalSeconds(), instanceConfig.getRegistryFetchIntervalSeconds(), TimeUnit.SECONDS);
+        }
+
         this.scheduledExecutorService.scheduleAtFixedRate(new Runnable() {
             @Override
             public void run() {
@@ -128,28 +141,59 @@ public class ClientNode {
         this.clientAPI.shutdown();
     }
 
+    /**
+     * default 30s to refresh registry info
+     */
     public void sendRegister() {
-        if (instanceConfig.shouldFetchRegistry()) {
-            boolean fetchRegistryResult = fetchRegistry(false);
-            if (fetchRegistryResult) {
-                logger.info("service registry success!!!");
-            }
+        InstanceInfo instanceInfo = buildInstanceInfo();
+        try {
+            this.clientAPI.register(server,instanceInfo,3000);
+        } catch (RemotingConnectException e) {
+            e.printStackTrace();
+        } catch (RemotingSendRequestException e) {
+            e.printStackTrace();
+        } catch (RemotingTimeoutException e) {
+            e.printStackTrace();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
         }
 
-//            try {
-//            boolean registryResult = this.clientAPI.serviceRegistry(server.getRemoteSocketAddress(), 1000);
-//            if (registryResult) {
-//                logger.info("service registry success!!!");
-//            }
-//        } catch (RemotingConnectException e) {
-//            e.printStackTrace();
-//        } catch (RemotingSendRequestException e) {
-//            e.printStackTrace();
-//        } catch (RemotingTimeoutException e) {
-//            e.printStackTrace();
-//        } catch (InterruptedException e) {
-//            e.printStackTrace();
-//        }
+
+    }
+
+    public synchronized InstanceInfo buildInstanceInfo() {
+        if (instanceInfo == null) {
+            // Build the lease information to be passed to the server based on config
+            LeaseInfo.Builder leaseInfoBuilder = LeaseInfo.Builder.newBuilder()
+                    .setRenewalIntervalInSecs(instanceConfig.getLeaseRenewalIntervalInSeconds())
+                    .setDurationInSecs(instanceConfig.getLeaseExpirationDurationInSeconds());
+
+            // Builder the instance information to be registered with eureka server
+            InstanceInfo.Builder builder = InstanceInfo.Builder.newBuilder();
+
+            // set the appropriate id for the InstanceInfo
+            String instanceId = instanceConfig.getServiceName();
+
+
+            String defaultAddress = instanceConfig.getInstanceHostName();
+
+
+            if (defaultAddress == null || defaultAddress.isEmpty()) {
+                defaultAddress = instanceConfig.getInstanceIpAddress();
+            }
+            InstanceInfo.InstanceStatus initialStatus = InstanceInfo.InstanceStatus.UP;
+
+            builder.setInstanceId(instanceId)
+                    .setAppName(instanceConfig.getServiceName())
+                    .setIPAddr(instanceConfig.getInstanceIpAddress())
+                    .setHostName(defaultAddress)
+                    .setPort(instanceConfig.getInstancePort()).setStatus(initialStatus);
+
+
+            instanceInfo = builder.build();
+            instanceInfo.setLeaseInfo(leaseInfoBuilder.build());
+        }
+        return instanceInfo;
     }
 
     /**
@@ -309,7 +353,6 @@ public class ClientNode {
 
 
     /**
-     * 获取更新增量信息，通过读写锁优化性能
      * Get the delta registry information from the pantheon server and update it locally.
      * When applying the delta, the following flow is observed:
      * <p>

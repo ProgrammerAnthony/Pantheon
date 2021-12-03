@@ -2,6 +2,7 @@ package com.pantheon.client;
 
 import com.alibaba.fastjson.JSON;
 import com.pantheon.client.appinfo.Applications;
+import com.pantheon.client.appinfo.InstanceInfo;
 import com.pantheon.client.config.DefaultInstanceConfig;
 import com.pantheon.client.config.PantheonInstanceConfig;
 import com.pantheon.common.protocol.RequestCode;
@@ -277,5 +278,20 @@ public class ClientAPIImpl {
 
     public Applications getDelta(Server server, long timeoutMills) {
         return null;
+    }
+
+    public boolean register(Server server, InstanceInfo instanceInfo, long timoutMills) throws RemotingConnectException, RemotingSendRequestException, RemotingTimeoutException, InterruptedException {
+        RemotingCommand request = RemotingCommand.createRequestCommand(RequestCode.SERVICE_REGISTRY, null);
+        request.setBody(instanceInfo.encode());
+        RemotingCommand response = this.remotingClient.invokeSync(server.getRemoteSocketAddress(), request, timoutMills);
+        assert response != null;
+        switch (response.getCode()) {
+            case ResponseCode.SUCCESS: {
+                return true;
+            }
+            default:
+                break;
+        }
+        return false;
     }
 }

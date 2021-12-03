@@ -25,9 +25,9 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
  * @create 2021/11/28
  * @desc  the class that load and update data from Server Side cache
  */
-public class InstanceRegistryImpl implements InstanceRegistry{
+public class InstanceRegistryImpl{
     private static final Logger logger = LoggerFactory.getLogger(InstanceRegistryImpl.class);
-    private final ConcurrentHashMap<String/*appName*/, Map<String, Lease<InstanceInfo>>> registry
+    private final ConcurrentHashMap<String/*appName*/, Map<String/*instanceId*/, Lease<InstanceInfo>>> registry
             = new ConcurrentHashMap<String, Map<String, Lease<InstanceInfo>>>();
 
     private final ReentrantReadWriteLock readWriteLock = new ReentrantReadWriteLock();
@@ -45,7 +45,8 @@ public class InstanceRegistryImpl implements InstanceRegistry{
     private Timer deltaRetentionTimer = new Timer("Pantheon-DeltaRetentionTimer", true);
 
 
-    public InstanceRegistryImpl() {
+    private InstanceRegistryImpl() {
+        this.serverConfig=CachedPantheonServerConfig.getInstance();
         responseCache = new ResponseCacheImpl(serverConfig, this);
         this.deltaRetentionTimer.schedule(getDeltaRetentionTask(),
                 serverConfig.getDeltaRetentionTimerIntervalInMs(),
@@ -53,10 +54,10 @@ public class InstanceRegistryImpl implements InstanceRegistry{
     }
 
     private static class Singleton {
-        static InstanceRegistry instance = new InstanceRegistryImpl();
+        static InstanceRegistryImpl instance = new InstanceRegistryImpl();
     }
 
-    public static InstanceRegistry getInstance() {
+    public static InstanceRegistryImpl getInstance() {
         return InstanceRegistryImpl.Singleton.instance;
     }
 

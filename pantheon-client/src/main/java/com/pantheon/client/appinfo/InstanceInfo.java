@@ -72,11 +72,11 @@ public class InstanceInfo extends RemotingSerializable {
         UNKNOWN;
 
         public static InstanceStatus toEnum(String s) {
-//            for (InstanceStatus e : InstanceStatus.values()) {
-//                if (e.name().equalsIgnoreCase(s)) {
-//                    return e;
-//                }
-//            }
+            for (InstanceStatus e : InstanceStatus.values()) {
+                if (e.name().equalsIgnoreCase(s)) {
+                    return e;
+                }
+            }
             return UNKNOWN;
         }
     }
@@ -122,6 +122,14 @@ public class InstanceInfo extends RemotingSerializable {
         public Builder setInstanceId(String instanceId) {
             result.instanceId = instanceId;
             return this;
+        }
+
+        public static Builder newBuilder() {
+            return new Builder(new InstanceInfo());
+        }
+
+        public Builder(InstanceInfo result) {
+            this.result = result;
         }
 
         /**

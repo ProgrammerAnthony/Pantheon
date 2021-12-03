@@ -44,4 +44,12 @@ public interface PantheonInstanceConfig {
     boolean shouldFetchRegistry();
 
     boolean shouldFilterOnlyUpInstances();
+
+    /**
+     * Indicates how often(in seconds) to fetch the registry information from
+     * the  server.
+     *
+     * @return the fetch interval in seconds.
+     */
+    int getRegistryFetchIntervalSeconds();
 }
