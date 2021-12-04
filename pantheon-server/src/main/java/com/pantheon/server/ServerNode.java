@@ -82,6 +82,7 @@ public class ServerNode extends AbstractLifecycleComponent {
         ClientManageProcessor clientManageProcessor =new ClientManageProcessor();
         remotingServer.registerProcessor(RequestCode.HEART_BEAT,clientManageProcessor,heartbeatExecutor);
         remotingServer.registerProcessor(RequestCode.GET_ALL_APP,clientManageProcessor,heartbeatExecutor);
+        remotingServer.registerProcessor(RequestCode.GET_DELTA_APP,clientManageProcessor,heartbeatExecutor);
         remotingServer.registerProcessor(RequestCode.SERVICE_UNREGISTER,clientManageProcessor,heartbeatExecutor);
         remotingServer.registerProcessor(RequestCode.SERVICE_REGISTRY,clientManageProcessor,heartbeatExecutor);
 

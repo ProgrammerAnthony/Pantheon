@@ -36,10 +36,6 @@ public class Applications extends RemotingSerializable {
     private AbstractQueue<Application> applications;
 
     private Map<String/*appName*/, Application> appNameApplicationMap = new ConcurrentHashMap<String, Application>();
-    private Map<String, AbstractQueue<InstanceInfo>> virtualHostNameAppMap = new ConcurrentHashMap<String, AbstractQueue<InstanceInfo>>();
-    private Map<String, AbstractQueue<InstanceInfo>> secureVirtualHostNameAppMap = new ConcurrentHashMap<String, AbstractQueue<InstanceInfo>>();
-    private Map<String, AtomicLong> virtualHostNameIndexMap = new ConcurrentHashMap<String, AtomicLong>();
-    private Map<String, AtomicLong> secureVirtualHostNameIndexMap = new ConcurrentHashMap<String, AtomicLong>();
 
     private Map<String, AtomicReference<List<InstanceInfo>>> shuffleVirtualHostNameMap = new ConcurrentHashMap<String, AtomicReference<List<InstanceInfo>>>();
     private Map<String, AtomicReference<List<InstanceInfo>>> shuffledSecureVirtualHostNameMap = new ConcurrentHashMap<String, AtomicReference<List<InstanceInfo>>>();
@@ -348,14 +344,6 @@ public class Applications extends RemotingSerializable {
         }
     }
 
-    /**
-     * Shuffles the provided instances so that they will not always be returned in the same order.
-     *
-     * @param filterUpInstances whether to return only UP instances
-     */
-    public void shuffleInstances(boolean filterUpInstances) {
-//        shuffleInstances(filterUpInstances);
-    }
 
     /**
      * Shuffles a whole region so that the instances will not always be returned in the same order.
@@ -369,38 +357,17 @@ public class Applications extends RemotingSerializable {
         shuffleInstances(clientConfig.shouldFilterOnlyUpInstances());
     }
 
-    private void shuffleInstances(boolean filterUpInstances, boolean indexByRemoteRegions,
-                                  Map<String, Applications> remoteRegionsRegistry,
-                                  DefaultInstanceConfig clientConfig) {
-        this.virtualHostNameAppMap.clear();
-        this.secureVirtualHostNameAppMap.clear();
+    /**
+     * Shuffles the provided instances so that they will not always be returned in the same order.
+     *
+     * @param filterUpInstances whether to return only UP instances
+     */
+    public void shuffleInstances(boolean filterUpInstances) {
         for (Application application : appNameApplicationMap.values()) {
             application.shuffleAndStoreInstances(filterUpInstances);
         }
-        shuffleAndFilterInstances(this.virtualHostNameAppMap,
-                this.shuffleVirtualHostNameMap, virtualHostNameIndexMap,
-                filterUpInstances);
-        shuffleAndFilterInstances(this.secureVirtualHostNameAppMap,
-                this.shuffledSecureVirtualHostNameMap,
-                secureVirtualHostNameIndexMap, filterUpInstances);
     }
 
-    /**
-     * Gets the next round-robin index for the given virtual host name. This
-     * index is reset after every registry fetch cycle.
-     *
-     * @param virtualHostname the virtual host name.
-     * @param secure          indicates whether it is a secure request or a non-secure
-     *                        request.
-     * @return AtomicLong value representing the next round-robin index.
-     */
-    public AtomicLong getNextIndex(String virtualHostname, boolean secure) {
-        if (secure) {
-            return this.secureVirtualHostNameIndexMap.get(virtualHostname);
-        } else {
-            return this.virtualHostNameIndexMap.get(virtualHostname);
-        }
-    }
 
     /**
      * Shuffle the instances and filter for only {@link InstanceInfo.InstanceStatus#UP} if

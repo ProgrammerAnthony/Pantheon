@@ -10,6 +10,7 @@ import com.pantheon.common.protocol.RequestCode;
 import com.pantheon.common.protocol.ResponseCode;
 import com.pantheon.common.protocol.header.*;
 import com.pantheon.common.protocol.heartBeat.ServiceHeartBeat;
+import com.pantheon.common.protocol.heartBeat.ServiceUnregister;
 import com.pantheon.remoting.CommandCustomHeader;
 import com.pantheon.remoting.InvokeCallback;
 import com.pantheon.remoting.RPCHook;
@@ -51,8 +52,6 @@ public class ClientAPIImpl {
     private NettyClientConfig nettyClientConfig;
     private PantheonInstanceConfig pantheonInstanceConfig;
     private Map<String, List<String>> slotsAllocation;
-    private String excludedRemoteAddress;
-    private Server server;
     private static final Integer SLOT_COUNT = 16384;
     private DefaultInstanceConfig instanceConfig;
 
@@ -241,16 +240,7 @@ public class ClientAPIImpl {
         while (!chosen) {
             int index = random.nextInt(serverList.size());
             String serverAddress = serverList.get(index);
-
-            if (excludedRemoteAddress == null) {
-                return serverAddress;
-            } else {
-                if (serverAddress.equals(excludedRemoteAddress)) {
-                    continue;
-                } else {
-                    return serverAddress;
-                }
-            }
+            return serverAddress;
         }
 
         return null;
@@ -309,8 +299,7 @@ public class ClientAPIImpl {
                 logger.info("receive all apps info :{} ",string);
                 logger.info("with size:{},with bytes size:{}" ,response.getBody().length,bytes.length);
 
-                Applications applications = JSONObject.parseObject(string, Applications.class);
-                return applications;
+                return JSONObject.parseObject(string, Applications.class);
             }
             default:
                 break;
@@ -337,13 +326,65 @@ public class ClientAPIImpl {
         return out.toByteArray();
     }
 
-    public Applications getDelta(Server server, long timeoutMills) {
+    public Applications getDelta(Server server, long timeoutMills) throws RemotingConnectException, RemotingSendRequestException, RemotingTimeoutException, InterruptedException, IOException {
+        RemotingCommand request = RemotingCommand.createRequestCommand(RequestCode.GET_DELTA_APP, null);
+        RemotingCommand response = this.remotingClient.invokeSync(server.getRemoteSocketAddress(), request, timeoutMills);
+
+        assert response != null;
+        switch (response.getCode()) {
+            case ResponseCode.SUCCESS: {
+                ByteArrayInputStream bis = new ByteArrayInputStream(response.getBody());
+                // Open the compressed stream
+                GZIPInputStream gin = new GZIPInputStream(bis);
+
+                ByteArrayOutputStream out = new ByteArrayOutputStream();
+
+                // Transfer bytes from the compressed stream to the output stream
+                byte[] buf = new byte[response.getBody().length];
+                int len;
+                while ((len = gin.read(buf)) > 0) {
+                    out.write(buf, 0, len);
+                }
+
+                // Close the file and stream
+                gin.close();
+                out.close();
+
+                byte[] bytes = out.toByteArray();
+//                Applications applications = Applications.decode(bytes, Applications.class);
+                String string = new String(bytes);
+                logger.info("receive delta apps info :{} ",string);
+                logger.info("with size:{},with bytes size:{}" ,response.getBody().length,bytes.length);
+
+                return JSONObject.parseObject(string, Applications.class);
+            }
+            default:
+                break;
+        }
         return null;
     }
 
     public boolean register(Server server, InstanceInfo instanceInfo, long timoutMills) throws RemotingConnectException, RemotingSendRequestException, RemotingTimeoutException, InterruptedException {
         RemotingCommand request = RemotingCommand.createRequestCommand(RequestCode.SERVICE_REGISTRY, null);
         request.setBody(instanceInfo.encode());
+        RemotingCommand response = this.remotingClient.invokeSync(server.getRemoteSocketAddress(), request, timoutMills);
+        assert response != null;
+        switch (response.getCode()) {
+            case ResponseCode.SUCCESS: {
+                return true;
+            }
+            default:
+                break;
+        }
+        return false;
+    }
+
+    public boolean unRegister(Server server, String appName,String instanceId, long timoutMills) throws RemotingConnectException, RemotingSendRequestException, RemotingTimeoutException, InterruptedException {
+        ServiceUnregister serviceUnregister =new ServiceUnregister();
+        serviceUnregister.setInstanceId(instanceId);
+        serviceUnregister.setAppName(appName);
+        RemotingCommand request = RemotingCommand.createRequestCommand(RequestCode.SERVICE_UNREGISTER, null);
+        request.setBody(serviceUnregister.encode());
         RemotingCommand response = this.remotingClient.invokeSync(server.getRemoteSocketAddress(), request, timoutMills);
         assert response != null;
         switch (response.getCode()) {

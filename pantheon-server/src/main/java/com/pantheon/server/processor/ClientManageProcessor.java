@@ -9,6 +9,7 @@ import com.pantheon.common.protocol.RequestCode;
 import com.pantheon.common.protocol.ResponseCode;
 import com.pantheon.common.protocol.header.*;
 import com.pantheon.common.protocol.heartBeat.ServiceHeartBeat;
+import com.pantheon.common.protocol.heartBeat.ServiceUnregister;
 import com.pantheon.remoting.common.RemotingHelper;
 import com.pantheon.remoting.exception.RemotingCommandException;
 import com.pantheon.remoting.netty.AsyncNettyRequestProcessor;
@@ -47,6 +48,8 @@ public class ClientManageProcessor extends AsyncNettyRequestProcessor implements
                 return this.heartBeat(ctx, request);
             case RequestCode.GET_ALL_APP:
                 return this.getApplications(ctx, request);
+            case RequestCode.GET_DELTA_APP:
+                return this.getDeltaApplications(ctx, request);
             case RequestCode.SERVICE_UNREGISTER:
                 return this.serviceUnregister(ctx, request);
             default:
@@ -57,7 +60,7 @@ public class ClientManageProcessor extends AsyncNettyRequestProcessor implements
 
     private RemotingCommand getApplications(ChannelHandlerContext ctx, RemotingCommand request) {
         RemotingCommand response = RemotingCommand.createResponseCommand(null);
-        logger.info("getApplications request from : {}",  RemotingHelper.parseChannelRemoteAddr(ctx.channel()));
+        logger.info("getApplications request from : {}", RemotingHelper.parseChannelRemoteAddr(ctx.channel()));
         response.setCode(ResponseCode.SUCCESS);
         response.setRemark(null);
         response.setBody(getApplications());
@@ -65,11 +68,29 @@ public class ClientManageProcessor extends AsyncNettyRequestProcessor implements
         return response;
     }
 
+    private RemotingCommand getDeltaApplications(ChannelHandlerContext ctx, RemotingCommand request) {
+        RemotingCommand response = RemotingCommand.createResponseCommand(null);
+        logger.info("getDeltaApplications request from : {}", RemotingHelper.parseChannelRemoteAddr(ctx.channel()));
+        response.setCode(ResponseCode.SUCCESS);
+        response.setRemark(null);
+        response.setBody(getApplicationsDelta());
+        response.setOpaque(request.getOpaque());
+        return response;
+    }
+
     private RemotingCommand serviceUnregister(ChannelHandlerContext ctx, RemotingCommand request) {
-        return null;
+        RemotingCommand response = RemotingCommand.createResponseCommand(null);
+        ServiceUnregister serviceUnregister = ServiceUnregister.decode(request.getBody(), ServiceUnregister.class);
+        logger.info("receive serviceUnregister from: {} / {}", serviceUnregister.getAppName(), serviceUnregister.getInstanceId());
+        cancelLease(serviceUnregister.getAppName(), serviceUnregister.getInstanceId());
+        response.setCode(ResponseCode.SUCCESS);
+        response.setRemark(null);
+        response.setOpaque(request.getOpaque());
+        return response;
     }
 
     private RemotingCommand heartBeat(ChannelHandlerContext ctx, RemotingCommand request) {
+        //todo refresh the instance and do something here
         RemotingCommand response = RemotingCommand.createResponseCommand(null);
         ServiceHeartBeat heartbeatData = ServiceHeartBeat.decode(request.getBody(), ServiceHeartBeat.class);
         logger.info("receive heartbeat from: {}", heartbeatData.getClientId());
@@ -82,17 +103,17 @@ public class ClientManageProcessor extends AsyncNettyRequestProcessor implements
     private RemotingCommand serviceRegistry(ChannelHandlerContext ctx, RemotingCommand request) throws RemotingCommandException {
         RemotingCommand response = RemotingCommand.createResponseCommand(null);
         InstanceInfo instanceInfo = InstanceInfo.decode(request.getBody(), InstanceInfo.class);
-        logger.info("serviceRegistry called by {},receive instanceInfo: {} ", RemotingHelper.parseChannelRemoteAddr(ctx.channel()),instanceInfo.toString());
-       if(ObjectUtils.isEmpty(instanceInfo)){
-           response.setCode(ResponseCode.SYSTEM_ERROR);
-           response.setRemark(null);
-           response.setOpaque(request.getOpaque());
-       }else{
-           register(instanceInfo.getAppName(),instanceInfo);
-           response.setCode(ResponseCode.SUCCESS);
-           response.setRemark(null);
-           response.setOpaque(request.getOpaque());
-       }
+        logger.info("serviceRegistry called by {},receive instanceInfo: {} ", RemotingHelper.parseChannelRemoteAddr(ctx.channel()), instanceInfo.toString());
+        if (ObjectUtils.isEmpty(instanceInfo)) {
+            response.setCode(ResponseCode.SYSTEM_ERROR);
+            response.setRemark(null);
+            response.setOpaque(request.getOpaque());
+        } else {
+            register(instanceInfo.getAppName(), instanceInfo);
+            response.setCode(ResponseCode.SUCCESS);
+            response.setRemark(null);
+            response.setOpaque(request.getOpaque());
+        }
         return response;
     }
 
@@ -111,6 +132,7 @@ public class ClientManageProcessor extends AsyncNettyRequestProcessor implements
 
     /**
      * get applications delta info from cache
+     *
      * @return
      */
     public byte[] getApplicationsDelta() {
@@ -161,7 +183,7 @@ public class ClientManageProcessor extends AsyncNettyRequestProcessor implements
         // instance might have changed some value
         Response response = null;
         if (lastDirtyTimestamp != null) {
-            response = this.validateDirtyTimestamp(appName,id,Long.valueOf(lastDirtyTimestamp));
+            response = this.validateDirtyTimestamp(appName, id, Long.valueOf(lastDirtyTimestamp));
             // Store the overridden status since the validation found out the node that replicates wins
             if (response.getStatus() == Response.Status.NOT_FOUND.getStatusCode()
                     && (overriddenStatus != null)
@@ -187,14 +209,13 @@ public class ClientManageProcessor extends AsyncNettyRequestProcessor implements
      * Registers information about a particular instance for an
      * {@link Application}.
      *
-     * @param info
-     *            {@link InstanceInfo} information of the instance.
+     * @param info {@link InstanceInfo} information of the instance.
      */
-    public Boolean register(String appName,InstanceInfo info) {
+    public Boolean register(String appName, InstanceInfo info) {
         logger.debug("Registering instance with instanceId {} ", info.getId());
         // validate that the instanceinfo contains all the necessary required fields
         if (ObjectUtils.isEmpty(info.getId())) {
-         throw new IllegalArgumentException("Missing instanceId");
+            throw new IllegalArgumentException("Missing instanceId");
         } else if (ObjectUtils.isEmpty(info.getHostName())) {
             throw new IllegalArgumentException("Missing hostname");
         } else if (ObjectUtils.isEmpty(info.getIPAddr())) {
@@ -220,15 +241,13 @@ public class ClientManageProcessor extends AsyncNettyRequestProcessor implements
      * receiving traffic.
      * </p>
      *
-     * @param newStatus
-     *            the new status of the instance.
-     * @param lastDirtyTimestamp
-     *            last timestamp when this instance information was updated.
+     * @param newStatus          the new status of the instance.
+     * @param lastDirtyTimestamp last timestamp when this instance information was updated.
      * @return response indicating whether the operation was a success or
-     *         failure.
+     * failure.
      */
-    public Response statusUpdate(String appName,String id,
-             String newStatus, String lastDirtyTimestamp) {
+    public Response statusUpdate(String appName, String id,
+                                 String newStatus, String lastDirtyTimestamp) {
         try {
             if (instanceRegistry.getInstanceByAppAndId(appName, id) == null) {
                 logger.warn("Instance not found: {}/{}", appName, id);
@@ -238,11 +257,11 @@ public class ClientManageProcessor extends AsyncNettyRequestProcessor implements
                     InstanceInfo.InstanceStatus.valueOf(newStatus), lastDirtyTimestamp);
 
             if (isSuccess) {
-                logger.info("Status updated: " +appName + " - " + id
+                logger.info("Status updated: " + appName + " - " + id
                         + " - " + newStatus);
                 return Response.ok().build();
             } else {
-                logger.warn("Unable to update status: " +appName + " - "
+                logger.warn("Unable to update status: " + appName + " - "
                         + id + " - " + newStatus);
                 return Response.serverError().build();
             }
@@ -255,16 +274,15 @@ public class ClientManageProcessor extends AsyncNettyRequestProcessor implements
 
     /**
      * Removes status override for an instance, set with
-     * {@link #statusUpdate(String,String, String, String)}.
+     * {@link #statusUpdate(String, String, String, String)}.
      *
-     * @param lastDirtyTimestamp
-     *            last timestamp when this instance information was updated.
+     * @param lastDirtyTimestamp last timestamp when this instance information was updated.
      * @return response indicating whether the operation was a success or
-     *         failure.
+     * failure.
      */
-    public Response deleteStatusUpdate(String appName,String id,
-           String newStatusValue,
-           String lastDirtyTimestamp) {
+    public Response deleteStatusUpdate(String appName, String id,
+                                       String newStatusValue,
+                                       String lastDirtyTimestamp) {
         try {
             if (instanceRegistry.getInstanceByAppAndId(appName, id) == null) {
                 logger.warn("Instance not found: {}/{}", appName, id);
@@ -276,7 +294,7 @@ public class ClientManageProcessor extends AsyncNettyRequestProcessor implements
                     newStatus, lastDirtyTimestamp);
 
             if (isSuccess) {
-                logger.info("Status override removed: " +appName + " - " + id);
+                logger.info("Status override removed: " + appName + " - " + id);
                 return Response.ok().build();
             } else {
                 logger.warn("Unable to remove status override: " + appName + " - " + id);
@@ -289,22 +307,21 @@ public class ClientManageProcessor extends AsyncNettyRequestProcessor implements
     }
 
 
-
     /**
      * Handles cancellation of leases for this particular instance.
      *
      * @return response indicating whether the operation was a success or
-     *         failure.
+     * failure.
      */
-    public Response cancelLease(String appName,String id) {
+    public Boolean cancelLease(String appName, String id) {
         boolean isSuccess = instanceRegistry.cancel(appName, id);
 
         if (isSuccess) {
             logger.debug("Found (Cancel): " + appName + " - " + id);
-            return Response.ok().build();
+            return true;
         } else {
             logger.info("Not Found (Cancel): " + appName + " - " + id);
-            return Response.status(Response.Status.NOT_FOUND).build();
+            return false;
         }
     }
 

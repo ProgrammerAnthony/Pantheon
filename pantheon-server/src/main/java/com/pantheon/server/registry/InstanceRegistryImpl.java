@@ -455,7 +455,7 @@ public class InstanceRegistryImpl implements InstanceRegistry{
                 logger.debug("Removed instance id {} from the overridden map which has value {}", id, instanceStatus.name());
             }
             if (leaseToCancel == null) {
-                logger.warn("DS: Registry: cancel failed because Lease is not registered for: {}/{}", appName, id);
+                logger.warn("Registry: cancel failed because Lease is not registered for: {}/{}", appName, id);
                 return false;
             } else {
                 leaseToCancel.cancel();

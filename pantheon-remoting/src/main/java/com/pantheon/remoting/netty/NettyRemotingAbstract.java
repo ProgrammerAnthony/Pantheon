@@ -304,10 +304,7 @@ public abstract class NettyRemotingAbstract {
         }
     }
 
-    /**
-     * 在callback的executor里执行对应的callback，如果为空，则在当前线程里运行
-     * 调用invokeCallback.operationComplete方法，operationComplete方法在pull，query，send三个消息场景里都有对应的实现
-     */
+
     private void executeInvokeCallback(final ResponseFuture responseFuture) {
         boolean runInThisThread = false;
         ExecutorService executor = this.getCallbackExecutor();

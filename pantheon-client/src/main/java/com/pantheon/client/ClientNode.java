@@ -5,6 +5,7 @@ import com.pantheon.client.appinfo.Applications;
 import com.pantheon.client.appinfo.InstanceInfo;
 import com.pantheon.client.appinfo.LeaseInfo;
 import com.pantheon.client.config.DefaultInstanceConfig;
+import com.pantheon.common.ObjectUtils;
 import com.pantheon.common.ThreadFactoryImpl;
 import com.pantheon.remoting.exception.RemotingCommandException;
 import com.pantheon.remoting.exception.RemotingConnectException;
@@ -19,6 +20,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
 import java.util.concurrent.*;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
@@ -38,6 +40,7 @@ public class ClientNode {
     private static final Logger logger = LoggerFactory.getLogger(ServerBootstrap.class);
     private ClientAPIImpl clientAPI;
     private Server server;
+    private String serviceName;
     private final Lock lockHeartbeat = new ReentrantLock();
     private final String clientId;
     private final AtomicLong fetchRegistryGeneration;
@@ -138,22 +141,64 @@ public class ClientNode {
         }
     }
 
+    private final AtomicBoolean isShutdown = new AtomicBoolean(false);
+
     public void shutdown() {
-        this.clientAPI.shutdown();
+        if (isShutdown.compareAndSet(false, true)) {
+            if (this.clientAPI != null) {
+                this.clientAPI.shutdown();
+            }
+            if (scheduledExecutorService != null) {
+                scheduledExecutorService.shutdown();
+            }
+            if (this.instanceInfo != null) {
+                this.instanceInfo.setInstanceStatus(InstanceInfo.InstanceStatus.DOWN);
+                sendUnRegister();
+            }
+            logger.info("Completed the shutdown of PantheonClient");
+        }
+    }
+
+    private void sendUnRegister() {
+        try {
+            boolean unRegister = this.clientAPI.unRegister(getServer(),getServiceName(),getInstanceInfo().getInstanceId(), 3000);
+            if (unRegister) {
+                logger.info("unregister to server: {} successfully with instance info: {}", server, instanceInfo);
+            } else {
+                logger.info("unregister to server: {} failed with instance info: {}", server, instanceInfo);
+            }
+        } catch (RemotingConnectException e) {
+            e.printStackTrace();
+        } catch (RemotingSendRequestException e) {
+            e.printStackTrace();
+        } catch (RemotingTimeoutException e) {
+            e.printStackTrace();
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
     }
 
     /**
      * default 30s to refresh registry info
      */
     public void sendRegister() {
-        instanceInfo = buildInstanceInfo();
-        try { //todo sometimes the server is null
-            if (server == null) {
-                server = this.clientAPI.routeServer(instanceConfig.getServiceName());
-            }
-            boolean register = this.clientAPI.register(server, instanceInfo, 3000);
+        try {
+            boolean register = this.clientAPI.register(getServer(), getInstanceInfo(), 3000);
             if (register) {
                 logger.info("register to server: {} successfully with instance info: {}", server, instanceInfo);
+               //todo for test ,unregister
+                new Thread(new Runnable() {
+                    @Override
+                    public void run() {
+                        try {
+                            Thread.sleep(3000);
+                        } catch (InterruptedException e) {
+                            e.printStackTrace();
+                        }
+                        sendUnRegister();
+                    }
+                }).start();
+
             } else {
                 logger.info("register to server: {} failed with instance info: {}", server, instanceInfo);
             }
@@ -168,6 +213,13 @@ public class ClientNode {
         }
 
 
+    }
+
+    private InstanceInfo getInstanceInfo() {
+        if (instanceInfo == null) {
+            instanceInfo = buildInstanceInfo();
+        }
+        return instanceInfo;
     }
 
     public synchronized InstanceInfo buildInstanceInfo() {
@@ -193,7 +245,7 @@ public class ClientNode {
             InstanceInfo.InstanceStatus initialStatus = InstanceInfo.InstanceStatus.UP;
 
             builder.setInstanceId(instanceId)
-                    .setAppName(instanceConfig.getServiceName())
+                    .setAppName(getServiceName())
                     .setIPAddr(instanceConfig.getInstanceIpAddress())
                     .setHostName(defaultAddress)
                     .setPort(instanceConfig.getInstancePort()).setStatus(initialStatus);
@@ -377,10 +429,7 @@ public class ClientNode {
     private void getAndUpdateDelta(Applications applications) throws Throwable {
         long currentUpdateGeneration = fetchRegistryGeneration.get();
 
-        Applications delta = null;
-
-        Applications apps = this.clientAPI.getDelta(server, 3000L);
-
+        Applications delta = this.clientAPI.getDelta(server, 3000L);
 
         if (delta == null) {
             logger.warn("The server does not allow the delta revision to be applied because it is not safe. "
@@ -411,7 +460,7 @@ public class ClientNode {
 
 
     private String getReconcileHashCode(Applications applications) {
-        return null;
+        return "";
 //        TreeMap<String, AtomicInteger> instanceCountMap = new TreeMap<String, AtomicInteger>();
 //        if (isFetchingRemoteRegionRegistries()) {
 //            for (Applications remoteApp : remoteRegionVsApps.values()) {
@@ -546,4 +595,17 @@ public class ClientNode {
 //        this.eventListeners.add(eventListener);
     }
 
+    public Server getServer() {
+        if (ObjectUtils.isEmpty(server)) {
+            server = this.clientAPI.routeServer(getServiceName());
+        }
+        return server;
+    }
+
+    public String getServiceName() {
+        if (ObjectUtils.isEmpty(serviceName)) {
+            serviceName = instanceConfig.getServiceName();
+        }
+        return serviceName;
+    }
 }

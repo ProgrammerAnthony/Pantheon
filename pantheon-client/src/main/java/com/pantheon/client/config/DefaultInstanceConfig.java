@@ -139,7 +139,7 @@ public class DefaultInstanceConfig extends AbstractInstanceConfig implements Pan
 
     //todo add from eureka
     public int getRegistryFetchIntervalSeconds() {
-        return 30;
+        return 10;
     }
 
 

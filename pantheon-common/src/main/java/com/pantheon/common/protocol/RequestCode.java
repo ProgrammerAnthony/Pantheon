@@ -14,4 +14,5 @@ public class RequestCode {
     public static final int HEART_BEAT = 15;
     public static final int SERVICE_UNREGISTER = 16;
     public static final int GET_ALL_APP = 17;
+    public static final int GET_DELTA_APP = 18;
 }
