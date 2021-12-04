@@ -24,10 +24,7 @@ import java.util.concurrent.*;
 /**
  * @author Anthony
  * @create 2021/11/18
- * @desc 2 todo rethink and build the mechanism of client and server RocketMq
- * 3 todo build heartbeat mechanism of client and server
- * 4 todo design the message protocol
- * 5 todo design slots mechanism and treat it as topic in RocketMq
+ * @desc 1 todo design slots mechanism and treat it as something like topic in RocketMq
  **/
 public class ServerNode extends AbstractLifecycleComponent {
     private final ThreadPoolExecutor heartbeatExecutor;
@@ -37,7 +34,7 @@ public class ServerNode extends AbstractLifecycleComponent {
     private PantheonServerConfig serverConfig;
     private RemotingServer remotingServer;
     private ExecutorService remotingExecutor;
-//    private final ScheduledExecutorService scheduledExecutorService = Executors.newSingleThreadScheduledExecutor(new ThreadFactoryImpl(
+    //    private final ScheduledExecutorService scheduledExecutorService = Executors.newSingleThreadScheduledExecutor(new ThreadFactoryImpl(
 //            "ServerControllerScheduledThread"));
     private static final Logger logger = LoggerFactory.getLogger(ServerBootstrap.class);
 
@@ -79,12 +76,12 @@ public class ServerNode extends AbstractLifecycleComponent {
         ServerNodeProcessor defaultProcessor = new ServerNodeProcessor(this);
         remotingServer.registerDefaultProcessor(defaultProcessor, remotingExecutor);
         //use threadpool to process management event
-        ClientManageProcessor clientManageProcessor =new ClientManageProcessor();
-        remotingServer.registerProcessor(RequestCode.SERVICE_HEART_BEAT,clientManageProcessor,heartbeatExecutor);
-        remotingServer.registerProcessor(RequestCode.GET_ALL_APP,clientManageProcessor,heartbeatExecutor);
-        remotingServer.registerProcessor(RequestCode.GET_DELTA_APP,clientManageProcessor,heartbeatExecutor);
-        remotingServer.registerProcessor(RequestCode.SERVICE_UNREGISTER,clientManageProcessor,heartbeatExecutor);
-        remotingServer.registerProcessor(RequestCode.SERVICE_REGISTRY,clientManageProcessor,heartbeatExecutor);
+        ClientManageProcessor clientManageProcessor = new ClientManageProcessor();
+        remotingServer.registerProcessor(RequestCode.SERVICE_HEART_BEAT, clientManageProcessor, heartbeatExecutor);
+        remotingServer.registerProcessor(RequestCode.GET_ALL_APP, clientManageProcessor, heartbeatExecutor);
+        remotingServer.registerProcessor(RequestCode.GET_DELTA_APP, clientManageProcessor, heartbeatExecutor);
+        remotingServer.registerProcessor(RequestCode.SERVICE_UNREGISTER, clientManageProcessor, heartbeatExecutor);
+        remotingServer.registerProcessor(RequestCode.SERVICE_REGISTRY, clientManageProcessor, heartbeatExecutor);
 
         remotingServer.start();
         logger.info("server with id :{}, listen to client connection on tcp port :{}", serverConfig.getNodeId(), serverConfig.getNodeClientTcpPort());
@@ -165,7 +162,7 @@ public class ServerNode extends AbstractLifecycleComponent {
     }
 
 
-    //todo
+    //todo heartbeat check and cache evict when timeout
     private void heartBeatCheck() {
 
     }

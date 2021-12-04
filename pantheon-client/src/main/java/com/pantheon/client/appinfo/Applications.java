@@ -9,7 +9,6 @@ import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.atomic.AtomicInteger;
-import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
 
 /**
@@ -18,7 +17,7 @@ import java.util.concurrent.atomic.AtomicReference;
  * @desc The class that wraps all the registry information returned by Pantheon server.
  *
  * <p>
- * Note that the registry information is fetched from eureka server as specified
+ * Note that the registry information is fetched from pantheon server as specified
  * in {@link DefaultInstanceConfig#getRegistryFetchIntervalSeconds()}.  Once the
  * information is fetched it is shuffled and also filtered for instances with
  * {@link InstanceInfo.InstanceStatus#UP} status as specified by the configuration
@@ -37,16 +36,16 @@ public class Applications extends RemotingSerializable {
 
     private Map<String/*appName*/, Application> appNameApplicationMap = new ConcurrentHashMap<String, Application>();
 
-    private Map<String, AtomicReference<List<InstanceInfo>>> shuffleVirtualHostNameMap = new ConcurrentHashMap<String, AtomicReference<List<InstanceInfo>>>();
-    private Map<String, AtomicReference<List<InstanceInfo>>> shuffledSecureVirtualHostNameMap = new ConcurrentHashMap<String, AtomicReference<List<InstanceInfo>>>();
+    private Map<String/*appName*/, AtomicReference<List<InstanceInfo>>> shuffleVirtualHostNameMap = new ConcurrentHashMap<String, AtomicReference<List<InstanceInfo>>>();
+    private Map<String/*appName*/, AtomicReference<List<InstanceInfo>>> shuffledSecureVirtualHostNameMap = new ConcurrentHashMap<String, AtomicReference<List<InstanceInfo>>>();
 
     private String appsHashCode;
 
     /**
-     * Create a new, empty Eureka application list.
+     * Create a new, empty Pantheon application list.
      */
     public Applications() {
-        this.applications = new ConcurrentLinkedQueue<Application>();
+        this.applications = new ConcurrentLinkedQueue<>();
     }
 
     /**
@@ -56,7 +55,7 @@ public class Applications extends RemotingSerializable {
             String appsHashCode,
             Long versionDelta,
             List<Application> registeredApplications) {
-        this.applications = new ConcurrentLinkedQueue<Application>();
+        this.applications = new ConcurrentLinkedQueue<>();
         for (Application app : registeredApplications) {
             this.addApplication(app);
         }
@@ -87,9 +86,9 @@ public class Applications extends RemotingSerializable {
 
 
     /**
-     * Gets the list of all registered <em>applications</em> from eureka.
+     * Gets the list of all registered <em>applications</em> from pantheon.
      *
-     * @return list containing all applications registered with eureka.
+     * @return list containing all applications registered with pantheon.
      */
     public List<Application> getRegisteredApplications() {
         List<Application> list = new ArrayList<Application>();
@@ -109,40 +108,6 @@ public class Applications extends RemotingSerializable {
         return appNameApplicationMap.get(appName.toUpperCase(Locale.ROOT));
     }
 
-    /**
-     * Gets the list of <em>instances</em> associated to a virtual host name.
-     *
-     * @param virtualHostName the virtual hostname for which the instances need to be
-     *                        returned.
-     * @return list of <em>instances</em>.
-     */
-    public List<InstanceInfo> getInstancesByVirtualHostName(String virtualHostName) {
-        AtomicReference<List<InstanceInfo>> ref = this.shuffleVirtualHostNameMap
-                .get(virtualHostName.toUpperCase(Locale.ROOT));
-        if (ref == null || ref.get() == null) {
-            return new ArrayList<InstanceInfo>();
-        } else {
-            return ref.get();
-        }
-    }
-
-    /**
-     * Gets the list of secure <em>instances</em> associated to a virtual host
-     * name.
-     *
-     * @param secureVirtualHostName the virtual hostname for which the secure instances need to be
-     *                              returned.
-     * @return list of <em>instances</em>.
-     */
-    public List<InstanceInfo> getInstancesBySecureVirtualHostName(String secureVirtualHostName) {
-        AtomicReference<List<InstanceInfo>> ref = this.shuffledSecureVirtualHostNameMap
-                .get(secureVirtualHostName.toUpperCase(Locale.ROOT));
-        if (ref == null || ref.get() == null) {
-            return new ArrayList<InstanceInfo>();
-        } else {
-            return ref.get();
-        }
-    }
 
     /**
      * @return a weakly consistent size of the number of instances in all the applications
@@ -158,7 +123,7 @@ public class Applications extends RemotingSerializable {
 
 
     /**
-     * Used by the eureka server. Not for external use.
+     * Used by the pantheon server. Not for external use.
      *
      * @param hashCode the hash code to assign for this app collection
      */
@@ -167,7 +132,7 @@ public class Applications extends RemotingSerializable {
     }
 
     /**
-     * Used by the eureka server. Not for external use.
+     * Used by the pantheon server. Not for external use.
      *
      * @return the string indicating the hashcode based on the applications stored.
      */
@@ -177,7 +142,7 @@ public class Applications extends RemotingSerializable {
 
     /**
      * Gets the hash code for this <em>applications</em> instance. Used for
-     * comparison of instances between eureka server and eureka client.
+     * comparison of instances between pantheon server and pantheon client.
      *
      * @return the internal hash code representation indicating the information
      * about the instances.
@@ -344,19 +309,6 @@ public class Applications extends RemotingSerializable {
         }
     }
 
-
-    /**
-     * Shuffles a whole region so that the instances will not always be returned in the same order.
-     *
-     * @param remoteRegionsRegistry the map of remote region names to their registries
-     * @param clientConfig          the {@link DefaultInstanceConfig}, whose settings will be used to determine whether to
-     *                              filter to only UP instances
-     */
-    public void shuffleAndIndexInstances(Map<String, Applications> remoteRegionsRegistry,
-                                         DefaultInstanceConfig clientConfig) {
-        shuffleInstances(clientConfig.shouldFilterOnlyUpInstances());
-    }
-
     /**
      * Shuffles the provided instances so that they will not always be returned in the same order.
      *
@@ -366,44 +318,6 @@ public class Applications extends RemotingSerializable {
         for (Application application : appNameApplicationMap.values()) {
             application.shuffleAndStoreInstances(filterUpInstances);
         }
-    }
-
-
-    /**
-     * Shuffle the instances and filter for only {@link InstanceInfo.InstanceStatus#UP} if
-     * required.
-     */
-    private void shuffleAndFilterInstances(
-            Map<String, AbstractQueue<InstanceInfo>> srcMap,
-            Map<String, AtomicReference<List<InstanceInfo>>> destMap,
-            Map<String, AtomicLong> vipIndexMap, boolean filterUpInstances) {
-        for (Map.Entry<String, AbstractQueue<InstanceInfo>> entries : srcMap.entrySet()) {
-            AbstractQueue<InstanceInfo> instanceInfoQueue = entries.getValue();
-            List<InstanceInfo> l = new ArrayList<InstanceInfo>(instanceInfoQueue);
-            if (filterUpInstances) {
-                Iterator<InstanceInfo> it = l.iterator();
-
-                while (it.hasNext()) {
-                    InstanceInfo instanceInfo = it.next();
-                    if (!InstanceInfo.InstanceStatus.UP.equals(instanceInfo.getStatus())) {
-                        it.remove();
-                    }
-                }
-            }
-            Collections.shuffle(l);
-            AtomicReference<List<InstanceInfo>> instanceInfoList = destMap.get(entries.getKey());
-            if (instanceInfoList == null) {
-                instanceInfoList = new AtomicReference<List<InstanceInfo>>(l);
-                destMap.put(entries.getKey(), instanceInfoList);
-            }
-            instanceInfoList.set(l);
-            vipIndexMap.put(entries.getKey(), new AtomicLong(0));
-        }
-
-        // finally remove all vips that are completed deleted (i.e. missing) from the srcSet
-        Set<String> srcVips = srcMap.keySet();
-        Set<String> destVips = destMap.keySet();
-        destVips.retainAll(srcVips);
     }
 
 

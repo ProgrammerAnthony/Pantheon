@@ -17,8 +17,6 @@ import java.util.concurrent.Callable;
 public class ClientBootStrap {
     private static final Logger logger = LoggerFactory.getLogger(ClientBootStrap.class);
 
-    static RemotingClient remotingClient;
-
     public static void main(String[] args) {
         logger.info("InstanceBootStrap initializing......");
         DefaultInstanceConfig instanceConfig = DefaultInstanceConfig.getInstance();

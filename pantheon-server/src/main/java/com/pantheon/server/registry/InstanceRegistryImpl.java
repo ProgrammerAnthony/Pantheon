@@ -9,6 +9,9 @@ import com.pantheon.server.config.CachedPantheonServerConfig;
 import com.pantheon.server.config.PantheonServerConfig;
 import com.pantheon.server.lease.Lease;
 import com.pantheon.server.lease.LeaseManager;
+import com.pantheon.server.rule.DownOrStartingRule;
+import com.pantheon.server.rule.FirstMatchWinsCompositeRule;
+import com.pantheon.server.rule.InstanceStatusOverrideRule;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -111,23 +114,23 @@ public class InstanceRegistryImpl implements InstanceRegistry{
             gMap.put(registrant.getId(), lease);
 
 //            // This is where the initial state transfer of overridden status happens
-//            if (!InstanceInfo.InstanceStatus.UNKNOWN.equals(registrant.getOverriddenStatus())) {
-//                logger.debug("Found overridden status {} for instance {}. Checking to see if needs to be add to the "
-//                        + "overrides", registrant.getOverriddenStatus(), registrant.getId());
-//                if (!overriddenInstanceStatusMap.containsKey(registrant.getId())) {
-//                    logger.info("Not found overridden id {} and hence adding it", registrant.getId());
-//                    overriddenInstanceStatusMap.put(registrant.getId(), registrant.getOverriddenStatus());
-//                }
-//            }
-//            InstanceInfo.InstanceStatus overriddenStatusFromMap = overriddenInstanceStatusMap.get(registrant.getId());
-//            if (overriddenStatusFromMap != null) {
-//                logger.info("Storing overridden status {} from map", overriddenStatusFromMap);
-//                registrant.setOverriddenStatus(overriddenStatusFromMap);
-//            }
-//
-//            // todo Set the status based on the overridden status rules
-//            InstanceInfo.InstanceStatus overriddenInstanceStatus = getOverriddenInstanceStatus(registrant, existingLease, isReplication);
-//            registrant.setStatusWithoutDirty(overriddenInstanceStatus);
+            if (!InstanceInfo.InstanceStatus.UNKNOWN.equals(registrant.getOverriddenStatus())) {
+                logger.debug("Found overridden status {} for instance {}. Checking to see if needs to be add to the "
+                        + "overrides", registrant.getOverriddenStatus(), registrant.getId());
+                if (!overriddenInstanceStatusMap.containsKey(registrant.getId())) {
+                    logger.info("Not found overridden id {} and hence adding it", registrant.getId());
+                    overriddenInstanceStatusMap.put(registrant.getId(), registrant.getOverriddenStatus());
+                }
+            }
+            InstanceInfo.InstanceStatus overriddenStatusFromMap = overriddenInstanceStatusMap.get(registrant.getId());
+            if (overriddenStatusFromMap != null) {
+                logger.info("Storing overridden status {} from map", overriddenStatusFromMap);
+                registrant.setOverriddenStatus(overriddenStatusFromMap);
+            }
+
+            // Set the status based on the overridden status rules
+            InstanceInfo.InstanceStatus overriddenInstanceStatus = getOverriddenInstanceStatus(registrant, existingLease);
+            registrant.setStatusWithoutDirty(overriddenInstanceStatus);
 
             // If the lease is registered with UP status, set lease service up timestamp
             if (InstanceInfo.InstanceStatus.UP.equals(registrant.getStatus())) {
@@ -143,6 +146,14 @@ public class InstanceRegistryImpl implements InstanceRegistry{
         } finally {
             read.unlock();
         }
+    }
+
+    public InstanceInfo.InstanceStatus getOverriddenInstanceStatus(InstanceInfo r,
+                                                                      Lease<InstanceInfo> existingLease) {
+        InstanceStatusOverrideRule rule =  new FirstMatchWinsCompositeRule(new DownOrStartingRule(),
+                new OverrideExistsRule(overriddenInstanceStatusMap), new LeaseExistsRule());
+        logger.debug("Processing override status using rule: {}", rule);
+        return rule.apply(r, existingLease).status();
     }
 
 
@@ -269,26 +280,25 @@ public class InstanceRegistryImpl implements InstanceRegistry{
         } else {
             InstanceInfo instanceInfo = leaseToRenew.getHolder();
             if (instanceInfo != null) {
-                // touchASGCache(instanceInfo.getASGName());
-                //todo
-//                InstanceInfo.InstanceStatus overriddenInstanceStatus = this.getOverriddenInstanceStatus(
-//                        instanceInfo, leaseToRenew);
-//                if (overriddenInstanceStatus == InstanceInfo.InstanceStatus.UNKNOWN) {
-//                    logger.info("Instance status UNKNOWN possibly due to deleted override for instance {}"
-//                            + "; re-register required", instanceInfo.getId());
-//                    return false;
-//                }
-//                if (!instanceInfo.getStatus().equals(overriddenInstanceStatus)) {
-//                    Object[] args = {
-//                            instanceInfo.getStatus().name(),
-//                            instanceInfo.getOverriddenStatus().name(),
-//                            instanceInfo.getId()
-//                    };
-//                    logger.info(
-//                            "The instance status {} is different from overridden instance status {} for instance {}. "
-//                                    + "Hence setting the status to overridden status", args);
-//                    instanceInfo.setStatusWithoutDirty(overriddenInstanceStatus);
-//                }
+
+                InstanceInfo.InstanceStatus overriddenInstanceStatus = this.getOverriddenInstanceStatus(
+                        instanceInfo, leaseToRenew);
+                if (overriddenInstanceStatus == InstanceInfo.InstanceStatus.UNKNOWN) {
+                    logger.info("Instance status UNKNOWN possibly due to deleted override for instance {}"
+                            + "; re-register required", instanceInfo.getId());
+                    return false;
+                }
+                if (!instanceInfo.getStatus().equals(overriddenInstanceStatus)) {
+                    Object[] args = {
+                            instanceInfo.getStatus().name(),
+                            instanceInfo.getOverriddenStatus().name(),
+                            instanceInfo.getId()
+                    };
+                    logger.info(
+                            "The instance status {} is different from overridden instance status {} for instance {}. "
+                                    + "Hence setting the status to overridden status", args);
+                    instanceInfo.setStatusWithoutDirty(overriddenInstanceStatus);
+                }
             }
             leaseToRenew.renew();
             return true;

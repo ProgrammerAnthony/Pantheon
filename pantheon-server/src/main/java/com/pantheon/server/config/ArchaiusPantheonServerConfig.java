@@ -33,7 +33,6 @@ import java.util.regex.Pattern;
  * to <em>pantheon-server.properties</em>.
  * </p>
  * <p>
- * todo verify how to add config in application。properties
  **/
 public class ArchaiusPantheonServerConfig implements PantheonServerConfig {
     private static final Logger logger = LoggerFactory.getLogger(ServerBootstrap.class);

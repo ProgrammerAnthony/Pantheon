@@ -9,8 +9,7 @@ import com.pantheon.client.config.PantheonInstanceConfig;
 import com.pantheon.common.protocol.RequestCode;
 import com.pantheon.common.protocol.ResponseCode;
 import com.pantheon.common.protocol.header.*;
-import com.pantheon.common.protocol.heartBeat.ServiceHeartBeat;
-import com.pantheon.common.protocol.heartBeat.ServiceUnregister;
+import com.pantheon.common.protocol.heartBeat.ServiceIdentifier;
 import com.pantheon.remoting.RPCHook;
 import com.pantheon.remoting.RemotingClient;
 import com.pantheon.remoting.exception.*;
@@ -46,6 +45,10 @@ public class ClientAPIImpl {
     private Map<String, List<String>> slotsAllocation;
     private static final Integer SLOT_COUNT = 16384;
     private DefaultInstanceConfig instanceConfig;
+    /**
+     * server addresses
+     */
+    private Map<String/*server node id*/, Server> servers = new HashMap<String, Server>();
 
     public ClientAPIImpl(final NettyClientConfig nettyClientConfig, DefaultInstanceConfig instanceConfig, ClientRemotingProcessor clientRemotingProcessor, RPCHook rpcHook) {
         this.clientRemotingProcessor = clientRemotingProcessor;
@@ -55,17 +58,22 @@ public class ClientAPIImpl {
         this.pantheonInstanceConfig = DefaultInstanceConfig.getInstance();
         this.remotingClient.registerRPCHook(rpcHook);
         this.remotingClient.registerProcessor(RequestCode.GET_CONSUMER_RUNNING_INFO, this.clientRemotingProcessor, null);
-
     }
 
     public void start() {
-        this.remotingClient.start();
+        if (this.remotingClient != null) {
+            this.remotingClient.start();
+            return;
+        }
+        throw new RuntimeException("remotingClient cannot be null");
 
     }
 
 
     public void shutdown() {
-        this.remotingClient.shutdown();
+        if (remotingClient != null) {
+            this.remotingClient.shutdown();
+        }
     }
 
     /**
@@ -115,30 +123,6 @@ public class ClientAPIImpl {
         return null;
     }
 
-
-//    public boolean serviceRegistry(final String serverAddress, final long timoutMills) throws RemotingConnectException, RemotingSendRequestException, RemotingTimeoutException, InterruptedException {
-//        ServiceRegistryRequestHeader requestHeader =new ServiceRegistryRequestHeader();
-//        requestHeader.setServiceName(instanceConfig.getServiceName());
-//        requestHeader.setServiceInstancePort(instanceConfig.getInstancePort());
-//        requestHeader.setServiceInstanceIp(instanceConfig.getInstanceIpAddress());
-//        RemotingCommand request = RemotingCommand.createRequestCommand(RequestCode.SERVICE_REGISTRY, requestHeader);
-//
-//        RemotingCommand response = this.remotingClient.invokeSync(serverAddress, request, timoutMills);
-//        assert response != null;
-//        switch (response.getCode()) {
-//            case ResponseCode.SUCCESS: {
-//                return true;
-//            }
-//            default:
-//                break;
-//        }
-//        return false;
-//    }
-
-    /**
-     * server地址列表
-     */
-    private Map<String/*server node id*/, Server> servers = new HashMap<String, Server>();
 
     /**
      * fetch server addresses to local map
@@ -238,15 +222,12 @@ public class ClientAPIImpl {
         return null;
     }
 
-    public boolean sendHeartBeatToServer(final Server server, InstanceInfo instanceInfo, final Long timoutMills) throws RemotingConnectException, RemotingSendRequestException, RemotingTimeoutException, InterruptedException {
-        String appName = instanceInfo.getAppName();
-        String id = instanceInfo.getInstanceId();
-        ServiceHeartBeat<InstanceInfo> serviceHeartBeat =new ServiceHeartBeat<>();
-        serviceHeartBeat.setAppName(appName);
-        serviceHeartBeat.setInstanceId(id);
-        serviceHeartBeat.setInstance(instanceInfo);
+    public boolean sendHeartBeatToServer(final Server server, String appName, String id,final Long timoutMills) throws RemotingConnectException, RemotingSendRequestException, RemotingTimeoutException, InterruptedException {
+        ServiceIdentifier serviceIdentifier = new ServiceIdentifier();
+        serviceIdentifier.setAppName(appName);
+        serviceIdentifier.setInstanceId(id);
         RemotingCommand request = RemotingCommand.createRequestCommand(RequestCode.SERVICE_HEART_BEAT, null);
-        request.setBody(serviceHeartBeat.encode());
+        request.setBody(serviceIdentifier.encode());
         RemotingCommand response = this.remotingClient.invokeSync(server.getRemoteSocketAddress(), request, timoutMills);
         assert response != null;
         switch (response.getCode()) {
@@ -298,6 +279,7 @@ public class ClientAPIImpl {
         return null;
     }
 
+    //todo add unzip using GZIP
     public static byte[] unzip(InputStream in, int size) throws IOException {
         // Open the compressed stream
         GZIPInputStream gin = new GZIPInputStream(in);
@@ -371,11 +353,11 @@ public class ClientAPIImpl {
     }
 
     public boolean unRegister(Server server, String appName, String instanceId, long timoutMills) throws RemotingConnectException, RemotingSendRequestException, RemotingTimeoutException, InterruptedException {
-        ServiceUnregister serviceUnregister = new ServiceUnregister();
-        serviceUnregister.setInstanceId(instanceId);
-        serviceUnregister.setAppName(appName);
+        ServiceIdentifier serviceIdentifier = new ServiceIdentifier();
+        serviceIdentifier.setInstanceId(instanceId);
+        serviceIdentifier.setAppName(appName);
         RemotingCommand request = RemotingCommand.createRequestCommand(RequestCode.SERVICE_UNREGISTER, null);
-        request.setBody(serviceUnregister.encode());
+        request.setBody(serviceIdentifier.encode());
         RemotingCommand response = this.remotingClient.invokeSync(server.getRemoteSocketAddress(), request, timoutMills);
         assert response != null;
         switch (response.getCode()) {

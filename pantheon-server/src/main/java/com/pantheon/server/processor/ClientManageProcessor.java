@@ -6,8 +6,7 @@ import com.pantheon.client.appinfo.InstanceInfo;
 import com.pantheon.common.ObjectUtils;
 import com.pantheon.common.protocol.RequestCode;
 import com.pantheon.common.protocol.ResponseCode;
-import com.pantheon.common.protocol.heartBeat.ServiceHeartBeat;
-import com.pantheon.common.protocol.heartBeat.ServiceUnregister;
+import com.pantheon.common.protocol.heartBeat.ServiceIdentifier;
 import com.pantheon.remoting.common.RemotingHelper;
 import com.pantheon.remoting.exception.RemotingCommandException;
 import com.pantheon.remoting.netty.AsyncNettyRequestProcessor;
@@ -76,9 +75,9 @@ public class ClientManageProcessor extends AsyncNettyRequestProcessor implements
 
     private RemotingCommand serviceUnregister(ChannelHandlerContext ctx, RemotingCommand request) {
         RemotingCommand response = RemotingCommand.createResponseCommand(null);
-        ServiceUnregister serviceUnregister = ServiceUnregister.decode(request.getBody(), ServiceUnregister.class);
-        logger.info("receive serviceUnregister from: {} / {}", serviceUnregister.getAppName(), serviceUnregister.getInstanceId());
-        cancelLease(serviceUnregister.getAppName(), serviceUnregister.getInstanceId());
+        ServiceIdentifier serviceIdentifier = ServiceIdentifier.decode(request.getBody(), ServiceIdentifier.class);
+        logger.info("receive serviceUnregister from: {} / {}", serviceIdentifier.getAppName(), serviceIdentifier.getInstanceId());
+        cancelLease(serviceIdentifier.getAppName(), serviceIdentifier.getInstanceId());
         response.setCode(ResponseCode.SUCCESS);
         response.setRemark(null);
         response.setOpaque(request.getOpaque());
@@ -87,9 +86,9 @@ public class ClientManageProcessor extends AsyncNettyRequestProcessor implements
 
     private RemotingCommand heartBeat(ChannelHandlerContext ctx, RemotingCommand request) {
         RemotingCommand response = RemotingCommand.createResponseCommand(null);
-        ServiceHeartBeat serviceHeartBeat = ServiceUnregister.decode(request.getBody(), ServiceHeartBeat.class);
-        logger.info("receive heartBeat from: {} / {}", serviceHeartBeat.getAppName(), serviceHeartBeat.getInstanceId());
-        boolean renew = renew(serviceHeartBeat.getAppName(), serviceHeartBeat.getInstanceId());
+        ServiceIdentifier serviceIdentifier = ServiceIdentifier.decode(request.getBody(), ServiceIdentifier.class);
+        logger.info("receive heartBeat from: {} / {}", serviceIdentifier.getAppName(), serviceIdentifier.getInstanceId());
+        boolean renew = renew(serviceIdentifier.getAppName(), serviceIdentifier.getInstanceId());
         if (renew) {
             response.setCode(ResponseCode.SUCCESS);
         } else {

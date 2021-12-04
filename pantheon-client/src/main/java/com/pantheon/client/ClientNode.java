@@ -51,6 +51,7 @@ public class ClientNode {
     private final Lock fetchRegistryUpdateLock = new ReentrantLock();
     private InstanceInfo instanceInfo;
     private volatile InstanceInfo.InstanceStatus lastRemoteInstanceStatus = InstanceInfo.InstanceStatus.UNKNOWN;
+    private final AtomicBoolean isShutdown = new AtomicBoolean(false);
 
 
 //todo add eventbus support
@@ -127,7 +128,7 @@ public class ClientNode {
     private void sendHeartBeatToServer() {
         if (this.lockHeartbeat.tryLock()) {
             try {
-                boolean successResult = this.clientAPI.sendHeartBeatToServer(getServer(), getInstanceInfo(), 3000L);
+                boolean successResult = this.clientAPI.sendHeartBeatToServer(getServer(), getInstanceInfo().getAppName(), getInstanceInfo().getInstanceId(),3000L);
                 if (successResult) {
                     logger.info("heartbeat success!!!");
                 }else{
@@ -143,7 +144,6 @@ public class ClientNode {
         }
     }
 
-    private final AtomicBoolean isShutdown = new AtomicBoolean(false);
 
     public void shutdown() {
         if (isShutdown.compareAndSet(false, true)) {
@@ -184,7 +184,7 @@ public class ClientNode {
      * default 30s to refresh registry info
      */
     public void sendRegister() {
-        try {  //todo getserver return null
+        try {
             boolean register = this.clientAPI.register(getServer(), getInstanceInfo(), 3000);
             if (register) {
                 logger.info("register to server: {} successfully with instance info: {}", server, instanceInfo);
@@ -193,7 +193,7 @@ public class ClientNode {
                     @Override
                     public void run() {
                         try {
-                            Thread.sleep(3000);
+                            Thread.sleep(6000);
                         } catch (InterruptedException e) {
                             e.printStackTrace();
                         }
@@ -231,7 +231,7 @@ public class ClientNode {
                     .setRenewalIntervalInSecs(instanceConfig.getLeaseRenewalIntervalInSeconds())
                     .setDurationInSecs(instanceConfig.getLeaseExpirationDurationInSeconds());
 
-            // Builder the instance information to be registered with eureka server
+            // Builder the instance information to be registered with pantheon server
             InstanceInfo.Builder builder = InstanceInfo.Builder.newBuilder();
 
             // set the appropriate id for the InstanceInfo
@@ -462,27 +462,19 @@ public class ClientNode {
 
 
     private String getReconcileHashCode(Applications applications) {
-        return "";
-//        TreeMap<String, AtomicInteger> instanceCountMap = new TreeMap<String, AtomicInteger>();
-//        if (isFetchingRemoteRegionRegistries()) {
-//            for (Applications remoteApp : remoteRegionVsApps.values()) {
-//                remoteApp.populateInstanceCountMap(instanceCountMap);
-//            }
-//        }
-//        applications.populateInstanceCountMap(instanceCountMap);
-//        return Applications.getReconcileHashCode(instanceCountMap);
+
+        TreeMap<String, AtomicInteger> instanceCountMap = new TreeMap<String, AtomicInteger>();
+        applications.populateInstanceCountMap(instanceCountMap);
+        return Applications.getReconcileHashCode(instanceCountMap);
     }
 
     /**
-     * 发现数量不一致的情况，通过重新拉去注册表更新
      * Reconcile the pantheon server and client registry information and logs the differences if any.
      * When reconciling, the following flow is observed:
      * <p>
-     * make a remote call to the server for the full registry
-     * calculate and log differences
-     * if (update generation have not advanced (due to another thread))
-     * atomically set the registry to the new registry
-     * fi
+     * 1. make a remote call to the server for the full registry
+     * 2. calculate and log differences
+     * 3. if (update generation have not advanced (due to another thread) atomically set the registry to the new registry
      *
      * @param delta             the last delta registry information received from the pantheon
      *                          server.
@@ -597,9 +589,14 @@ public class ClientNode {
 //        this.eventListeners.add(eventListener);
     }
 
-    public Server getServer() {
+    public synchronized Server getServer() throws InterruptedException {
         if (ObjectUtils.isEmpty(server)) {
-            server = this.clientAPI.routeServer(getServiceName());
+            synchronized (this){
+                while(ObjectUtils.isEmpty(server)){
+                    server = this.clientAPI.routeServer(getServiceName());
+                    Thread.sleep(10);
+                }
+            }
         }
         return server;
     }

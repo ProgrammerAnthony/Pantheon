@@ -6,7 +6,6 @@ import com.pantheon.common.ServerNodeRole;
 import com.pantheon.common.protocol.RequestCode;
 import com.pantheon.common.protocol.ResponseCode;
 import com.pantheon.common.protocol.header.*;
-import com.pantheon.common.protocol.heartBeat.ServiceHeartBeat;
 import com.pantheon.remoting.common.RemotingHelper;
 import com.pantheon.remoting.exception.RemotingCommandException;
 import com.pantheon.remoting.netty.AsyncNettyRequestProcessor;
