@@ -178,7 +178,13 @@ public class ResponseCacheImpl implements ResponseCache {
 
     @Override
     public byte[] getGZIP(Key key) {
-        return new byte[0];
+        Value payload = getValue(key);
+        logger.info("send all apps info info: {}, with size:{} " ,payload.getPayload(),payload.getGzipped().length);
+        if (payload == null || payload.getPayload().equals(EMPTY_PAYLOAD)) {
+            return null;
+        } else {
+            return payload.getGzipped();
+        }
     }
 
 
@@ -191,9 +197,9 @@ public class ResponseCacheImpl implements ResponseCache {
             public void run() {
 //                logger.debug("Updating the client cache from response cache");
                 for (Key key : readOnlyCacheMap.keySet()) {
-                    if (logger.isDebugEnabled()) {
-                        logger.debug("Updating the client cache from response cache for key : {}", key.getName());
-                    }
+//                    if (logger.isDebugEnabled()) {
+//                        logger.debug("Updating the client cache from response cache for key : {}", key.getName());
+//                    }
                     try {
                         Value cacheValue = readWriteCacheMap.get(key);
                         Value currentCacheValue = readOnlyCacheMap.get(key);

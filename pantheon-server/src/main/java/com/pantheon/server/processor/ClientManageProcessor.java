@@ -45,12 +45,24 @@ public class ClientManageProcessor extends AsyncNettyRequestProcessor implements
                 return this.serviceRegistry(ctx, request);
             case RequestCode.HEART_BEAT:
                 return this.heartBeat(ctx, request);
+            case RequestCode.GET_ALL_APP:
+                return this.getApplications(ctx, request);
             case RequestCode.SERVICE_UNREGISTER:
                 return this.serviceUnregister(ctx, request);
             default:
                 break;
         }
         return null;
+    }
+
+    private RemotingCommand getApplications(ChannelHandlerContext ctx, RemotingCommand request) {
+        RemotingCommand response = RemotingCommand.createResponseCommand(null);
+        logger.info("getApplications request from : {}",  RemotingHelper.parseChannelRemoteAddr(ctx.channel()));
+        response.setCode(ResponseCode.SUCCESS);
+        response.setRemark(null);
+        response.setBody(getApplications());
+        response.setOpaque(request.getOpaque());
+        return response;
     }
 
     private RemotingCommand serviceUnregister(ChannelHandlerContext ctx, RemotingCommand request) {

@@ -1,6 +1,7 @@
 package com.pantheon.client;
 
 import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONObject;
 import com.pantheon.client.appinfo.Applications;
 import com.pantheon.client.appinfo.InstanceInfo;
 import com.pantheon.client.config.DefaultInstanceConfig;
@@ -23,11 +24,18 @@ import io.netty.bootstrap.ServerBootstrap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.nio.charset.Charset;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
 import java.util.concurrent.CountDownLatch;
+import java.util.zip.GZIPInputStream;
+import java.util.zip.GZIPOutputStream;
 
 /**
  * @author Anthony
@@ -202,7 +210,6 @@ public class ClientAPIImpl {
     }
 
 
-
     /**
      * locate a server node id by slot
      *
@@ -251,7 +258,7 @@ public class ClientAPIImpl {
 
     public boolean sendHeartBeatToServer(final Server server, String clientId, final Long timoutMills) throws RemotingConnectException, RemotingSendRequestException, RemotingTimeoutException, InterruptedException {
 
-        ServiceHeartBeat heartBeat =new ServiceHeartBeat();
+        ServiceHeartBeat heartBeat = new ServiceHeartBeat();
         //todo clientid generate
         heartBeat.setClientId(clientId);
         heartBeat.setServiceName(instanceConfig.getServiceName());
@@ -272,8 +279,62 @@ public class ClientAPIImpl {
     }
 
 
-    public Applications getApplications(Server server, long timeoutMills) {
+    public Applications getApplications(Server server, long timeoutMills) throws RemotingConnectException, RemotingSendRequestException, RemotingTimeoutException, InterruptedException, IOException {
+        RemotingCommand request = RemotingCommand.createRequestCommand(RequestCode.GET_ALL_APP, null);
+        RemotingCommand response = this.remotingClient.invokeSync(server.getRemoteSocketAddress(), request, timeoutMills);
+
+        assert response != null;
+        switch (response.getCode()) {
+            case ResponseCode.SUCCESS: {
+                ByteArrayInputStream bis = new ByteArrayInputStream(response.getBody());
+                // Open the compressed stream
+                GZIPInputStream gin = new GZIPInputStream(bis);
+
+                ByteArrayOutputStream out = new ByteArrayOutputStream();
+
+                // Transfer bytes from the compressed stream to the output stream
+                byte[] buf = new byte[response.getBody().length];
+                int len;
+                while ((len = gin.read(buf)) > 0) {
+                    out.write(buf, 0, len);
+                }
+
+                // Close the file and stream
+                gin.close();
+                out.close();
+
+                byte[] bytes = out.toByteArray();
+//                Applications applications = Applications.decode(bytes, Applications.class);
+                String string = new String(bytes);
+                logger.info("receive all apps info :{} ",string);
+                logger.info("with size:{},with bytes size:{}" ,response.getBody().length,bytes.length);
+
+                Applications applications = JSONObject.parseObject(string, Applications.class);
+                return applications;
+            }
+            default:
+                break;
+        }
         return null;
+    }
+
+    public static byte[] unzip(InputStream in,int size) throws IOException {
+        // Open the compressed stream
+        GZIPInputStream gin = new GZIPInputStream(in);
+
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+
+        // Transfer bytes from the compressed stream to the output stream
+        byte[] buf = new byte[size];
+        int len;
+        while ((len = gin.read(buf)) > 0) {
+            out.write(buf, 0, len);
+        }
+
+        // Close the file and stream
+        gin.close();
+        out.close();
+        return out.toByteArray();
     }
 
     public Applications getDelta(Server server, long timeoutMills) {

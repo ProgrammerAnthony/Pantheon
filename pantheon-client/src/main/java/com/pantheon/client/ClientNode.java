@@ -104,8 +104,8 @@ public class ClientNode {
             boolean fetchRegistryResult = fetchRegistry(true);
             if (fetchRegistryResult) {
                 logger.info("service fetch registry success!!!");
-                if(localRegionApps.get().size()>0){
-                    logger.info("register success , then fetch {} apps !!!",localRegionApps.get());
+                if (localRegionApps.get().size() > 0) {
+                    logger.info("register success , then fetch {} apps !!!", localRegionApps.get());
 
                 }
             }
@@ -148,11 +148,14 @@ public class ClientNode {
     public void sendRegister() {
         instanceInfo = buildInstanceInfo();
         try { //todo sometimes the server is null
+            if (server == null) {
+                server = this.clientAPI.routeServer(instanceConfig.getServiceName());
+            }
             boolean register = this.clientAPI.register(server, instanceInfo, 3000);
-            if(register){
-                logger.info("register to server: {} successfully with instance info: {}",server,instanceInfo);
-            }else{
-                logger.info("register to server: {} failed with instance info: {}",server,instanceInfo);
+            if (register) {
+                logger.info("register to server: {} successfully with instance info: {}", server, instanceInfo);
+            } else {
+                logger.info("register to server: {} failed with instance info: {}", server, instanceInfo);
             }
         } catch (RemotingConnectException e) {
             e.printStackTrace();

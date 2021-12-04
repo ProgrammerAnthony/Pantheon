@@ -1,6 +1,7 @@
 package com.pantheon.client.appinfo;
 
 import com.pantheon.client.config.DefaultInstanceConfig;
+import com.pantheon.remoting.protocol.RemotingSerializable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -24,7 +25,7 @@ import java.util.concurrent.atomic.AtomicReference;
  * {@link DefaultInstanceConfig#shouldFilterOnlyUpInstances()}.
  * </p>
  */
-public class Applications {
+public class Applications extends RemotingSerializable {
     private static final String APP_INSTANCEID_DELIMITER = "$$";
     private static final Logger logger = LoggerFactory.getLogger(Applications.class);
     private static final String STATUS_DELIMITER = "_";
@@ -353,7 +354,7 @@ public class Applications {
      * @param filterUpInstances whether to return only UP instances
      */
     public void shuffleInstances(boolean filterUpInstances) {
-        shuffleInstances(filterUpInstances);
+//        shuffleInstances(filterUpInstances);
     }
 
     /**

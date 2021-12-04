@@ -25,7 +25,7 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
  * @create 2021/11/28
  * @desc  the class that load and update data from Server Side cache
  */
-public class InstanceRegistryImpl{
+public class InstanceRegistryImpl implements InstanceRegistry{
     private static final Logger logger = LoggerFactory.getLogger(InstanceRegistryImpl.class);
     private final ConcurrentHashMap<String/*appName*/, Map<String/*instanceId*/, Lease<InstanceInfo>>> registry
             = new ConcurrentHashMap<String, Map<String, Lease<InstanceInfo>>>();
