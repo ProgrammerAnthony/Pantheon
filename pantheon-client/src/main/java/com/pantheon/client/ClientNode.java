@@ -118,18 +118,20 @@ public class ClientNode {
         this.scheduledExecutorService.scheduleAtFixedRate(new Runnable() {
             @Override
             public void run() {
-                sendHeartBeatToServer(server);
+                sendHeartBeatToServer();
             }
         }, 1000, instanceConfig.getLeaseRenewalIntervalInSeconds() * 1000, TimeUnit.MILLISECONDS);
         //heartbeat
     }
 
-    private void sendHeartBeatToServer(Server server) {
+    private void sendHeartBeatToServer() {
         if (this.lockHeartbeat.tryLock()) {
             try {
-                boolean successResult = this.clientAPI.sendHeartBeatToServer(server, clientId, 3000L);
+                boolean successResult = this.clientAPI.sendHeartBeatToServer(getServer(), getInstanceInfo(), 3000L);
                 if (successResult) {
                     logger.info("heartbeat success!!!");
+                }else{
+                    logger.info("heartbeat failed!!!");
                 }
             } catch (final Exception e) {
                 logger.error("sendHeartBeatToServer exception", e);
@@ -182,7 +184,7 @@ public class ClientNode {
      * default 30s to refresh registry info
      */
     public void sendRegister() {
-        try {
+        try {  //todo getserver return null
             boolean register = this.clientAPI.register(getServer(), getInstanceInfo(), 3000);
             if (register) {
                 logger.info("register to server: {} successfully with instance info: {}", server, instanceInfo);

@@ -1,13 +1,11 @@
 package com.pantheon.server.processor;
 
 
-import com.alibaba.fastjson.JSON;
 import com.pantheon.client.appinfo.Application;
 import com.pantheon.client.appinfo.InstanceInfo;
 import com.pantheon.common.ObjectUtils;
 import com.pantheon.common.protocol.RequestCode;
 import com.pantheon.common.protocol.ResponseCode;
-import com.pantheon.common.protocol.header.*;
 import com.pantheon.common.protocol.heartBeat.ServiceHeartBeat;
 import com.pantheon.common.protocol.heartBeat.ServiceUnregister;
 import com.pantheon.remoting.common.RemotingHelper;
@@ -21,8 +19,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.ws.rs.core.Response;
-import java.nio.charset.Charset;
-import java.util.List;
 
 /**
  * @author Anthony
@@ -44,7 +40,7 @@ public class ClientManageProcessor extends AsyncNettyRequestProcessor implements
         switch (request.getCode()) {
             case RequestCode.SERVICE_REGISTRY:
                 return this.serviceRegistry(ctx, request);
-            case RequestCode.HEART_BEAT:
+            case RequestCode.SERVICE_HEART_BEAT:
                 return this.heartBeat(ctx, request);
             case RequestCode.GET_ALL_APP:
                 return this.getApplications(ctx, request);
@@ -90,11 +86,15 @@ public class ClientManageProcessor extends AsyncNettyRequestProcessor implements
     }
 
     private RemotingCommand heartBeat(ChannelHandlerContext ctx, RemotingCommand request) {
-        //todo refresh the instance and do something here
         RemotingCommand response = RemotingCommand.createResponseCommand(null);
-        ServiceHeartBeat heartbeatData = ServiceHeartBeat.decode(request.getBody(), ServiceHeartBeat.class);
-        logger.info("receive heartbeat from: {}", heartbeatData.getClientId());
-        response.setCode(ResponseCode.SUCCESS);
+        ServiceHeartBeat serviceHeartBeat = ServiceUnregister.decode(request.getBody(), ServiceHeartBeat.class);
+        logger.info("receive heartBeat from: {} / {}", serviceHeartBeat.getAppName(), serviceHeartBeat.getInstanceId());
+        boolean renew = renew(serviceHeartBeat.getAppName(), serviceHeartBeat.getInstanceId());
+        if (renew) {
+            response.setCode(ResponseCode.SUCCESS);
+        } else {
+            response.setCode(ResponseCode.SYSTEM_ERROR);
+        }
         response.setRemark(null);
         response.setOpaque(request.getOpaque());
         return response;

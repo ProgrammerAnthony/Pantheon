@@ -11,17 +11,12 @@ import com.pantheon.common.protocol.ResponseCode;
 import com.pantheon.common.protocol.header.*;
 import com.pantheon.common.protocol.heartBeat.ServiceHeartBeat;
 import com.pantheon.common.protocol.heartBeat.ServiceUnregister;
-import com.pantheon.remoting.CommandCustomHeader;
-import com.pantheon.remoting.InvokeCallback;
 import com.pantheon.remoting.RPCHook;
 import com.pantheon.remoting.RemotingClient;
-import com.pantheon.remoting.annotation.CFNullable;
 import com.pantheon.remoting.exception.*;
 import com.pantheon.remoting.netty.NettyClientConfig;
 import com.pantheon.remoting.netty.NettyRemotingClient;
-import com.pantheon.remoting.netty.ResponseFuture;
 import com.pantheon.remoting.protocol.RemotingCommand;
-import io.netty.bootstrap.ServerBootstrap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -29,14 +24,11 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.nio.charset.Charset;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
-import java.util.concurrent.CountDownLatch;
 import java.util.zip.GZIPInputStream;
-import java.util.zip.GZIPOutputStream;
 
 /**
  * @author Anthony
@@ -246,16 +238,15 @@ public class ClientAPIImpl {
         return null;
     }
 
-    public boolean sendHeartBeatToServer(final Server server, String clientId, final Long timoutMills) throws RemotingConnectException, RemotingSendRequestException, RemotingTimeoutException, InterruptedException {
-
-        ServiceHeartBeat heartBeat = new ServiceHeartBeat();
-        //todo clientid generate
-        heartBeat.setClientId(clientId);
-        heartBeat.setServiceName(instanceConfig.getServiceName());
-        heartBeat.setServiceInstancePort(instanceConfig.getInstancePort());
-        heartBeat.setServiceInstanceIp(instanceConfig.getInstanceIpAddress());
-        RemotingCommand request = RemotingCommand.createRequestCommand(RequestCode.HEART_BEAT, null);
-        request.setBody(heartBeat.encode());
+    public boolean sendHeartBeatToServer(final Server server, InstanceInfo instanceInfo, final Long timoutMills) throws RemotingConnectException, RemotingSendRequestException, RemotingTimeoutException, InterruptedException {
+        String appName = instanceInfo.getAppName();
+        String id = instanceInfo.getInstanceId();
+        ServiceHeartBeat<InstanceInfo> serviceHeartBeat =new ServiceHeartBeat<>();
+        serviceHeartBeat.setAppName(appName);
+        serviceHeartBeat.setInstanceId(id);
+        serviceHeartBeat.setInstance(instanceInfo);
+        RemotingCommand request = RemotingCommand.createRequestCommand(RequestCode.SERVICE_HEART_BEAT, null);
+        request.setBody(serviceHeartBeat.encode());
         RemotingCommand response = this.remotingClient.invokeSync(server.getRemoteSocketAddress(), request, timoutMills);
         assert response != null;
         switch (response.getCode()) {
@@ -296,8 +287,8 @@ public class ClientAPIImpl {
                 byte[] bytes = out.toByteArray();
 //                Applications applications = Applications.decode(bytes, Applications.class);
                 String string = new String(bytes);
-                logger.info("receive all apps info :{} ",string);
-                logger.info("with size:{},with bytes size:{}" ,response.getBody().length,bytes.length);
+                logger.info("receive all apps info :{} ", string);
+                logger.info("with size:{},with bytes size:{}", response.getBody().length, bytes.length);
 
                 return JSONObject.parseObject(string, Applications.class);
             }
@@ -307,7 +298,7 @@ public class ClientAPIImpl {
         return null;
     }
 
-    public static byte[] unzip(InputStream in,int size) throws IOException {
+    public static byte[] unzip(InputStream in, int size) throws IOException {
         // Open the compressed stream
         GZIPInputStream gin = new GZIPInputStream(in);
 
@@ -353,8 +344,8 @@ public class ClientAPIImpl {
                 byte[] bytes = out.toByteArray();
 //                Applications applications = Applications.decode(bytes, Applications.class);
                 String string = new String(bytes);
-                logger.info("receive delta apps info :{} ",string);
-                logger.info("with size:{},with bytes size:{}" ,response.getBody().length,bytes.length);
+                logger.info("receive delta apps info :{} ", string);
+                logger.info("with size:{},with bytes size:{}", response.getBody().length, bytes.length);
 
                 return JSONObject.parseObject(string, Applications.class);
             }
@@ -379,8 +370,8 @@ public class ClientAPIImpl {
         return false;
     }
 
-    public boolean unRegister(Server server, String appName,String instanceId, long timoutMills) throws RemotingConnectException, RemotingSendRequestException, RemotingTimeoutException, InterruptedException {
-        ServiceUnregister serviceUnregister =new ServiceUnregister();
+    public boolean unRegister(Server server, String appName, String instanceId, long timoutMills) throws RemotingConnectException, RemotingSendRequestException, RemotingTimeoutException, InterruptedException {
+        ServiceUnregister serviceUnregister = new ServiceUnregister();
         serviceUnregister.setInstanceId(instanceId);
         serviceUnregister.setAppName(appName);
         RemotingCommand request = RemotingCommand.createRequestCommand(RequestCode.SERVICE_UNREGISTER, null);

@@ -264,7 +264,7 @@ public class InstanceRegistryImpl implements InstanceRegistry{
             leaseToRenew = gMap.get(id);
         }
         if (leaseToRenew == null) {
-            logger.warn("DS: Registry: lease doesn't exist, registering resource: {} - {}", appName, id);
+            logger.warn("Registry: lease doesn't exist, registering resource: {} - {}", appName, id);
             return false;
         } else {
             InstanceInfo instanceInfo = leaseToRenew.getHolder();
