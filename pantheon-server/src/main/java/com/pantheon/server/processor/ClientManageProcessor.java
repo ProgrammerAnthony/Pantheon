@@ -1,6 +1,7 @@
 package com.pantheon.server.processor;
 
 
+import com.alibaba.fastjson.JSON;
 import com.pantheon.client.appinfo.Application;
 import com.pantheon.client.appinfo.InstanceInfo;
 import com.pantheon.common.ObjectUtils;
@@ -19,6 +20,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.ws.rs.core.Response;
+import java.nio.charset.Charset;
 import java.util.List;
 
 /**
@@ -68,11 +70,17 @@ public class ClientManageProcessor extends AsyncNettyRequestProcessor implements
     private RemotingCommand serviceRegistry(ChannelHandlerContext ctx, RemotingCommand request) throws RemotingCommandException {
         RemotingCommand response = RemotingCommand.createResponseCommand(null);
         InstanceInfo instanceInfo = InstanceInfo.decode(request.getBody(), InstanceInfo.class);
-        logger.info("receive register info: {}", instanceInfo);
-        register(instanceInfo.getAppName(),instanceInfo);
-        response.setCode(ResponseCode.SUCCESS);
-        response.setRemark(null);
-        response.setOpaque(request.getOpaque());
+        logger.info("serviceRegistry called by {},receive instanceInfo: {} ", RemotingHelper.parseChannelRemoteAddr(ctx.channel()),instanceInfo.toString());
+       if(ObjectUtils.isEmpty(instanceInfo)){
+           response.setCode(ResponseCode.SYSTEM_ERROR);
+           response.setRemark(null);
+           response.setOpaque(request.getOpaque());
+       }else{
+           register(instanceInfo.getAppName(),instanceInfo);
+           response.setCode(ResponseCode.SUCCESS);
+           response.setRemark(null);
+           response.setOpaque(request.getOpaque());
+       }
         return response;
     }
 
@@ -170,23 +178,23 @@ public class ClientManageProcessor extends AsyncNettyRequestProcessor implements
      * @param info
      *            {@link InstanceInfo} information of the instance.
      */
-    public Response register(String appName,InstanceInfo info) {
-        logger.debug("Registering instance {} ", info.getId());
+    public Boolean register(String appName,InstanceInfo info) {
+        logger.debug("Registering instance with instanceId {} ", info.getId());
         // validate that the instanceinfo contains all the necessary required fields
         if (ObjectUtils.isEmpty(info.getId())) {
-            return Response.status(400).entity("Missing instanceId").build();
+         throw new IllegalArgumentException("Missing instanceId");
         } else if (ObjectUtils.isEmpty(info.getHostName())) {
-            return Response.status(400).entity("Missing hostname").build();
+            throw new IllegalArgumentException("Missing hostname");
         } else if (ObjectUtils.isEmpty(info.getIPAddr())) {
-            return Response.status(400).entity("Missing ip address").build();
+            throw new IllegalArgumentException("Missing ip address");
         } else if (ObjectUtils.isEmpty(info.getAppName())) {
-            return Response.status(400).entity("Missing appName").build();
+            throw new IllegalArgumentException("Missing appName");
         } else if (!appName.equals(info.getAppName())) {
-            return Response.status(400).entity("Mismatched appName, expecting " + appName + " but was " + info.getAppName()).build();
+            throw new IllegalArgumentException("Mismatched appName, expecting " + appName + " but was " + info.getAppName());
         }
 
         instanceRegistry.register(info);
-        return Response.status(204).build();  // 204 to be backwards compatible
+        return true;
     }
 
 

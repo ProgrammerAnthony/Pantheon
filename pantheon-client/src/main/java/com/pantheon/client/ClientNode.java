@@ -60,7 +60,6 @@ public class ClientNode {
         this.clientId = clientId;
         fetchRegistryGeneration = new AtomicLong(0);
         localRegionApps.set(new Applications());
-        instanceInfo = new InstanceInfo();//todo build myself instance info
         clientAPI = new ClientAPIImpl(nettyClientConfig, instanceConfig, new ClientRemotingProcessor(), null);
     }
 
@@ -82,6 +81,8 @@ public class ClientNode {
 
             String serviceName = instanceConfig.getServiceName();
             server = this.clientAPI.routeServer(serviceName);
+
+            sendRegister();
 
             this.startScheduledTask();
         } catch (RemotingConnectException e) {
@@ -145,9 +146,14 @@ public class ClientNode {
      * default 30s to refresh registry info
      */
     public void sendRegister() {
-        InstanceInfo instanceInfo = buildInstanceInfo();
-        try {
-            this.clientAPI.register(server,instanceInfo,3000);
+        instanceInfo = buildInstanceInfo();
+        try { //todo sometimes the server is null
+            boolean register = this.clientAPI.register(server, instanceInfo, 3000);
+            if(register){
+                logger.info("register to server: {} successfully with instance info: {}",server,instanceInfo);
+            }else{
+                logger.info("register to server: {} failed with instance info: {}",server,instanceInfo);
+            }
         } catch (RemotingConnectException e) {
             e.printStackTrace();
         } catch (RemotingSendRequestException e) {

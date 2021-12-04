@@ -38,7 +38,7 @@ public class ClientBootStrap {
             return null;
         }));
 
-        clientNode.sendRegister();
+
         return clientNode;
     }
 

@@ -189,7 +189,7 @@ public class ResponseCacheImpl implements ResponseCache {
         return new TimerTask() {
             @Override
             public void run() {
-                logger.debug("Updating the client cache from response cache");
+//                logger.debug("Updating the client cache from response cache");
                 for (Key key : readOnlyCacheMap.keySet()) {
                     if (logger.isDebugEnabled()) {
                         logger.debug("Updating the client cache from response cache for key : {}", key.getName());

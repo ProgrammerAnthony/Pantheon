@@ -18,24 +18,6 @@ public class InstanceInfo extends RemotingSerializable {
     private InstanceStatus instanceStatus = InstanceStatus.UP;
 
 
-    public static class PortWrapper {
-        private final boolean enabled;
-        private final int port;
-
-        public PortWrapper(boolean enabled, int port) {
-            this.enabled = enabled;
-            this.port = port;
-        }
-
-        public boolean isEnabled() {
-            return enabled;
-        }
-
-        public int getPort() {
-            return port;
-        }
-    }
-
     private static final Logger logger = LoggerFactory.getLogger(InstanceInfo.class);
 
     public static final int DEFAULT_PORT = 7001;
@@ -128,6 +110,10 @@ public class InstanceInfo extends RemotingSerializable {
             return new Builder(new InstanceInfo());
         }
 
+        public static Builder newBuilder(InstanceInfo instanceInfo) {
+            return new Builder(instanceInfo);
+        }
+
         public Builder(InstanceInfo result) {
             this.result = result;
         }
@@ -158,7 +144,7 @@ public class InstanceInfo extends RemotingSerializable {
          * @return the {@link InstanceInfo} builder.
          */
         public Builder setHostName(String hostName) {
-            result.hostName=hostName;
+            result.hostName = hostName;
             return this;
         }
 
@@ -276,6 +262,70 @@ public class InstanceInfo extends RemotingSerializable {
 
     }
 
+    public void setHostName(String hostName) {
+        this.hostName = hostName;
+    }
+
+    public InstanceStatus getInstanceStatus() {
+        return instanceStatus;
+    }
+
+    public void setInstanceStatus(InstanceStatus instanceStatus) {
+        this.instanceStatus = instanceStatus;
+    }
+
+    public void setInstanceId(String instanceId) {
+        this.instanceId = instanceId;
+    }
+
+    public void setAppName(String appName) {
+        this.appName = appName;
+    }
+
+    public void setAppGroupName(String appGroupName) {
+        this.appGroupName = appGroupName;
+    }
+
+    public String getIpAddr() {
+        return ipAddr;
+    }
+
+    public void setIpAddr(String ipAddr) {
+        this.ipAddr = ipAddr;
+    }
+
+    public void setPort(int port) {
+        this.port = port;
+    }
+
+    public int getSecurePort() {
+        return securePort;
+    }
+
+    public void setSecurePort(int securePort) {
+        this.securePort = securePort;
+    }
+
+    public InstanceStatus getOverriddenstatus() {
+        return overriddenstatus;
+    }
+
+    public void setOverriddenstatus(InstanceStatus overriddenstatus) {
+        this.overriddenstatus = overriddenstatus;
+    }
+
+    public boolean isInstanceInfoDirty() {
+        return isInstanceInfoDirty;
+    }
+
+    public void setInstanceInfoDirty(boolean instanceInfoDirty) {
+        isInstanceInfoDirty = instanceInfoDirty;
+    }
+
+    public void setLastUpdatedTimestamp(Long lastUpdatedTimestamp) {
+        this.lastUpdatedTimestamp = lastUpdatedTimestamp;
+    }
+
     /**
      * @return the raw instanceId. For compatibility, prefer to use {@link #getId()}
      */
@@ -374,7 +424,6 @@ public class InstanceInfo extends RemotingSerializable {
     public void setLeaseInfo(LeaseInfo info) {
         leaseInfo = info;
     }
-
 
 
     /**
