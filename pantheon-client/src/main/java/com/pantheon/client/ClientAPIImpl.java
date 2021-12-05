@@ -232,7 +232,11 @@ public class ClientAPIImpl {
         assert response != null;
         switch (response.getCode()) {
             case ResponseCode.SUCCESS: {
+                logger.info("heartbeat success!!!");
                 return true;
+            }
+            case ResponseCode.SYSTEM_ERROR:{
+                logger.info("heartbeat failed!!! {}",response.getRemark());
             }
             default:
                 break;

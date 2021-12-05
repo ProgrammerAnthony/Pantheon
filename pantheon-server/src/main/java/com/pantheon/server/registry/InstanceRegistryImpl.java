@@ -26,9 +26,9 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 /**
  * @author Anthony
  * @create 2021/11/28
- * @desc  the class that load and update data from Server Side cache
+ * @desc the class that load and update data from Server Side cache
  */
-public class InstanceRegistryImpl implements InstanceRegistry{
+public class InstanceRegistryImpl implements InstanceRegistry {
     private static final Logger logger = LoggerFactory.getLogger(InstanceRegistryImpl.class);
     private final ConcurrentHashMap<String/*appName*/, Map<String/*instanceId*/, Lease<InstanceInfo>>> registry
             = new ConcurrentHashMap<String, Map<String, Lease<InstanceInfo>>>();
@@ -49,7 +49,7 @@ public class InstanceRegistryImpl implements InstanceRegistry{
 
 
     private InstanceRegistryImpl() {
-        this.serverConfig=CachedPantheonServerConfig.getInstance();
+        this.serverConfig = CachedPantheonServerConfig.getInstance();
         responseCache = new ResponseCacheImpl(serverConfig, this);
         this.deltaRetentionTimer.schedule(getDeltaRetentionTask(),
                 serverConfig.getDeltaRetentionTimerIntervalInMs(),
@@ -149,8 +149,8 @@ public class InstanceRegistryImpl implements InstanceRegistry{
     }
 
     public InstanceInfo.InstanceStatus getOverriddenInstanceStatus(InstanceInfo r,
-                                                                      Lease<InstanceInfo> existingLease) {
-        InstanceStatusOverrideRule rule =  new FirstMatchWinsCompositeRule(new DownOrStartingRule(),
+                                                                   Lease<InstanceInfo> existingLease) {
+        InstanceStatusOverrideRule rule = new FirstMatchWinsCompositeRule(new DownOrStartingRule(),
                 new OverrideExistsRule(overriddenInstanceStatusMap), new LeaseExistsRule());
         logger.debug("Processing override status using rule: {}", rule);
         return rule.apply(r, existingLease).status();
@@ -266,17 +266,20 @@ public class InstanceRegistryImpl implements InstanceRegistry{
      * Marks the given instance of the given app name as renewed, and also marks whether it originated from
      * replication.
      *
+     * @return error response when failed
      * @see LeaseManager#renew(java.lang.String, java.lang.String)
      */
-    public boolean renew(String appName, String id) {
+    public String renew(String appName, String id) {
+        String errorResponse = null;
         Map<String, Lease<InstanceInfo>> gMap = registry.get(appName);
         Lease<InstanceInfo> leaseToRenew = null;
         if (gMap != null) {
             leaseToRenew = gMap.get(id);
         }
         if (leaseToRenew == null) {
-            logger.warn("Registry: lease doesn't exist, registering resource: {} - {}", appName, id);
-            return false;
+            errorResponse = String.format("Registry: lease doesn't exist, registering resource: {} - {}", appName, id);
+            logger.warn(errorResponse);
+            return errorResponse;
         } else {
             InstanceInfo instanceInfo = leaseToRenew.getHolder();
             if (instanceInfo != null) {
@@ -284,9 +287,10 @@ public class InstanceRegistryImpl implements InstanceRegistry{
                 InstanceInfo.InstanceStatus overriddenInstanceStatus = this.getOverriddenInstanceStatus(
                         instanceInfo, leaseToRenew);
                 if (overriddenInstanceStatus == InstanceInfo.InstanceStatus.UNKNOWN) {
-                    logger.info("Instance status UNKNOWN possibly due to deleted override for instance {}"
+                    errorResponse = String.format("Instance status UNKNOWN possibly due to deleted override for instance {}"
                             + "; re-register required", instanceInfo.getId());
-                    return false;
+                    logger.warn(errorResponse);
+                    return errorResponse;
                 }
                 if (!instanceInfo.getStatus().equals(overriddenInstanceStatus)) {
                     Object[] args = {
@@ -301,7 +305,7 @@ public class InstanceRegistryImpl implements InstanceRegistry{
                 }
             }
             leaseToRenew.renew();
-            return true;
+            return null;
         }
     }
 

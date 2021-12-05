@@ -30,7 +30,7 @@ import java.util.concurrent.locks.ReentrantLock;
 /**
  * @author Anthony
  * @create 2021/11/19
- * @desc
+ * @desc todo clientside lifecycle support
  **/
 public class ClientNode {
     private NettyClientConfig nettyClientConfig;
@@ -69,6 +69,7 @@ public class ClientNode {
 
 
     public boolean start() {
+        this.checkConfig();
         clientAPI.start();
 
         //choose a controller candidate from local config
@@ -103,6 +104,10 @@ public class ClientNode {
         return true;
     }
 
+    private void checkConfig() {
+        //todo check the config basically need
+    }
+
     private void startScheduledTask() {
         if (instanceConfig.shouldFetchRegistry()) {
             boolean fetchRegistryResult = fetchRegistry(true);
@@ -110,7 +115,6 @@ public class ClientNode {
                 logger.info("service fetch registry success!!!");
                 if (localRegionApps.get().size() > 0) {
                     logger.info("register success , then fetch {} apps !!!", localRegionApps.get());
-
                 }
             }
             scheduledExecutorService.scheduleAtFixedRate(new CacheRefreshThread(), instanceConfig.getRegistryFetchIntervalSeconds(), instanceConfig.getRegistryFetchIntervalSeconds(), TimeUnit.SECONDS);
@@ -128,12 +132,8 @@ public class ClientNode {
     private void sendHeartBeatToServer() {
         if (this.lockHeartbeat.tryLock()) {
             try {
-                boolean successResult = this.clientAPI.sendHeartBeatToServer(getServer(), getInstanceInfo().getAppName(), getInstanceInfo().getInstanceId(),3000L);
-                if (successResult) {
-                    logger.info("heartbeat success!!!");
-                }else{
-                    logger.info("heartbeat failed!!!");
-                }
+                boolean successResult = this.clientAPI.sendHeartBeatToServer(getServer(), getInstanceInfo().getAppName(), getInstanceInfo().getInstanceId(), 3000L);
+
             } catch (final Exception e) {
                 logger.error("sendHeartBeatToServer exception", e);
             } finally {
@@ -163,7 +163,7 @@ public class ClientNode {
 
     private void sendUnRegister() {
         try {
-            boolean unRegister = this.clientAPI.unRegister(getServer(),getServiceName(),getInstanceInfo().getInstanceId(), 3000);
+            boolean unRegister = this.clientAPI.unRegister(getServer(), getServiceName(), getInstanceInfo().getInstanceId(), 3000);
             if (unRegister) {
                 logger.info("unregister to server: {} successfully with instance info: {}", server, instanceInfo);
             } else {
@@ -188,7 +188,7 @@ public class ClientNode {
             boolean register = this.clientAPI.register(getServer(), getInstanceInfo(), 3000);
             if (register) {
                 logger.info("register to server: {} successfully with instance info: {}", server, instanceInfo);
-               //todo for test ,unregister
+                //todo for test ,unregister
                 new Thread(new Runnable() {
                     @Override
                     public void run() {
@@ -289,6 +289,7 @@ public class ClientNode {
      * This method tries to get only deltas after the first fetch unless there
      * is an issue in reconciling pantheon server and client registry information.
      * </p>
+     * todo load delta with correct step
      *
      * @param forceFullRegistryFetch Forces a full registry fetch.
      * @return true if the registry was fetched
@@ -589,10 +590,10 @@ public class ClientNode {
 //        this.eventListeners.add(eventListener);
     }
 
-    public synchronized Server getServer() throws InterruptedException {
+    public Server getServer() throws InterruptedException {
         if (ObjectUtils.isEmpty(server)) {
-            synchronized (this){
-                while(ObjectUtils.isEmpty(server)){
+            synchronized (this) {
+                while (ObjectUtils.isEmpty(server)) {
                     server = this.clientAPI.routeServer(getServiceName());
                     Thread.sleep(10);
                 }

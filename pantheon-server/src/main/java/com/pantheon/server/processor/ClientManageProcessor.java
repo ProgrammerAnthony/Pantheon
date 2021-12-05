@@ -88,10 +88,11 @@ public class ClientManageProcessor extends AsyncNettyRequestProcessor implements
         RemotingCommand response = RemotingCommand.createResponseCommand(null);
         ServiceIdentifier serviceIdentifier = ServiceIdentifier.decode(request.getBody(), ServiceIdentifier.class);
         logger.info("receive heartBeat from: {} / {}", serviceIdentifier.getAppName(), serviceIdentifier.getInstanceId());
-        boolean renew = renew(serviceIdentifier.getAppName(), serviceIdentifier.getInstanceId());
-        if (renew) {
+        String renewError = instanceRegistry.renew(serviceIdentifier.getAppName(), serviceIdentifier.getInstanceId());
+        if (renewError==null) {
             response.setCode(ResponseCode.SUCCESS);
         } else {
+            response.setRemark(renewError);
             response.setCode(ResponseCode.SYSTEM_ERROR);
         }
         response.setRemark(null);
@@ -171,10 +172,10 @@ public class ClientManageProcessor extends AsyncNettyRequestProcessor implements
             String overriddenStatus,
             String status,
             String lastDirtyTimestamp) {
-        boolean isSuccess = instanceRegistry.renew(appName, id);
+        String renewError = instanceRegistry.renew(appName, id);
 
         // Not found in the registry, immediately ask for a register
-        if (!isSuccess) {
+        if (renewError != null) {
             logger.warn("Not Found (Renew): {} - {}", appName, id);
             return null;
         }
@@ -196,13 +197,6 @@ public class ClientManageProcessor extends AsyncNettyRequestProcessor implements
         return response;
     }
 
-
-    public boolean renew(final String appName, final String id) {
-        if (instanceRegistry.renew(appName, id)) {
-            return true;
-        }
-        return false;
-    }
 
     /**
      * Registers information about a particular instance for an

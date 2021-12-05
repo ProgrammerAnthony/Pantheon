@@ -19,13 +19,8 @@ public class ClientBootStrap {
 
     public static void main(String[] args) {
         logger.info("InstanceBootStrap initializing......");
-        DefaultInstanceConfig instanceConfig = DefaultInstanceConfig.getInstance();
-        NettyClientConfig nettyClientConfig = new NettyClientConfig();
-        ClientNode clientNode = new ClientNode(nettyClientConfig, instanceConfig,"testClientId");
-        startClientNode(clientNode);
-    }
+        ClientNode clientNode = ClientManager.getInstance().getOrCreateClientNode(DefaultInstanceConfig.getInstance());
 
-    private static ClientNode startClientNode(ClientNode clientNode) {
         boolean initResult = clientNode.start();
         if (!initResult) {
             clientNode.shutdown();
@@ -35,9 +30,6 @@ public class ClientBootStrap {
             clientNode.shutdown();
             return null;
         }));
-
-
-        return clientNode;
     }
 
 }

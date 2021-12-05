@@ -44,12 +44,12 @@ public interface InstanceRegistry {
     InstanceInfo getInstanceByAppAndId(String appName, String id);
 
     /**
-     * Marks the given instance of the given app name as renewed, and also marks whether it originated from
-     * replication.
+     * Marks the given instance of the given app name as renewed
      *
      * @see LeaseManager#renew(java.lang.String, java.lang.String)
+     * @return error response when failed
      */
-    boolean renew(String appName, String id);
+    String renew(String appName, String id);
 
     /**
      * Updates the status of an instance. Normally happens to put an instance
