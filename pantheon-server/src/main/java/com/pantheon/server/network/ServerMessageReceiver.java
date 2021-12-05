@@ -129,6 +129,7 @@ public class ServerMessageReceiver extends Thread {
                     SlotManager slotManager = SlotManager.getInstance();
                     slotManager.refreshReplicaNodeId(newReplicaNodeId);
                 } else if (messageType == MessageType.REPLICA_REGISTER) {
+                    //todo replica register info
                     Integer messageFlag = message.getInt();
                     Integer messageBodyLength = message.getInt();
                     Integer requestType = message.getInt();
@@ -138,18 +139,19 @@ public class ServerMessageReceiver extends Thread {
 //
 //                    replicaRequestQueue.put(registerRequest);
 //
-//                    LOGGER.info("收到给副本转发的服务注册请求: " + registerRequest);
+//                    LOGGER.info("receive register request to replica: " + registerRequest);
                 } else if (messageType == MessageType.REPLICA_HEARTBEAT) {
-                    Integer messageFlag = message.getInt();
-                    Integer messageBodyLength = message.getInt();
-                    Integer requestType = message.getInt();
+                    //todo replica heartbeat request
+//                    Integer messageFlag = message.getInt();
+//                    Integer messageBodyLength = message.getInt();
+//                    Integer requestType = message.getInt();
 
 //                    HeartbeatRequest heartbeatRequest =
 //                            HeartbeatRequest.deserialize(message);
 //
 //                    replicaRequestQueue.put(heartbeatRequest);
 
-//                    LOGGER.info("收到给副本转发的服务心跳请求: " + heartbeatRequest);
+//                    LOGGER.info("receive heartbeat request to replica: " + heartbeatRequest);
                 } else if (messageType == MessageType.REPLICA_NODE_IDS) {
                     int remaining = message.remaining();
                     byte[] bytes = new byte[remaining];
@@ -165,21 +167,23 @@ public class ServerMessageReceiver extends Thread {
                     controllerNodeIdQueue.put(controllerNodeId);
                     LOGGER.info("receive controller node id: " + controllerNodeId);
                 } else if (messageType == MessageType.CHANGE_REPLICA_TO_SLOTS) {
-                    int remaining = message.remaining();
-                    byte[] bytes = new byte[remaining];
-                    message.get(bytes);
-
-                    List<String> slots = JSONObject.parseObject(new String(bytes), ArrayList.class);
-                    SlotManager slotManager = SlotManager.getInstance();
-                    slotManager.changeReplicaToSlots(slots);
+                    //todo build mechanism of change replica to slots
+//                    int remaining = message.remaining();
+//                    byte[] bytes = new byte[remaining];
+//                    message.get(bytes);
+//
+//                    List<String> slots = JSONObject.parseObject(new String(bytes), ArrayList.class);
+//                    SlotManager slotManager = SlotManager.getInstance();
+//                    slotManager.changeReplicaToSlots(slots);
                 } else if (messageType == MessageType.REFRESH_REPLICA_SLOTS) {
-                    int remaining = message.remaining();
-                    byte[] bytes = new byte[remaining];
-                    message.get(bytes);
-
-                    List<String> replicaSlots = JSONObject.parseObject(new String(bytes), ArrayList.class);
-                    SlotManager slotManager = SlotManager.getInstance();
-                    slotManager.refreshReplicaSlots(replicaSlots);
+                    //todo refresh replica slots
+//                    int remaining = message.remaining();
+//                    byte[] bytes = new byte[remaining];
+//                    message.get(bytes);
+//
+//                    List<String> replicaSlots = JSONObject.parseObject(new String(bytes), ArrayList.class);
+//                    SlotManager slotManager = SlotManager.getInstance();
+//                    slotManager.refreshReplicaSlots(replicaSlots);
                 } else if (messageType == MessageType.REQUEST_SLOTS_DATA) {
                     // take all of metadata from controller and sync to this node
                     Integer candidateNodeId = message.getInt();
@@ -188,6 +192,7 @@ public class ServerMessageReceiver extends Thread {
                     controller.syncSlotsReplicaAllocation(candidateNodeId);
                     controller.syncReplicaNodeIds(candidateNodeId);
                 } else if (messageType == MessageType.TRANSFER_SLOTS) {
+                    //todo transfer slots when  fail
                     Integer targetNodeId = message.getInt();
 
                     Integer bytesLength = message.getInt();
@@ -198,16 +203,17 @@ public class ServerMessageReceiver extends Thread {
                     SlotManager slotManager = SlotManager.getInstance();
                     slotManager.transferSlots(targetNodeId, slots);
                 } else if (messageType == MessageType.UPDATE_SLOTS) {
-                    Integer slotNo = message.getInt();
-
-                    int remaining = message.remaining();
-                    byte[] bytes = new byte[remaining];
-                    message.get(bytes);
-                    List<ServiceInstance> serviceInstances = JSONObject.parseObject(
-                            new String(bytes), ArrayList.class);
-
-                    SlotManager slotManager = SlotManager.getInstance();
-                    slotManager.updateSlotData(slotNo, serviceInstances);
+                    //todo update slots when others make a transfer
+//                    Integer slotNo = message.getInt();
+//
+//                    int remaining = message.remaining();
+//                    byte[] bytes = new byte[remaining];
+//                    message.get(bytes);
+//                    List<ServiceInstance> serviceInstances = JSONObject.parseObject(
+//                            new String(bytes), ArrayList.class);
+//
+//                    SlotManager slotManager = SlotManager.getInstance();
+//                    slotManager.updateSlotData(slotNo, serviceInstances);
                 }
             } catch (Exception e) {
                 LOGGER.error("receive message error......", e);

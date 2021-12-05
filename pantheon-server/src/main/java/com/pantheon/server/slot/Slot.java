@@ -9,6 +9,7 @@ import java.util.List;
 /**
  * Slot in Pantheon is topic in RocketMq, Slot is the authentic part for
  * service registry to save .
+ * todo build with new mechanism
  */
 public class Slot {
 

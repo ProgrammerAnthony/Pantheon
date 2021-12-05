@@ -30,9 +30,14 @@ import java.util.concurrent.locks.ReentrantLock;
 /**
  * @author Anthony
  * @create 2021/11/19
- * @desc todo clientside lifecycle support
+ * @desc
+ * todo clientside lifecycle support
+ * todo add retry mechanism reference from EurekaHttpClientFactory
+ * todo load specific instances not all
+ * todo throw PantheonException
  **/
 public class ClientNode {
+    public static final int INSTANCE_REQUEST_TIMOUT_MILLS = 10000;
     private NettyClientConfig nettyClientConfig;
     private DefaultInstanceConfig instanceConfig;
     private final ScheduledExecutorService scheduledExecutorService = Executors.newSingleThreadScheduledExecutor(new ThreadFactoryImpl(
@@ -76,12 +81,12 @@ public class ClientNode {
         String controllerCandidate = this.clientAPI.chooseControllerCandidate();
         Integer nodeId = null;
         try {
-            nodeId = this.clientAPI.fetchServerNodeId(controllerCandidate, 10000);
+            nodeId = this.clientAPI.fetchServerNodeId(controllerCandidate, INSTANCE_REQUEST_TIMOUT_MILLS);
             logger.info("fetchServerNodeId successful load nodeId: " + nodeId);
-            Map<String, List<String>> integerListMap = this.clientAPI.fetchSlotsAllocation(controllerCandidate, 10000);
+            Map<String, List<String>> integerListMap = this.clientAPI.fetchSlotsAllocation(controllerCandidate, INSTANCE_REQUEST_TIMOUT_MILLS);
             logger.info("fetchSlotsAllocation successful load map: " + integerListMap);
 
-            Map<String, Server> serverMap = this.clientAPI.fetchServerAddresses(controllerCandidate, 1000);
+            Map<String, Server> serverMap = this.clientAPI.fetchServerAddresses(controllerCandidate, INSTANCE_REQUEST_TIMOUT_MILLS);
             logger.info("fetchServerAddresses successful load map: " + serverMap);
 
             String serviceName = instanceConfig.getServiceName();
@@ -106,6 +111,7 @@ public class ClientNode {
 
     private void checkConfig() {
         //todo check the config basically need
+
     }
 
     private void startScheduledTask() {
@@ -185,7 +191,7 @@ public class ClientNode {
      */
     public void sendRegister() {
         try {
-            boolean register = this.clientAPI.register(getServer(), getInstanceInfo(), 3000);
+            boolean register = this.clientAPI.register(getServer(), getInstanceInfo(), INSTANCE_REQUEST_TIMOUT_MILLS);
             if (register) {
                 logger.info("register to server: {} successfully with instance info: {}", server, instanceInfo);
                 //todo for test ,unregister
@@ -193,7 +199,7 @@ public class ClientNode {
                     @Override
                     public void run() {
                         try {
-                            Thread.sleep(6000);
+                            Thread.sleep(60000);
                         } catch (InterruptedException e) {
                             e.printStackTrace();
                         }

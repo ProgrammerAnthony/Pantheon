@@ -16,6 +16,8 @@ import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * slot data manage
+ * todo build with new register mechanism
+ *
  */
 public class SlotManager {
 

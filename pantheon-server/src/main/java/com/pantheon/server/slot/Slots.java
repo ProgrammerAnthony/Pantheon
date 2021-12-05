@@ -7,6 +7,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * slots in current node
+ *  todo build with new register mechanism
  */
 public class Slots {
 
