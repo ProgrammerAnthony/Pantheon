@@ -7,6 +7,7 @@ import com.pantheon.client.appinfo.LeaseInfo;
 import com.pantheon.client.config.DefaultInstanceConfig;
 import com.pantheon.common.ObjectUtils;
 import com.pantheon.common.ThreadFactoryImpl;
+import com.pantheon.common.lifecycle.AbstractLifecycleComponent;
 import com.pantheon.remoting.exception.RemotingCommandException;
 import com.pantheon.remoting.exception.RemotingConnectException;
 import com.pantheon.remoting.exception.RemotingSendRequestException;
@@ -16,6 +17,7 @@ import io.netty.bootstrap.ServerBootstrap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
@@ -30,13 +32,12 @@ import java.util.concurrent.locks.ReentrantLock;
 /**
  * @author Anthony
  * @create 2021/11/19
- * @desc
- * todo clientside lifecycle support
+ * @desc todo clientside lifecycle support
  * todo add retry mechanism reference from EurekaHttpClientFactory
  * todo load specific instances not all
  * todo throw PantheonException
  **/
-public class ClientNode {
+public class ClientNode extends AbstractLifecycleComponent {
     public static final int INSTANCE_REQUEST_TIMOUT_MILLS = 10000;
     private NettyClientConfig nettyClientConfig;
     private DefaultInstanceConfig instanceConfig;
@@ -72,22 +73,22 @@ public class ClientNode {
         clientAPI = new ClientAPIImpl(nettyClientConfig, instanceConfig, new ClientRemotingProcessor(), null);
     }
 
-
-    public boolean start() {
+    @Override
+    protected void doStart() {
         this.checkConfig();
         clientAPI.start();
 
         //choose a controller candidate from local config
         String controllerCandidate = this.clientAPI.chooseControllerCandidate();
-        Integer nodeId = null;
+//        Integer nodeId = null;
         try {
-            nodeId = this.clientAPI.fetchServerNodeId(controllerCandidate, INSTANCE_REQUEST_TIMOUT_MILLS);
-            logger.info("fetchServerNodeId successful load nodeId: " + nodeId);
+//            nodeId = this.clientAPI.fetchServerNodeId(controllerCandidate, INSTANCE_REQUEST_TIMOUT_MILLS);
+//            logger.info("fetchServerNodeId successful load nodeId: " + nodeId);
             Map<String, List<String>> integerListMap = this.clientAPI.fetchSlotsAllocation(controllerCandidate, INSTANCE_REQUEST_TIMOUT_MILLS);
-            logger.info("fetchSlotsAllocation successful load map: " + integerListMap);
+            logger.info("fetchSlotsAllocation response : " + integerListMap);
 
-            Map<String, Server> serverMap = this.clientAPI.fetchServerAddresses(controllerCandidate, INSTANCE_REQUEST_TIMOUT_MILLS);
-            logger.info("fetchServerAddresses successful load map: " + serverMap);
+            Map<String/*serverId*/, Server> serverMap = this.clientAPI.fetchServerAddresses(controllerCandidate, INSTANCE_REQUEST_TIMOUT_MILLS);
+            logger.info("fetchServerAddresses response: " + serverMap);
 
             String serviceName = instanceConfig.getServiceName();
             server = this.clientAPI.routeServer(serviceName);
@@ -106,7 +107,16 @@ public class ClientNode {
         } catch (RemotingCommandException e) {
             e.printStackTrace();
         }
-        return true;
+    }
+
+    @Override
+    protected void doStop() {
+
+    }
+
+    @Override
+    protected void doClose() throws IOException {
+
     }
 
     private void checkConfig() {
@@ -194,7 +204,7 @@ public class ClientNode {
             boolean register = this.clientAPI.register(getServer(), getInstanceInfo(), INSTANCE_REQUEST_TIMOUT_MILLS);
             if (register) {
                 logger.info("register to server: {} successfully with instance info: {}", server, instanceInfo);
-                //todo for test ,unregister
+                //todo unregister process in thread,which is just for test ,
                 new Thread(new Runnable() {
                     @Override
                     public void run() {

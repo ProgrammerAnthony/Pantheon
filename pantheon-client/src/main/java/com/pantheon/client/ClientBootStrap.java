@@ -2,6 +2,7 @@ package com.pantheon.client;
 
 import com.pantheon.client.config.DefaultInstanceConfig;
 import com.pantheon.common.ShutdownHookThread;
+import com.pantheon.common.lifecycle.Lifecycle;
 import com.pantheon.remoting.RemotingClient;
 import com.pantheon.remoting.netty.NettyClientConfig;
 import org.slf4j.Logger;
@@ -21,8 +22,8 @@ public class ClientBootStrap {
         logger.info("InstanceBootStrap initializing......");
         ClientNode clientNode = ClientManager.getInstance().getOrCreateClientNode(DefaultInstanceConfig.getInstance());
 
-        boolean initResult = clientNode.start();
-        if (!initResult) {
+       clientNode.start();
+        if (!clientNode.lifecycleState().equals(Lifecycle.State.STARTED)) {
             clientNode.shutdown();
             System.exit(-3);
         }
@@ -30,6 +31,10 @@ public class ClientBootStrap {
             clientNode.shutdown();
             return null;
         }));
+    }
+
+    public static void shutdown(final ClientNode clientNode) {
+        clientNode.stop();
     }
 
 }

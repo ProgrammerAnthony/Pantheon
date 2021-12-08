@@ -149,8 +149,8 @@ public class ClientAPIImpl {
                     Server server = new Server(id, ip, port);
 
                     servers.put(id, server);
-                    return servers;
                 }
+                return servers;
             }
             default:
                 break;
@@ -222,7 +222,7 @@ public class ClientAPIImpl {
         return null;
     }
 
-    public boolean sendHeartBeatToServer(final Server server, String appName, String id,final Long timoutMills) throws RemotingConnectException, RemotingSendRequestException, RemotingTimeoutException, InterruptedException {
+    public boolean sendHeartBeatToServer(final Server server, String appName, String id, final Long timoutMills) throws RemotingConnectException, RemotingSendRequestException, RemotingTimeoutException, InterruptedException {
         ServiceIdentifier serviceIdentifier = new ServiceIdentifier();
         serviceIdentifier.setAppName(appName);
         serviceIdentifier.setInstanceId(id);
@@ -235,8 +235,8 @@ public class ClientAPIImpl {
                 logger.info("heartbeat success!!!");
                 return true;
             }
-            case ResponseCode.SYSTEM_ERROR:{
-                logger.info("heartbeat failed!!! {}",response.getRemark());
+            case ResponseCode.SYSTEM_ERROR: {
+                logger.info("heartbeat failed!!! {}", response.getRemark());
             }
             default:
                 break;
@@ -252,29 +252,8 @@ public class ClientAPIImpl {
         assert response != null;
         switch (response.getCode()) {
             case ResponseCode.SUCCESS: {
-                ByteArrayInputStream bis = new ByteArrayInputStream(response.getBody());
-                // Open the compressed stream
-                GZIPInputStream gin = new GZIPInputStream(bis);
-
-                ByteArrayOutputStream out = new ByteArrayOutputStream();
-
-                // Transfer bytes from the compressed stream to the output stream
-                byte[] buf = new byte[response.getBody().length];
-                int len;
-                while ((len = gin.read(buf)) > 0) {
-                    out.write(buf, 0, len);
-                }
-
-                // Close the file and stream
-                gin.close();
-                out.close();
-
-                byte[] bytes = out.toByteArray();
-//                Applications applications = Applications.decode(bytes, Applications.class);
-                String string = new String(bytes);
+                String string = unzipBytesToStr(response.getBody());
                 logger.info("receive all apps info :{} ", string);
-                logger.info("with size:{},with bytes size:{}", response.getBody().length, bytes.length);
-
                 return JSONObject.parseObject(string, Applications.class);
             }
             default:
@@ -283,15 +262,16 @@ public class ClientAPIImpl {
         return null;
     }
 
-    //todo add unzip using GZIP
-    public static byte[] unzip(InputStream in, int size) throws IOException {
+
+    public String unzipBytesToStr(byte[] inputBuf) throws IOException {
+        ByteArrayInputStream bis = new ByteArrayInputStream(inputBuf);
         // Open the compressed stream
-        GZIPInputStream gin = new GZIPInputStream(in);
+        GZIPInputStream gin = new GZIPInputStream(bis);
 
         ByteArrayOutputStream out = new ByteArrayOutputStream();
 
         // Transfer bytes from the compressed stream to the output stream
-        byte[] buf = new byte[size];
+        byte[] buf = new byte[inputBuf.length];
         int len;
         while ((len = gin.read(buf)) > 0) {
             out.write(buf, 0, len);
@@ -300,7 +280,10 @@ public class ClientAPIImpl {
         // Close the file and stream
         gin.close();
         out.close();
-        return out.toByteArray();
+
+        byte[] bytes = out.toByteArray();
+        String string = new String(bytes);
+        return string;
     }
 
     public Applications getDelta(Server server, long timeoutMills) throws RemotingConnectException, RemotingSendRequestException, RemotingTimeoutException, InterruptedException, IOException {
@@ -310,28 +293,8 @@ public class ClientAPIImpl {
         assert response != null;
         switch (response.getCode()) {
             case ResponseCode.SUCCESS: {
-                ByteArrayInputStream bis = new ByteArrayInputStream(response.getBody());
-                // Open the compressed stream
-                GZIPInputStream gin = new GZIPInputStream(bis);
-
-                ByteArrayOutputStream out = new ByteArrayOutputStream();
-
-                // Transfer bytes from the compressed stream to the output stream
-                byte[] buf = new byte[response.getBody().length];
-                int len;
-                while ((len = gin.read(buf)) > 0) {
-                    out.write(buf, 0, len);
-                }
-
-                // Close the file and stream
-                gin.close();
-                out.close();
-
-                byte[] bytes = out.toByteArray();
-//                Applications applications = Applications.decode(bytes, Applications.class);
-                String string = new String(bytes);
+                String string = unzipBytesToStr(response.getBody());
                 logger.info("receive delta apps info :{} ", string);
-                logger.info("with size:{},with bytes size:{}", response.getBody().length, bytes.length);
 
                 return JSONObject.parseObject(string, Applications.class);
             }
