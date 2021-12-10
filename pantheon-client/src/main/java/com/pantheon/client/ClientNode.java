@@ -32,7 +32,7 @@ import java.util.concurrent.locks.ReentrantLock;
 /**
  * @author Anthony
  * @create 2021/11/19
- * @desc todo clientside lifecycle support
+ * @desc
  * todo add retry mechanism reference from EurekaHttpClientFactory
  * todo load specific instances not all
  * todo throw PantheonException
@@ -111,7 +111,19 @@ public class ClientNode extends AbstractLifecycleComponent {
 
     @Override
     protected void doStop() {
-
+        if (isShutdown.compareAndSet(false, true)) {
+            if (this.clientAPI != null) {
+                this.clientAPI.shutdown();
+            }
+            if (scheduledExecutorService != null) {
+                scheduledExecutorService.shutdown();
+            }
+            if (this.instanceInfo != null) {
+                this.instanceInfo.setInstanceStatus(InstanceInfo.InstanceStatus.DOWN);
+                sendUnRegister();
+            }
+            logger.info("Completed the shutdown of PantheonClient");
+        }
     }
 
     @Override
@@ -157,23 +169,6 @@ public class ClientNode extends AbstractLifecycleComponent {
             }
         } else {
             logger.warn("lock heartBeat, but failed. [{}]", instanceConfig.getServiceName());
-        }
-    }
-
-
-    public void shutdown() {
-        if (isShutdown.compareAndSet(false, true)) {
-            if (this.clientAPI != null) {
-                this.clientAPI.shutdown();
-            }
-            if (scheduledExecutorService != null) {
-                scheduledExecutorService.shutdown();
-            }
-            if (this.instanceInfo != null) {
-                this.instanceInfo.setInstanceStatus(InstanceInfo.InstanceStatus.DOWN);
-                sendUnRegister();
-            }
-            logger.info("Completed the shutdown of PantheonClient");
         }
     }
 

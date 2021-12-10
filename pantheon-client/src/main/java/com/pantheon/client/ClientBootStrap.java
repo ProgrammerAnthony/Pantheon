@@ -24,11 +24,11 @@ public class ClientBootStrap {
 
        clientNode.start();
         if (!clientNode.lifecycleState().equals(Lifecycle.State.STARTED)) {
-            clientNode.shutdown();
+            clientNode.stop();
             System.exit(-3);
         }
         Runtime.getRuntime().addShutdownHook(new ShutdownHookThread(logger, (Callable<Void>) () -> {
-            clientNode.shutdown();
+            clientNode.stop();
             return null;
         }));
     }
