@@ -20,6 +20,11 @@ public class Server {
      */
     private int port;
 
+    /**
+     * server contains many slots
+     */
+    private int slotNum;
+
     public Server(String id, String address, int port) {
         this.id = id;
         this.address = address;
@@ -57,6 +62,14 @@ public class Server {
 
     public String getRemoteSocketAddress() {
         return getAddress() + ":" + getPort();
+    }
+
+    public int getSlotNum() {
+        return slotNum;
+    }
+
+    public void setSlotNum(int slotNum) {
+        this.slotNum = slotNum;
     }
 
     @Override

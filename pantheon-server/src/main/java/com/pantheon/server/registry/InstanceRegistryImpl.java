@@ -80,10 +80,10 @@ public class InstanceRegistryImpl implements InstanceRegistry {
     public void register(InstanceInfo registrant, int leaseDuration) {
         try {
             read.lock();
-            Map<String, Lease<InstanceInfo>> gMap = registry.get(registrant.getAppName());
+            Map<String/*instanceId*/, Lease<InstanceInfo>> gMap = registry.get(registrant.getAppName());
             if (gMap == null) {
                 //build new map
-                final ConcurrentHashMap<String, Lease<InstanceInfo>> gNewMap = new ConcurrentHashMap<String, Lease<InstanceInfo>>();
+                final ConcurrentHashMap<String/*appName*/, Lease<InstanceInfo>> gNewMap = new ConcurrentHashMap<String, Lease<InstanceInfo>>();
                 gMap = registry.putIfAbsent(registrant.getAppName(), gNewMap);
                 if (gMap == null) {
                     gMap = gNewMap;
@@ -139,6 +139,7 @@ public class InstanceRegistryImpl implements InstanceRegistry {
             registrant.setActionType(InstanceInfo.ActionType.ADDED);
             recentlyChangedQueue.add(new RecentlyChangedItem(lease));
             registrant.setLastUpdatedTimestamp();
+            //todo one instance bind to one slot
             responseCache.invalidate(registrant.getAppName());
 
             logger.info("Registered instance {} with status {}",

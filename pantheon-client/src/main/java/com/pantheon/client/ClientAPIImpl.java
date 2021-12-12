@@ -42,7 +42,7 @@ public class ClientAPIImpl {
     private String serverAddress = null;
     private NettyClientConfig nettyClientConfig;
     private PantheonInstanceConfig pantheonInstanceConfig;
-    private Map<String, List<String>> slotsAllocation;
+    private Map<String/*serverNodeId*/, List<String>> slotsAllocation;
     private static final Integer SLOT_COUNT = 16384;
     private DefaultInstanceConfig instanceConfig;
     /**
@@ -158,11 +158,11 @@ public class ClientAPIImpl {
         return null;
     }
 
-    //todo build slots cache
     public Server routeServer(String serviceName) {
         Integer slot = routeSlot(serviceName);
         String serverId = locateServerBySlot(slot);
         Server server = servers.get(serverId);
+        server.setSlotNum(slot);
         logger.info(serviceName + " route to serverId: {}", serverId);
         logger.info(serviceName + " route to slot: {} to server: {}", slot, server);
         return server;

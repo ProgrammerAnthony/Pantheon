@@ -13,6 +13,8 @@ public class InstanceInfo extends RemotingSerializable {
 
     private String hostName;
 
+    // one instance bind to one slot
+    private Integer slotNum;
 
     private LeaseInfo leaseInfo;
     private InstanceStatus instanceStatus = InstanceStatus.UP;
@@ -103,6 +105,11 @@ public class InstanceInfo extends RemotingSerializable {
 
         public Builder setInstanceId(String instanceId) {
             result.instanceId = instanceId;
+            return this;
+        }
+
+        public Builder setSlotNum(Integer slotNum) {
+            result.slotNum = slotNum;
             return this;
         }
 

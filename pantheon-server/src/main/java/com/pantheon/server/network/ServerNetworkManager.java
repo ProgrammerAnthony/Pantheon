@@ -38,12 +38,10 @@ public class ServerNetworkManager {
 
     /**
      * default retry connect times
-     * todo config-able
      */
     private static final int DEFAULT_CONNECT_RETRIES = 3;
     /**
      * default connect timeout
-     * todo config-able
      */
     private static final int CONNECT_TIMEOUT = 5000;
     /**

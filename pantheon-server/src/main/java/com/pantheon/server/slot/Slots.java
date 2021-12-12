@@ -14,7 +14,7 @@ public class Slots {
     /**
      * slots in memory
      */
-    private ConcurrentHashMap<Integer, Slot> slots =
+    private ConcurrentHashMap<Integer/*slotNo*/, Slot> slots =
             new ConcurrentHashMap<>();
     /**
      * corresponding replica slots id

@@ -32,8 +32,7 @@ import java.util.concurrent.locks.ReentrantLock;
 /**
  * @author Anthony
  * @create 2021/11/19
- * @desc
- * todo add retry mechanism reference from EurekaHttpClientFactory
+ * @desc todo add retry mechanism reference from EurekaHttpClientFactory
  * todo load specific instances not all
  * todo throw PantheonException
  **/
@@ -228,14 +227,14 @@ public class ClientNode extends AbstractLifecycleComponent {
 
     }
 
-    private InstanceInfo getInstanceInfo() {
+    private InstanceInfo getInstanceInfo() throws InterruptedException {
         if (instanceInfo == null) {
             instanceInfo = buildInstanceInfo();
         }
         return instanceInfo;
     }
 
-    public synchronized InstanceInfo buildInstanceInfo() {
+    public synchronized InstanceInfo buildInstanceInfo() throws InterruptedException {
         if (instanceInfo == null) {
             // Build the lease information to be passed to the server based on config
             LeaseInfo.Builder leaseInfoBuilder = LeaseInfo.Builder.newBuilder()
@@ -248,6 +247,10 @@ public class ClientNode extends AbstractLifecycleComponent {
             // set the appropriate id for the InstanceInfo
             String instanceId = instanceConfig.getServiceName();
 
+            if (server == null) {
+                server = getServer();
+            }
+            Integer slotNum = server.getSlotNum();
 
             String defaultAddress = instanceConfig.getInstanceHostName();
 
@@ -258,6 +261,7 @@ public class ClientNode extends AbstractLifecycleComponent {
             InstanceInfo.InstanceStatus initialStatus = InstanceInfo.InstanceStatus.UP;
 
             builder.setInstanceId(instanceId)
+                    .setSlotNum(slotNum)
                     .setAppName(getServiceName())
                     .setIPAddr(instanceConfig.getInstanceIpAddress())
                     .setHostName(defaultAddress)

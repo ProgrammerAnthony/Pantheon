@@ -45,6 +45,7 @@ public class ClientManageProcessor extends AsyncNettyRequestProcessor implements
                 return this.getApplications(ctx, request);
             case RequestCode.GET_DELTA_APP:
                 return this.getDeltaApplications(ctx, request);
+                //todo case only load some apps
             case RequestCode.SERVICE_UNREGISTER:
                 return this.serviceUnregister(ctx, request);
             default:
