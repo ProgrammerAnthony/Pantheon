@@ -8,6 +8,7 @@ import com.pantheon.common.protocol.RequestCode;
 import com.pantheon.common.protocol.ResponseCode;
 import com.pantheon.common.protocol.header.GetConsumerRunningInfoRequestHeader;
 import com.pantheon.common.protocol.heartBeat.HeartBeat;
+import com.pantheon.common.protocol.heartBeat.ServiceUnregister;
 import com.pantheon.remoting.common.RemotingHelper;
 import com.pantheon.remoting.exception.RemotingCommandException;
 import com.pantheon.remoting.exception.RemotingTimeoutException;
@@ -17,6 +18,7 @@ import com.pantheon.remoting.protocol.RemotingCommand;
 import com.pantheon.server.ServerNode;
 import com.pantheon.server.client.ClientChannelInfo;
 import com.pantheon.server.registry.*;
+import com.pantheon.server.slot.SlotManager;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelHandlerContext;
 import org.slf4j.Logger;
@@ -32,14 +34,12 @@ import java.util.List;
  **/
 public class ClientManageProcessor extends AsyncNettyRequestProcessor implements NettyRequestProcessor {
     private static final Logger logger = LoggerFactory.getLogger(ClientManageProcessor.class);
-//    private final InstanceRegistryImpl instanceRegistry;
+    private final RouteInstanceToSlotRegistry routeInstanceToSlotRegistry;
     private final ServerNode serverNode;
-    private Integer slotNum;
-
 
 
     public ClientManageProcessor(ServerNode serverNode) {
-//        this.instanceRegistry = new InstanceRegistryImpl();
+        this.routeInstanceToSlotRegistry = RouteInstanceToSlotRegistry.getInstance();
         this.serverNode = serverNode;
     }
 
@@ -74,11 +74,14 @@ public class ClientManageProcessor extends AsyncNettyRequestProcessor implements
     }
 
     private RemotingCommand getApplications(ChannelHandlerContext ctx, RemotingCommand request) {
+        String clientId = this.serverNode.getConsumerInfoManager().findClientId(ctx.channel());
+        SlotManager slotManager = SlotManager.getInstance();
+
         RemotingCommand response = RemotingCommand.createResponseCommand(null);
         logger.info("getApplications request from : {}", RemotingHelper.parseChannelRemoteAddr(ctx.channel()));
         response.setCode(ResponseCode.SUCCESS);
         response.setRemark(null);
-        response.setBody(instanceRegistry.getApplicationsData());
+//        response.setBody(instanceRegistry.getApplicationsData());
         response.setOpaque(request.getOpaque());
         return response;
     }
@@ -88,16 +91,16 @@ public class ClientManageProcessor extends AsyncNettyRequestProcessor implements
         logger.info("getDeltaApplications request from : {}", RemotingHelper.parseChannelRemoteAddr(ctx.channel()));
         response.setCode(ResponseCode.SUCCESS);
         response.setRemark(null);
-        response.setBody(instanceRegistry.getApplicationsDeltaData());
+//        response.setBody(instanceRegistry.getApplicationsDeltaData());
         response.setOpaque(request.getOpaque());
         return response;
     }
 
     private RemotingCommand serviceUnregister(ChannelHandlerContext ctx, RemotingCommand request) {
         RemotingCommand response = RemotingCommand.createResponseCommand(null);
-        HeartBeat heartBeat = HeartBeat.decode(request.getBody(), HeartBeat.class);
-        logger.info("receive serviceUnregister from: {} / {}", heartBeat.getAppName(), heartBeat.getInstanceId());
-        cancelLease(heartBeat.getAppName(), heartBeat.getInstanceId());
+        ServiceUnregister serviceUnregister = ServiceUnregister.decode(request.getBody(), ServiceUnregister.class);
+        logger.info("receive serviceUnregister from: {} / {}", serviceUnregister.getServiceName(), serviceUnregister.getInstanceId());
+        cancelLease(serviceUnregister.getServiceName(), serviceUnregister.getInstanceId());
         response.setCode(ResponseCode.SUCCESS);
         response.setRemark(null);
         response.setOpaque(request.getOpaque());
@@ -116,8 +119,8 @@ public class ClientManageProcessor extends AsyncNettyRequestProcessor implements
         );
 
 
-        logger.info("receive heartBeat from: {} / {}", heartBeat.getAppName(), heartBeat.getInstanceId());
-        String renewError = instanceRegistry.renew(heartBeat.getAppName(), heartBeat.getInstanceId());
+        logger.debug("receive heartBeat from: {} / {}", heartBeat.getServiceName(), heartBeat.getInstanceId());
+        String renewError = routeInstanceToSlotRegistry.renew(heartBeat.getServiceName(), heartBeat.getInstanceId());
         if (renewError == null) {
             response.setCode(ResponseCode.SUCCESS);
         } else {
@@ -134,7 +137,7 @@ public class ClientManageProcessor extends AsyncNettyRequestProcessor implements
     private RemotingCommand serviceRegistry(ChannelHandlerContext ctx, RemotingCommand request) throws RemotingCommandException {
         RemotingCommand response = RemotingCommand.createResponseCommand(null);
         InstanceInfo instanceInfo = InstanceInfo.decode(request.getBody(), InstanceInfo.class);
-        logger.info("serviceRegistry called by {},receive instanceInfo: {} ", RemotingHelper.parseChannelRemoteAddr(ctx.channel()), instanceInfo.toString());
+        logger.debug("serviceRegistry called by {},receive instanceInfo: {} ", RemotingHelper.parseChannelRemoteAddr(ctx.channel()), instanceInfo.toString());
         if (ObjectUtils.isEmpty(instanceInfo)) {
             response.setCode(ResponseCode.SYSTEM_ERROR);
             response.setRemark(null);
@@ -149,8 +152,6 @@ public class ClientManageProcessor extends AsyncNettyRequestProcessor implements
     }
 
 
-
-
     /**
      * Get requests returns the information about the instance's
      * {@link InstanceInfo}.
@@ -159,7 +160,7 @@ public class ClientManageProcessor extends AsyncNettyRequestProcessor implements
      * {@link InstanceInfo}.
      */
     public InstanceInfo getInstanceInfo(final String appName, final String id) {
-        InstanceInfo appInfo = instanceRegistry
+        InstanceInfo appInfo = routeInstanceToSlotRegistry
                 .getInstanceByAppAndId(appName, id);
         return appInfo;
     }
@@ -179,7 +180,7 @@ public class ClientManageProcessor extends AsyncNettyRequestProcessor implements
             String overriddenStatus,
             String status,
             String lastDirtyTimestamp) {
-        String renewError = instanceRegistry.renew(appName, id);
+        String renewError = routeInstanceToSlotRegistry.renew(appName, id);
 
         // Not found in the registry, immediately ask for a register
         if (renewError != null) {
@@ -195,7 +196,7 @@ public class ClientManageProcessor extends AsyncNettyRequestProcessor implements
             if (response.getStatus() == Response.Status.NOT_FOUND.getStatusCode()
                     && (overriddenStatus != null)
                     && !(InstanceInfo.InstanceStatus.UNKNOWN.name().equals(overriddenStatus))) {
-                instanceRegistry.storeOverriddenStatusIfRequired(appName, id, InstanceInfo.InstanceStatus.valueOf(overriddenStatus));
+                routeInstanceToSlotRegistry.storeOverriddenStatusIfRequired(appName, id, InstanceInfo.InstanceStatus.valueOf(overriddenStatus));
             }
         } else {
             response = Response.ok().build();
@@ -228,7 +229,7 @@ public class ClientManageProcessor extends AsyncNettyRequestProcessor implements
             throw new IllegalArgumentException("Missing slotNum");
         }
 
-        instanceRegistry.register(info);
+        routeInstanceToSlotRegistry.register(info);
         return true;
     }
 
@@ -251,11 +252,11 @@ public class ClientManageProcessor extends AsyncNettyRequestProcessor implements
     public Response statusUpdate(String appName, String id,
                                  String newStatus, String lastDirtyTimestamp) {
         try {
-            if (instanceRegistry.getInstanceByAppAndId(appName, id) == null) {
+            if (routeInstanceToSlotRegistry.getInstanceByAppAndId(appName, id) == null) {
                 logger.warn("Instance not found: {}/{}", appName, id);
                 return Response.status(Response.Status.NOT_FOUND).build();
             }
-            boolean isSuccess = instanceRegistry.statusUpdate(appName, id,
+            boolean isSuccess = routeInstanceToSlotRegistry.statusUpdate(appName, id,
                     InstanceInfo.InstanceStatus.valueOf(newStatus), lastDirtyTimestamp);
 
             if (isSuccess) {
@@ -286,13 +287,13 @@ public class ClientManageProcessor extends AsyncNettyRequestProcessor implements
                                        String newStatusValue,
                                        String lastDirtyTimestamp) {
         try {
-            if (instanceRegistry.getInstanceByAppAndId(appName, id) == null) {
+            if (routeInstanceToSlotRegistry.getInstanceByAppAndId(appName, id) == null) {
                 logger.warn("Instance not found: {}/{}", appName, id);
                 return Response.status(Response.Status.NOT_FOUND).build();
             }
 
             InstanceInfo.InstanceStatus newStatus = newStatusValue == null ? InstanceInfo.InstanceStatus.UNKNOWN : InstanceInfo.InstanceStatus.valueOf(newStatusValue);
-            boolean isSuccess = instanceRegistry.deleteStatusOverride(appName, id,
+            boolean isSuccess = routeInstanceToSlotRegistry.deleteStatusOverride(appName, id,
                     newStatus, lastDirtyTimestamp);
 
             if (isSuccess) {
@@ -316,7 +317,7 @@ public class ClientManageProcessor extends AsyncNettyRequestProcessor implements
      * failure.
      */
     public Boolean cancelLease(String appName, String id) {
-        boolean isSuccess = instanceRegistry.cancel(appName, id);
+        boolean isSuccess = routeInstanceToSlotRegistry.cancel(appName, id);
 
         if (isSuccess) {
             logger.debug("Found (Cancel): " + appName + " - " + id);
@@ -329,7 +330,7 @@ public class ClientManageProcessor extends AsyncNettyRequestProcessor implements
 
 
     private Response validateDirtyTimestamp(String appName, String id, Long lastDirtyTimestamp) {
-        InstanceInfo appInfo = instanceRegistry.getInstanceByAppAndId(appName, id);
+        InstanceInfo appInfo = routeInstanceToSlotRegistry.getInstanceByAppAndId(appName, id);
         if (appInfo != null) {
             if ((lastDirtyTimestamp != null) && (!lastDirtyTimestamp.equals(appInfo.getLastDirtyTimestamp()))) {
                 Object[] args = {id, appInfo.getLastDirtyTimestamp(), lastDirtyTimestamp};

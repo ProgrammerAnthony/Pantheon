@@ -223,7 +223,7 @@ public class ClientAPIImpl {
 
     public boolean sendHeartBeatToServer(final Server server, String appName, String id, final Long timoutMills) throws RemotingConnectException, RemotingSendRequestException, RemotingTimeoutException, InterruptedException {
         HeartBeat heartBeat = new HeartBeat();
-        heartBeat.setAppName(appName);
+        heartBeat.setServiceName(appName);
         heartBeat.setInstanceId(id);
         RemotingCommand request = RemotingCommand.createRequestCommand(RequestCode.SERVICE_HEART_BEAT, null);
         request.setBody(heartBeat.encode());
@@ -321,7 +321,7 @@ public class ClientAPIImpl {
     public boolean unRegister(Server server, String appName, String instanceId, long timoutMills) throws RemotingConnectException, RemotingSendRequestException, RemotingTimeoutException, InterruptedException {
         HeartBeat heartBeat = new HeartBeat();
         heartBeat.setInstanceId(instanceId);
-        heartBeat.setAppName(appName);
+        heartBeat.setServiceName(appName);
         RemotingCommand request = RemotingCommand.createRequestCommand(RequestCode.SERVICE_UNREGISTER, null);
         request.setBody(heartBeat.encode());
         RemotingCommand response = this.remotingClient.invokeSync(server.getRemoteSocketAddress(), request, timoutMills);

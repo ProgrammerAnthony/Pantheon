@@ -8,9 +8,7 @@ import com.pantheon.server.slot.registry.ServiceRegistry;
 import java.util.List;
 
 /**
- * Slot in Pantheon is topic in RocketMq, Slot is the authentic part for
- * service registry to save .
- * todo build with new mechanism
+ * Slot play a role of routing and partitioning services data
  */
 public class Slot {
 
@@ -21,32 +19,24 @@ public class Slot {
 
     private InstanceRegistryImpl instanceRegistry;
 
+
+    public Slot(Integer slotNo) {
+        this.slotNo = slotNo;
+    }
+
+
+
     public Slot(Integer slotNo,InstanceRegistryImpl instanceRegistry) {
         this.slotNo = slotNo;
         this.instanceRegistry =instanceRegistry;
     }
 
-    public ServiceRegistry getServiceRegistry() {
-//        return this.serviceRegistry;
-        return null;
-    }
-
-    public boolean isEmpty() {
-        return  false;
-//        return serviceRegistry.isEmpty();
-    }
-
-    public byte[] getSlotData() {
-        return null;
-//        return serviceRegistry.getData();
-    }
-
-    public void updateSlotData(List<ServiceInstance> serviceInstances) {
-//        serviceRegistry.updateData(serviceInstances);
-    }
-
     public void setInstanceRegistry(InstanceRegistryImpl instanceRegistry) {
         this.instanceRegistry = instanceRegistry;
+    }
+
+    public void setSlotNo(Integer slotNo) {
+        this.slotNo = slotNo;
     }
 
     public InstanceRegistryImpl getInstanceRegistry() {

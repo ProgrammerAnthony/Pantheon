@@ -206,12 +206,12 @@ public class SlotManager {
 
         for (int slotNo = startSlotNo; slotNo <= endSlotNo; slotNo++) {
             Slot slot = this.slots.getSlot(slotNo);
-            if (slot.isEmpty()) {
-                continue;
-            }
+//            if (slot.isEmpty()) {
+//                continue;
+//            }
 
-            byte[] bytes = slot.getSlotData();
-
+//            byte[] bytes = slot.getSlotData();
+            byte[] bytes=new byte[10];
             ByteBuffer buffer = ByteBuffer.allocate(4 + 4 + bytes.length);
             buffer.putInt(MessageType.UPDATE_SLOTS);
             buffer.putInt(slotNo);
@@ -247,7 +247,7 @@ public class SlotManager {
 
     public void updateSlotData(Integer slotNo, List<ServiceInstance> serviceInstances) {
         Slot slot = this.slots.getSlot(slotNo);
-        slot.updateSlotData(serviceInstances);
+//        slot.updateSlotData(serviceInstances);
     }
 
 }

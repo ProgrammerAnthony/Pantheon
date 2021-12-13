@@ -195,6 +195,7 @@ public class ServerNode extends AbstractLifecycleComponent {
             RemotingCommand request =
                     RemotingCommand.createRequestCommand(RequestCode.GET_CONSUMER_RUNNING_INFO,
                             requestHeader);
+            //todo just for test
             clientManageProcessor.callConsumer(RequestCode.GET_CONSUMER_RUNNING_INFO, request);
         }
 

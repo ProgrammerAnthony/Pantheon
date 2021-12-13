@@ -37,6 +37,7 @@ public class ConsumerInfoManager {
     private static final Logger log = LoggerFactory.getLogger(ConsumerInfoManager.class);
     private final ConcurrentMap<Integer/*slotNum*/, SubscriptionData> subscriptionTable =
         new ConcurrentHashMap<Integer, SubscriptionData>();
+    //bind channel with clientId
     private final ConcurrentMap<Channel, ClientChannelInfo> channelInfoTable =
         new ConcurrentHashMap<Channel, ClientChannelInfo>(16);
     private final ServerNode serverNode;
@@ -195,9 +196,6 @@ public class ConsumerInfoManager {
                     log.info("subscription changed, add new topic, {}",
                         sub.toString());
                 }
-            } else if (sub.getSubVersion() > old.getSubVersion()) {
-
-                this.subscriptionTable.put(sub.getSlotNum(), sub);
             }
         }
 

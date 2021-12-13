@@ -7,7 +7,6 @@ import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * slots in current node
- *  todo build with new register mechanism
  */
 public class Slots {
 
@@ -23,6 +22,7 @@ public class Slots {
 
     /**
      * slots initialization
+     *
      * @param slotScope
      */
     public void init(String slotScope) {
@@ -30,10 +30,10 @@ public class Slots {
         Integer startSlotNo = Integer.valueOf(slotScopeSplited[0]);
         Integer endSlotNo = Integer.valueOf(slotScopeSplited[1]);
 
-        ServiceRegistry serviceRegistry = new ServiceRegistry(false);
-
-        for(Integer slotNo = startSlotNo; slotNo <= endSlotNo; slotNo++) {
-            slots.put(slotNo, new Slot(slotNo, serviceRegistry));
+//        ServiceRegistry serviceRegistry = new ServiceRegistry(false);
+        //todo put map when use
+        for (Integer slotNo = startSlotNo; slotNo <= endSlotNo; slotNo++) {
+            slots.put(slotNo, new Slot(slotNo));
         }
     }
 
@@ -43,6 +43,7 @@ public class Slots {
 
     /**
      * corresponding replica slots id
+     *
      * @param replicaNodeId
      */
     public void setReplicaNodeId(Integer replicaNodeId) {

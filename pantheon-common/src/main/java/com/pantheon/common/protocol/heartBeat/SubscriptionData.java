@@ -7,8 +7,9 @@ package com.pantheon.common.protocol.heartBeat;
  */
 public class SubscriptionData {
     private Integer slotNum;
-    private long subVersion = System.currentTimeMillis();
-
+    private String serviceName;
+    private String instanceId;
+    private String clientId;
 
     public Integer getSlotNum() {
         return slotNum;
@@ -18,11 +19,27 @@ public class SubscriptionData {
         this.slotNum = slotNum;
     }
 
-    public long getSubVersion() {
-        return subVersion;
+    public String getServiceName() {
+        return serviceName;
     }
 
-    public void setSubVersion(long subVersion) {
-        this.subVersion = subVersion;
+    public String getInstanceId() {
+        return instanceId;
+    }
+
+    public void setServiceName(String serviceName) {
+        this.serviceName = serviceName;
+    }
+
+    public void setInstanceId(String instanceId) {
+        this.instanceId = instanceId;
+    }
+
+    public String getClientId() {
+        return clientId;
+    }
+
+    public void setClientId(String clientId) {
+        this.clientId = clientId;
     }
 }
