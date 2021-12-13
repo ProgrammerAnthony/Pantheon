@@ -1,6 +1,7 @@
 package com.pantheon.server.slot;
 
 
+import com.pantheon.server.registry.InstanceRegistryImpl;
 import com.pantheon.server.slot.registry.ServiceInstance;
 import com.pantheon.server.slot.registry.ServiceRegistry;
 
@@ -17,31 +18,42 @@ public class Slot {
      * slot num
      */
     private Integer slotNo;
-    /**
-     * service registry
-     */
-    private ServiceRegistry serviceRegistry;
 
+    private InstanceRegistryImpl instanceRegistry;
 
-    public Slot(Integer slotNo, ServiceRegistry serviceRegistry) {
+    public Slot(Integer slotNo,InstanceRegistryImpl instanceRegistry) {
         this.slotNo = slotNo;
-        this.serviceRegistry = serviceRegistry;
+        this.instanceRegistry =instanceRegistry;
     }
 
     public ServiceRegistry getServiceRegistry() {
-        return this.serviceRegistry;
+//        return this.serviceRegistry;
+        return null;
     }
 
     public boolean isEmpty() {
-        return serviceRegistry.isEmpty();
+        return  false;
+//        return serviceRegistry.isEmpty();
     }
 
     public byte[] getSlotData() {
-        return serviceRegistry.getData();
+        return null;
+//        return serviceRegistry.getData();
     }
 
     public void updateSlotData(List<ServiceInstance> serviceInstances) {
-        serviceRegistry.updateData(serviceInstances);
+//        serviceRegistry.updateData(serviceInstances);
     }
 
+    public void setInstanceRegistry(InstanceRegistryImpl instanceRegistry) {
+        this.instanceRegistry = instanceRegistry;
+    }
+
+    public InstanceRegistryImpl getInstanceRegistry() {
+        return instanceRegistry;
+    }
+
+    public Integer getSlotNo() {
+        return slotNo;
+    }
 }

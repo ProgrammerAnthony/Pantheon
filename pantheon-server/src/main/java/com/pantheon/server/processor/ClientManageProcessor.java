@@ -32,15 +32,15 @@ import java.util.List;
  **/
 public class ClientManageProcessor extends AsyncNettyRequestProcessor implements NettyRequestProcessor {
     private static final Logger logger = LoggerFactory.getLogger(ClientManageProcessor.class);
-    private final ResponseCache responseCache;
-    private final InstanceRegistryImpl instanceRegistry;
+//    private final InstanceRegistryImpl instanceRegistry;
     private final ServerNode serverNode;
+    private Integer slotNum;
+
+
 
     public ClientManageProcessor(ServerNode serverNode) {
-        this.instanceRegistry = InstanceRegistryImpl.getInstance();
-        this.responseCache = instanceRegistry.getResponseCache();
+//        this.instanceRegistry = new InstanceRegistryImpl();
         this.serverNode = serverNode;
-
     }
 
     @Override
@@ -78,7 +78,7 @@ public class ClientManageProcessor extends AsyncNettyRequestProcessor implements
         logger.info("getApplications request from : {}", RemotingHelper.parseChannelRemoteAddr(ctx.channel()));
         response.setCode(ResponseCode.SUCCESS);
         response.setRemark(null);
-        response.setBody(getApplications());
+        response.setBody(instanceRegistry.getApplicationsData());
         response.setOpaque(request.getOpaque());
         return response;
     }
@@ -88,7 +88,7 @@ public class ClientManageProcessor extends AsyncNettyRequestProcessor implements
         logger.info("getDeltaApplications request from : {}", RemotingHelper.parseChannelRemoteAddr(ctx.channel()));
         response.setCode(ResponseCode.SUCCESS);
         response.setRemark(null);
-        response.setBody(getApplicationsDelta());
+        response.setBody(instanceRegistry.getApplicationsDeltaData());
         response.setOpaque(request.getOpaque());
         return response;
     }
@@ -148,31 +148,7 @@ public class ClientManageProcessor extends AsyncNettyRequestProcessor implements
         return response;
     }
 
-    /**
-     * get applications info from cache
-     *
-     * @return
-     */
-    public byte[] getApplications() {
-        Key cacheKey = new Key(
-                ResponseCacheImpl.ALL_APPS,
-                Key.ACCEPT.COMPACT
-        );
-        return responseCache.getGZIP(cacheKey);
-    }
 
-    /**
-     * get applications delta info from cache
-     *
-     * @return
-     */
-    public byte[] getApplicationsDelta() {
-        Key cacheKey = new Key(
-                ResponseCacheImpl.ALL_APPS_DELTA,
-                Key.ACCEPT.COMPACT
-        );
-        return responseCache.getGZIP(cacheKey);
-    }
 
 
     /**
@@ -248,6 +224,8 @@ public class ClientManageProcessor extends AsyncNettyRequestProcessor implements
             throw new IllegalArgumentException("Missing appName");
         } else if (!appName.equals(info.getAppName())) {
             throw new IllegalArgumentException("Mismatched appName, expecting " + appName + " but was " + info.getAppName());
+        } else if (ObjectUtils.isEmpty(info.getSlotNum())) {
+            throw new IllegalArgumentException("Missing slotNum");
         }
 
         instanceRegistry.register(info);

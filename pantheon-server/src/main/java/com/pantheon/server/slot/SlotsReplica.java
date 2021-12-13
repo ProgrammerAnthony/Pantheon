@@ -8,8 +8,8 @@ import java.util.concurrent.ConcurrentHashMap;
 /**
  * slots replica
  *
- * todo build with new register mechanism
- * todo load specific instances not all
+ * 1 todo build with new register mechanism
+ * 2 todo load specific instances not all
  */
 public class SlotsReplica {
 

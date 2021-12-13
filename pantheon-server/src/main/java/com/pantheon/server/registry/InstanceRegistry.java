@@ -97,7 +97,5 @@ public interface InstanceRegistry {
     Application getApplication(String appName);
 
 
-    ResponseCache getResponseCache();
-
 
 }

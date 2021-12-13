@@ -12,6 +12,8 @@ import com.pantheon.server.lease.LeaseManager;
 import com.pantheon.server.rule.DownOrStartingRule;
 import com.pantheon.server.rule.FirstMatchWinsCompositeRule;
 import com.pantheon.server.rule.InstanceStatusOverrideRule;
+import com.pantheon.server.slot.Slot;
+import com.pantheon.server.slot.SlotManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -41,27 +43,19 @@ public class InstanceRegistryImpl implements InstanceRegistry {
             .newBuilder().initialCapacity(500)
             .expireAfterAccess(1, TimeUnit.HOURS)
             .<String, InstanceInfo.InstanceStatus>build().asMap();
+//    private final SlotManager slotManager;
     // delta queue
     private ConcurrentLinkedQueue<RecentlyChangedItem> recentlyChangedQueue = new ConcurrentLinkedQueue<RecentlyChangedItem>();
     protected volatile ResponseCache responseCache;
     CachedPantheonServerConfig serverConfig;
     private Timer deltaRetentionTimer = new Timer("Pantheon-DeltaRetentionTimer", true);
 
-
-    private InstanceRegistryImpl() {
+    public InstanceRegistryImpl() {
         this.serverConfig = CachedPantheonServerConfig.getInstance();
         responseCache = new ResponseCacheImpl(serverConfig, this);
         this.deltaRetentionTimer.schedule(getDeltaRetentionTask(),
                 serverConfig.getDeltaRetentionTimerIntervalInMs(),
                 serverConfig.getDeltaRetentionTimerIntervalInMs());
-    }
-
-    private static class Singleton {
-        static InstanceRegistryImpl instance = new InstanceRegistryImpl();
-    }
-
-    public static InstanceRegistryImpl getInstance() {
-        return InstanceRegistryImpl.Singleton.instance;
     }
 
     public void register(final InstanceInfo info) {
@@ -523,10 +517,6 @@ public class InstanceRegistryImpl implements InstanceRegistry {
         }
     }
 
-    public ResponseCache getResponseCache() {
-        return responseCache;
-    }
-
     /**
      * remove data from recentlyChangedQueue
      */
@@ -547,5 +537,31 @@ public class InstanceRegistryImpl implements InstanceRegistry {
                 }
             }
         };
+    }
+
+    /**
+     * get applications info from cache
+     *
+     * @return
+     */
+    public byte[] getApplicationsData() {
+        Key cacheKey = new Key(
+                ResponseCacheImpl.ALL_APPS,
+                Key.ACCEPT.COMPACT
+        );
+        return responseCache.getGZIP(cacheKey);
+    }
+
+    /**
+     * get applications delta info from cache
+     *
+     * @return
+     */
+    public byte[] getApplicationsDeltaData() {
+        Key cacheKey = new Key(
+                ResponseCacheImpl.ALL_APPS_DELTA,
+                Key.ACCEPT.COMPACT
+        );
+        return responseCache.getGZIP(cacheKey);
     }
 }

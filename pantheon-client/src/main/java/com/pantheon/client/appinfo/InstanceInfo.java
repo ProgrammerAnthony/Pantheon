@@ -600,6 +600,10 @@ public class InstanceInfo extends RemotingSerializable {
         this.actionType = actionType;
     }
 
+    public Integer getSlotNum() {
+        return slotNum;
+    }
+
 
     public enum ActionType {
         ADDED, // Added in the discovery server

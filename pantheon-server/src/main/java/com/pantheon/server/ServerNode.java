@@ -30,7 +30,11 @@ import java.util.concurrent.*;
 /**
  * @author Anthony
  * @create 2021/11/18
- * @desc 1 todo design slots mechanism and treat it as something like topic in RocketMq
+ * @desc
+ *  1 todo building slots mechanism and treat it as something like topic in RocketMq
+ *  2 todo server side push services clients' register
+ *  3 todo heartbeat check and heartbeat past due
+ *  4 todo rebuild master election mechanism  reference from ElasticSearch
  **/
 public class ServerNode extends AbstractLifecycleComponent {
     private final ThreadPoolExecutor heartbeatExecutor;
