@@ -6,12 +6,16 @@ import com.pantheon.client.appinfo.InstanceInfo;
 import com.pantheon.common.ObjectUtils;
 import com.pantheon.common.protocol.RequestCode;
 import com.pantheon.common.protocol.ResponseCode;
+import com.pantheon.common.protocol.header.GetConsumerRunningInfoRequestHeader;
 import com.pantheon.common.protocol.heartBeat.ServiceIdentifier;
 import com.pantheon.remoting.common.RemotingHelper;
 import com.pantheon.remoting.exception.RemotingCommandException;
+import com.pantheon.remoting.exception.RemotingTimeoutException;
 import com.pantheon.remoting.netty.AsyncNettyRequestProcessor;
 import com.pantheon.remoting.netty.NettyRequestProcessor;
 import com.pantheon.remoting.protocol.RemotingCommand;
+import com.pantheon.server.ServerNode;
+import com.pantheon.server.client.ClientChannelInfo;
 import com.pantheon.server.registry.*;
 import io.netty.channel.ChannelHandlerContext;
 import org.slf4j.Logger;
@@ -28,10 +32,13 @@ public class ClientManageProcessor extends AsyncNettyRequestProcessor implements
     private static final Logger logger = LoggerFactory.getLogger(ClientManageProcessor.class);
     private final ResponseCache responseCache;
     private final InstanceRegistryImpl instanceRegistry;
+    private final ServerNode serverNode;
 
-    public ClientManageProcessor() {
+    public ClientManageProcessor(ServerNode serverNode) {
         this.instanceRegistry = InstanceRegistryImpl.getInstance();
         this.responseCache = instanceRegistry.getResponseCache();
+        this.serverNode = serverNode;
+
     }
 
     @Override
@@ -45,13 +52,23 @@ public class ClientManageProcessor extends AsyncNettyRequestProcessor implements
                 return this.getApplications(ctx, request);
             case RequestCode.GET_DELTA_APP:
                 return this.getDeltaApplications(ctx, request);
-                //todo case only load some apps
+            //todo case only load some apps
             case RequestCode.SERVICE_UNREGISTER:
                 return this.serviceUnregister(ctx, request);
+            //todo  server to client side communication
+            case RequestCode.GET_CONSUMER_RUNNING_INFO:
+                return this.getConsumerInfo(ctx, request);
             default:
                 break;
         }
         return null;
+    }
+
+    private RemotingCommand getConsumerInfo(ChannelHandlerContext ctx, RemotingCommand request) throws RemotingCommandException {
+        final GetConsumerRunningInfoRequestHeader requestHeader =
+                (GetConsumerRunningInfoRequestHeader) request.decodeCommandCustomHeader(GetConsumerRunningInfoRequestHeader.class);
+
+        return this.callConsumer(RequestCode.GET_CONSUMER_RUNNING_INFO, request, requestHeader.getClientId());
     }
 
     private RemotingCommand getApplications(ChannelHandlerContext ctx, RemotingCommand request) {
@@ -90,7 +107,7 @@ public class ClientManageProcessor extends AsyncNettyRequestProcessor implements
         ServiceIdentifier serviceIdentifier = ServiceIdentifier.decode(request.getBody(), ServiceIdentifier.class);
         logger.info("receive heartBeat from: {} / {}", serviceIdentifier.getAppName(), serviceIdentifier.getInstanceId());
         String renewError = instanceRegistry.renew(serviceIdentifier.getAppName(), serviceIdentifier.getInstanceId());
-        if (renewError==null) {
+        if (renewError == null) {
             response.setCode(ResponseCode.SUCCESS);
         } else {
             response.setRemark(renewError);
@@ -347,5 +364,36 @@ public class ClientManageProcessor extends AsyncNettyRequestProcessor implements
         return false;
     }
 
+    private RemotingCommand callConsumer(
+            final int requestCode,
+            final RemotingCommand request,
+            final String clientId) throws RemotingCommandException {
+        final RemotingCommand response = RemotingCommand.createResponseCommand(null);
+        ClientChannelInfo clientChannelInfo = this.serverNode.getConsumerInfoManager().findChannel(clientId);
+
+        if (null == clientChannelInfo) {
+            response.setCode(ResponseCode.SYSTEM_ERROR);
+            response.setRemark(String.format("The Consumer <%s> not online", clientId));
+            return response;
+        }
+
+        try {
+            RemotingCommand newRequest = RemotingCommand.createRequestCommand(requestCode, null);
+            newRequest.setExtFields(request.getExtFields());
+            newRequest.setBody(request.getBody());
+
+            return this.serverNode.getServerToClient().callClient(clientChannelInfo.getChannel(), newRequest);
+        } catch (RemotingTimeoutException e) {
+            response.setCode(ResponseCode.CONSUME_MSG_TIMEOUT);
+            response
+                    .setRemark(String.format("consumer <%s> Timeout: %s", clientId, RemotingHelper.exceptionSimpleDesc(e)));
+            return response;
+        } catch (Exception e) {
+            response.setCode(ResponseCode.SYSTEM_ERROR);
+            response.setRemark(
+                    String.format("invoke consumer <%s> Exception: %s", clientId, RemotingHelper.exceptionSimpleDesc(e)));
+            return response;
+        }
+    }
 
 }

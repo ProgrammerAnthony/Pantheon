@@ -8,4 +8,5 @@ import com.pantheon.remoting.protocol.RemotingSysResponseCode;
  * @desc
  **/
 public class ResponseCode extends RemotingSysResponseCode {
+    public static final int CONSUME_MSG_TIMEOUT = 100;
 }

@@ -7,6 +7,9 @@ import com.pantheon.common.protocol.RequestCode;
 import com.pantheon.remoting.RemotingServer;
 import com.pantheon.remoting.netty.NettyRemotingServer;
 import com.pantheon.remoting.netty.NettyServerConfig;
+import com.pantheon.server.client.ClientHousekeepingService;
+import com.pantheon.server.client.ConsumerInfoManager;
+import com.pantheon.server.client.ServerToClient;
 import com.pantheon.server.config.CachedPantheonServerConfig;
 import com.pantheon.server.config.PantheonServerConfig;
 import com.pantheon.server.network.ServerMessageReceiver;
@@ -29,7 +32,9 @@ import java.util.concurrent.*;
 public class ServerNode extends AbstractLifecycleComponent {
     private final ThreadPoolExecutor heartbeatExecutor;
     private final ThreadPoolExecutor serviceManageExecutor;
-
+    private final ServerToClient serverToClient;
+    private final ConsumerInfoManager consumerInfoManager;
+    private final ClientHousekeepingService clientHousekeepingService;
     private NettyServerConfig nettyServerConfig;
     private PantheonServerConfig serverConfig;
     private RemotingServer remotingServer;
@@ -43,6 +48,9 @@ public class ServerNode extends AbstractLifecycleComponent {
     private ServerNode() {
         this.nettyServerConfig = new NettyServerConfig();
         this.serverConfig = CachedPantheonServerConfig.getInstance();
+        this.serverToClient = new ServerToClient(this);
+        this.consumerInfoManager = new ConsumerInfoManager(this);
+        this.clientHousekeepingService = new ClientHousekeepingService(this);
         this.heartbeatExecutor = new ThreadPoolExecutor(
                 1,
                 1,
@@ -70,13 +78,13 @@ public class ServerNode extends AbstractLifecycleComponent {
 
     private void startNettyClientServer() {
         nettyServerConfig.setListenPort(serverConfig.getNodeClientTcpPort());
-        remotingServer = new NettyRemotingServer(nettyServerConfig);
+        remotingServer = new NettyRemotingServer(nettyServerConfig, this.clientHousekeepingService);
         this.remotingExecutor =
                 Executors.newFixedThreadPool(nettyServerConfig.getServerWorkerThreads(), new ThreadFactoryImpl("RemotingExecutorThread_"));
         ServerNodeProcessor defaultProcessor = new ServerNodeProcessor(this);
         remotingServer.registerDefaultProcessor(defaultProcessor, remotingExecutor);
         //use threadpool to process management event
-        ClientManageProcessor clientManageProcessor = new ClientManageProcessor();
+        ClientManageProcessor clientManageProcessor = new ClientManageProcessor(this);
         remotingServer.registerProcessor(RequestCode.SERVICE_HEART_BEAT, clientManageProcessor, heartbeatExecutor);
         remotingServer.registerProcessor(RequestCode.GET_ALL_APP, clientManageProcessor, heartbeatExecutor);
         remotingServer.registerProcessor(RequestCode.GET_DELTA_APP, clientManageProcessor, heartbeatExecutor);
@@ -217,17 +225,41 @@ public class ServerNode extends AbstractLifecycleComponent {
         }
 
         startNettyClientServer();
+
+        //save connection between client and server
+        if (this.clientHousekeepingService != null) {
+            this.clientHousekeepingService.start();
+        }
     }
 
     @Override
     protected void doStop() {
-        this.remotingServer.shutdown();
-        this.remotingExecutor.shutdown();
+        if (remotingServer != null) {
+            this.remotingServer.shutdown();
+        }
+        if (remotingExecutor != null) {
+            this.remotingExecutor.shutdown();
+        }
+        if (clientHousekeepingService != null) {
+            this.clientHousekeepingService.shutdown();
+        }
         logger.info("the server controller shutdown OK");
     }
 
     @Override
     protected void doClose() throws IOException {
 
+    }
+
+    public RemotingServer getRemotingServer() {
+        return remotingServer;
+    }
+
+    public ServerToClient getServerToClient() {
+        return serverToClient;
+    }
+
+    public ConsumerInfoManager getConsumerInfoManager() {
+        return consumerInfoManager;
     }
 }
