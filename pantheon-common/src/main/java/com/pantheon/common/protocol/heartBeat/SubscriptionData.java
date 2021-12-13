@@ -1,4 +1,4 @@
-package com.pantheon.server.client;
+package com.pantheon.common.protocol.heartBeat;
 
 /**
  * @author Anthony

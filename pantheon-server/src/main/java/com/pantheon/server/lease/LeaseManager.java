@@ -9,7 +9,7 @@ package com.pantheon.server.lease;
  * <p>
  * Leases determine what instances receive traffic. When there is no renewal
  * request from the client, the lease gets expired and the instances are evicted
- * out of {@link AbstractInstanceRegistry}. This is key to instances receiving traffic
+ * out of {@link com.pantheon.server.registry.InstanceRegistry}. This is key to instances receiving traffic
  * or not.
  * <p>
  *

@@ -16,6 +16,7 @@
  */
 package com.pantheon.server.client;
 
+import com.pantheon.common.protocol.heartBeat.SubscriptionData;
 import com.pantheon.remoting.common.RemotingHelper;
 import com.pantheon.remoting.common.RemotingUtil;
 import com.pantheon.server.ServerNode;
@@ -51,6 +52,19 @@ public class ConsumerInfoManager {
             Entry<Channel, ClientChannelInfo> next = it.next();
             if (next.getValue().getClientId().equals(clientId)) {
                 return next.getValue();
+            }
+        }
+
+        return null;
+    }
+
+    public String findClientId(final Channel channel) {
+        Iterator<Entry<Channel, ClientChannelInfo>> it = this.channelInfoTable.entrySet().iterator();
+        while (it.hasNext()) {
+            Entry<Channel, ClientChannelInfo> next = it.next();
+            if (next.getKey().equals(channel)) {
+                ClientChannelInfo value = next.getValue();
+                return value.getClientId();
             }
         }
 
@@ -145,7 +159,7 @@ public class ConsumerInfoManager {
             infoOld = infoNew;
         } else {
             if (!infoOld.getClientId().equals(infoNew.getClientId())) {
-                log.error("[BUG] consumer channel exist in broker, but clientId not equal.OLD: {} NEW: {} ",
+                log.error("[BUG] consumer channel exist in server, but clientId not equal.OLD: {} NEW: {} ",
                     infoOld.toString(),
                     infoNew.toString());
                 this.channelInfoTable.put(infoNew.getChannel(), infoNew);
@@ -156,6 +170,17 @@ public class ConsumerInfoManager {
         infoOld.setLastUpdateTimestamp(this.lastUpdateTimestamp);
 
         return updated;
+    }
+
+
+    public boolean registerConsumer(final ClientChannelInfo clientChannelInfo,
+                                    final Set<SubscriptionData> subList) {
+
+        boolean r1 =
+                updateChannel(clientChannelInfo);
+        boolean r2 = updateSubscription(subList);
+
+        return r1 || r2;
     }
 
     public boolean updateSubscription(final Set<SubscriptionData> subList) {

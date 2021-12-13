@@ -59,6 +59,7 @@ public class ClientNode extends AbstractLifecycleComponent {
     private final AtomicBoolean isShutdown = new AtomicBoolean(false);
 
 
+
 //todo add eventbus support
 // private final CopyOnWriteArraySet<PantheonEventListener> eventListeners = new CopyOnWriteArraySet<>();
 
@@ -159,7 +160,7 @@ public class ClientNode extends AbstractLifecycleComponent {
     private void sendHeartBeatToServer() {
         if (this.lockHeartbeat.tryLock()) {
             try {
-                boolean successResult = this.clientAPI.sendHeartBeatToServer(getServer(), getInstanceInfo().getAppName(), getInstanceInfo().getInstanceId(), 3000L);
+                boolean successResult = this.clientAPI.sendHeartBeatToServer(getServer(), getInstanceInfo().getAppName(),this.getClientId(), 3000L);
 
             } catch (final Exception e) {
                 logger.error("sendHeartBeatToServer exception", e);
@@ -623,4 +624,9 @@ public class ClientNode extends AbstractLifecycleComponent {
         }
         return serviceName;
     }
+
+    public String getClientId() {
+        return clientId;
+    }
+
 }

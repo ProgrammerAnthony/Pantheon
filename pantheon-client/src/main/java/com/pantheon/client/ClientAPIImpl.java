@@ -9,7 +9,7 @@ import com.pantheon.client.config.PantheonInstanceConfig;
 import com.pantheon.common.protocol.RequestCode;
 import com.pantheon.common.protocol.ResponseCode;
 import com.pantheon.common.protocol.header.*;
-import com.pantheon.common.protocol.heartBeat.ServiceIdentifier;
+import com.pantheon.common.protocol.heartBeat.HeartBeat;
 import com.pantheon.remoting.RPCHook;
 import com.pantheon.remoting.RemotingClient;
 import com.pantheon.remoting.exception.*;
@@ -22,7 +22,6 @@ import org.slf4j.LoggerFactory;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -223,11 +222,11 @@ public class ClientAPIImpl {
     }
 
     public boolean sendHeartBeatToServer(final Server server, String appName, String id, final Long timoutMills) throws RemotingConnectException, RemotingSendRequestException, RemotingTimeoutException, InterruptedException {
-        ServiceIdentifier serviceIdentifier = new ServiceIdentifier();
-        serviceIdentifier.setAppName(appName);
-        serviceIdentifier.setInstanceId(id);
+        HeartBeat heartBeat = new HeartBeat();
+        heartBeat.setAppName(appName);
+        heartBeat.setInstanceId(id);
         RemotingCommand request = RemotingCommand.createRequestCommand(RequestCode.SERVICE_HEART_BEAT, null);
-        request.setBody(serviceIdentifier.encode());
+        request.setBody(heartBeat.encode());
         RemotingCommand response = this.remotingClient.invokeSync(server.getRemoteSocketAddress(), request, timoutMills);
         assert response != null;
         switch (response.getCode()) {
@@ -320,11 +319,11 @@ public class ClientAPIImpl {
     }
 
     public boolean unRegister(Server server, String appName, String instanceId, long timoutMills) throws RemotingConnectException, RemotingSendRequestException, RemotingTimeoutException, InterruptedException {
-        ServiceIdentifier serviceIdentifier = new ServiceIdentifier();
-        serviceIdentifier.setInstanceId(instanceId);
-        serviceIdentifier.setAppName(appName);
+        HeartBeat heartBeat = new HeartBeat();
+        heartBeat.setInstanceId(instanceId);
+        heartBeat.setAppName(appName);
         RemotingCommand request = RemotingCommand.createRequestCommand(RequestCode.SERVICE_UNREGISTER, null);
-        request.setBody(serviceIdentifier.encode());
+        request.setBody(heartBeat.encode());
         RemotingCommand response = this.remotingClient.invokeSync(server.getRemoteSocketAddress(), request, timoutMills);
         assert response != null;
         switch (response.getCode()) {

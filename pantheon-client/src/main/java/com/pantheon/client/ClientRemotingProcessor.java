@@ -2,7 +2,9 @@ package com.pantheon.client;
 
 import com.pantheon.common.protocol.RequestCode;
 import com.pantheon.common.protocol.ResponseCode;
+import com.pantheon.common.protocol.header.GetConsumerRunningInfoRequestHeader;
 import com.pantheon.remoting.common.RemotingHelper;
+import com.pantheon.remoting.exception.RemotingCommandException;
 import com.pantheon.remoting.netty.AsyncNettyRequestProcessor;
 import com.pantheon.remoting.netty.NettyRequestProcessor;
 import com.pantheon.remoting.protocol.RemotingCommand;
@@ -12,6 +14,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.nio.charset.StandardCharsets;
+import java.util.Map;
 
 /**
  * @author Anthony
@@ -38,13 +41,13 @@ public class ClientRemotingProcessor extends AsyncNettyRequestProcessor implemen
      * @param request
      * @return
      */
-    private RemotingCommand getConsumerRunningInfo(ChannelHandlerContext ctx, RemotingCommand request) {
-        RemotingCommand response = RemotingCommand.createResponseCommand(null);
-        logger.info("getConsumerRunningInfo request from : {}", RemotingHelper.parseChannelRemoteAddr(ctx.channel()));
+    private RemotingCommand getConsumerRunningInfo(ChannelHandlerContext ctx, RemotingCommand request) throws RemotingCommandException {
+        final RemotingCommand response = RemotingCommand.createResponseCommand(null);
+        final GetConsumerRunningInfoRequestHeader requestHeader =
+                (GetConsumerRunningInfoRequestHeader) request.decodeCommandCustomHeader(GetConsumerRunningInfoRequestHeader.class);
+//        logger.info("receive getConsumerRunningInfo from: {} ,and clientId is {} ",  RemotingHelper.parseChannelRemoteAddr(ctx.channel()),requestHeader.getClientId());
         response.setCode(ResponseCode.SUCCESS);
-        response.setRemark(null);
-        response.setBody("test cliet side response！！！！".getBytes(StandardCharsets.UTF_8));
-        response.setOpaque(request.getOpaque());
+        response.setRemark("test remark");
         return response;
     }
 

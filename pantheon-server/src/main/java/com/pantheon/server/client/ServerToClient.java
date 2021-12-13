@@ -13,18 +13,23 @@ import io.netty.channel.Channel;
  * @desc server to client communication
  */
 public class ServerToClient {
+    private ServerNode serverNode;
     private RemotingServer remotingServer;
 
     public ServerToClient(ServerNode serverNode) {
-        this.remotingServer = serverNode.getRemotingServer();
-
-
+        this.serverNode=serverNode;
     }
 
     public RemotingCommand callClient(final Channel channel,
                                       final RemotingCommand request
     ) throws RemotingSendRequestException, RemotingTimeoutException, InterruptedException {
-        return this.remotingServer.invokeSync(channel, request, 10000);
+        if(serverNode!=null&&remotingServer==null){
+            remotingServer=serverNode.getRemotingServer();
+        }
+        if(remotingServer!=null){
+            return this.remotingServer.invokeSync(channel, request, 10000);
+        }
+        return null;
     }
 
 }

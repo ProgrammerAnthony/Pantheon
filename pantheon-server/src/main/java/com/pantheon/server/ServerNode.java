@@ -4,9 +4,12 @@ import com.pantheon.common.ServerNodeRole;
 import com.pantheon.common.ThreadFactoryImpl;
 import com.pantheon.common.lifecycle.AbstractLifecycleComponent;
 import com.pantheon.common.protocol.RequestCode;
+import com.pantheon.common.protocol.header.GetConsumerRunningInfoRequestHeader;
 import com.pantheon.remoting.RemotingServer;
+import com.pantheon.remoting.exception.RemotingCommandException;
 import com.pantheon.remoting.netty.NettyRemotingServer;
 import com.pantheon.remoting.netty.NettyServerConfig;
+import com.pantheon.remoting.protocol.RemotingCommand;
 import com.pantheon.server.client.ClientHousekeepingService;
 import com.pantheon.server.client.ConsumerInfoManager;
 import com.pantheon.server.client.ServerToClient;
@@ -39,8 +42,9 @@ public class ServerNode extends AbstractLifecycleComponent {
     private PantheonServerConfig serverConfig;
     private RemotingServer remotingServer;
     private ExecutorService remotingExecutor;
-    //    private final ScheduledExecutorService scheduledExecutorService = Executors.newSingleThreadScheduledExecutor(new ThreadFactoryImpl(
-//            "ServerControllerScheduledThread"));
+    private ClientManageProcessor clientManageProcessor;
+    private final ScheduledExecutorService scheduledExecutorService = Executors.newSingleThreadScheduledExecutor(new ThreadFactoryImpl(
+            "ServerControllerScheduledThread"));
     private static final Logger logger = LoggerFactory.getLogger(ServerBootstrap.class);
 
     private volatile static ServerNodeRole serverNodeRole = ServerNodeRole.COMMON_NODE;
@@ -84,7 +88,7 @@ public class ServerNode extends AbstractLifecycleComponent {
         ServerNodeProcessor defaultProcessor = new ServerNodeProcessor(this);
         remotingServer.registerDefaultProcessor(defaultProcessor, remotingExecutor);
         //use threadpool to process management event
-        ClientManageProcessor clientManageProcessor = new ClientManageProcessor(this);
+        clientManageProcessor = new ClientManageProcessor(this);
         remotingServer.registerProcessor(RequestCode.SERVICE_HEART_BEAT, clientManageProcessor, heartbeatExecutor);
         remotingServer.registerProcessor(RequestCode.GET_ALL_APP, clientManageProcessor, heartbeatExecutor);
         remotingServer.registerProcessor(RequestCode.GET_DELTA_APP, clientManageProcessor, heartbeatExecutor);
@@ -155,6 +159,17 @@ public class ServerNode extends AbstractLifecycleComponent {
     }
 
     private void startScheduledTask() {
+        this.scheduledExecutorService.scheduleAtFixedRate(new Runnable() {
+
+            @Override
+            public void run() {
+                try {
+                    ServerNode.this.getConsumerRunningInfo();
+                } catch (Exception e) {
+                    logger.error("ScheduledTask getConsumerRunningInfo exception", e);
+                }
+            }
+        }, 5000, serverConfig.getHeartBeatCheckInterval(), TimeUnit.MILLISECONDS);
         //heartbeat check with connected instances，remove expired ones
 //        this.scheduledExecutorService.scheduleAtFixedRate(new Runnable() {
 //
@@ -167,6 +182,18 @@ public class ServerNode extends AbstractLifecycleComponent {
 //                }
 //            }
 //        }, 5000, serverConfig.getHeartBeatCheckInterval(), TimeUnit.MILLISECONDS);
+
+    }
+
+    private void getConsumerRunningInfo() throws RemotingCommandException {
+        if (clientManageProcessor != null) {
+            final GetConsumerRunningInfoRequestHeader requestHeader = new GetConsumerRunningInfoRequestHeader();
+            RemotingCommand request =
+                    RemotingCommand.createRequestCommand(RequestCode.GET_CONSUMER_RUNNING_INFO,
+                            requestHeader);
+            clientManageProcessor.callConsumer(RequestCode.GET_CONSUMER_RUNNING_INFO, request);
+        }
+
     }
 
 
