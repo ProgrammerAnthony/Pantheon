@@ -6,6 +6,7 @@ import org.slf4j.LoggerFactory;
 
 import java.net.InetAddress;
 import java.net.UnknownHostException;
+import java.util.Map;
 
 /**
  * @author Anthony
@@ -67,5 +68,10 @@ public abstract class AbstractInstanceConfig implements PantheonInstanceConfig {
             pair = new Pair<String, String>("", "");
         }
         return pair;
+    }
+
+    @Override
+    public Map<String, String> getMetadataMap() {
+        return null;
     }
 }

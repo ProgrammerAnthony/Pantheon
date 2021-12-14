@@ -1,6 +1,7 @@
 package com.pantheon.client.config;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * @author Anthony
@@ -52,4 +53,6 @@ public interface PantheonInstanceConfig {
      * @return the fetch interval in seconds.
      */
     int getRegistryFetchIntervalSeconds();
+
+    Map<String, String> getMetadataMap();
 }

@@ -13,6 +13,9 @@
         <module>pantheon-client</module>
         <module>pantheon-common</module>
         <module>pantheon-remoting</module>
+        <module>pantheon-spring-cloud-netflix-client</module>
+        <module>pantheon-spring-cloud-netflix-server</module>
+        <module>pantheon-spring-cloud-netflix-ribbon-support</module>
     </modules>
 
     <properties>
