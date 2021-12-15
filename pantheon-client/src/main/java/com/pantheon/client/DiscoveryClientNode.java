@@ -5,6 +5,8 @@ import com.pantheon.client.appinfo.Applications;
 import com.pantheon.client.appinfo.InstanceInfo;
 import com.pantheon.client.appinfo.LeaseInfo;
 import com.pantheon.client.config.DefaultInstanceConfig;
+import com.pantheon.client.config.PantheonInstanceConfig;
+import com.pantheon.client.discovery.DiscoveryClient;
 import com.pantheon.common.ObjectUtils;
 import com.pantheon.common.ThreadFactoryImpl;
 import com.pantheon.common.lifecycle.AbstractLifecycleComponent;
@@ -35,8 +37,9 @@ import java.util.concurrent.locks.ReentrantLock;
  * @desc todo add retry mechanism reference from EurekaHttpClientFactory
  * todo load specific instances not all
  * todo throw PantheonException
+ * todo add
  **/
-public class ClientNode extends AbstractLifecycleComponent {
+public class DiscoveryClientNode extends AbstractLifecycleComponent implements DiscoveryClient {
     public static final int INSTANCE_REQUEST_TIMOUT_MILLS = 10000;
     private NettyClientConfig nettyClientConfig;
     private DefaultInstanceConfig instanceConfig;
@@ -50,6 +53,7 @@ public class ClientNode extends AbstractLifecycleComponent {
     private final String clientId;
     private final AtomicLong fetchRegistryGeneration;
     private final AtomicReference<Applications> localRegionApps = new AtomicReference<Applications>();
+    private final ConcurrentHashMap<String/*serviceId*/, Applications> appMap = new ConcurrentHashMap<>();
     private volatile int registrySize = 0;
     private volatile long lastSuccessfulRegistryFetchTimestamp = -1;
     private volatile long lastSuccessfulHeartbeatTimestamp = -1;
@@ -59,12 +63,11 @@ public class ClientNode extends AbstractLifecycleComponent {
     private final AtomicBoolean isShutdown = new AtomicBoolean(false);
 
 
-
 //todo add eventbus support
 // private final CopyOnWriteArraySet<PantheonEventListener> eventListeners = new CopyOnWriteArraySet<>();
 
 
-    public ClientNode(NettyClientConfig nettyClientConfig, DefaultInstanceConfig instanceConfig, String clientId) {
+    public DiscoveryClientNode(NettyClientConfig nettyClientConfig, DefaultInstanceConfig instanceConfig, String clientId) {
         this.nettyClientConfig = nettyClientConfig;
         this.instanceConfig = instanceConfig;
         this.clientId = clientId;
@@ -160,7 +163,7 @@ public class ClientNode extends AbstractLifecycleComponent {
     private void sendHeartBeatToServer() {
         if (this.lockHeartbeat.tryLock()) {
             try {
-                boolean successResult = this.clientAPI.sendHeartBeatToServer(getServer(), getInstanceInfo().getAppName(),this.getClientId(), 3000L);
+                boolean successResult = this.clientAPI.sendHeartBeatToServer(getServer(), getInstanceInfo().getAppName(), this.getClientId(), 3000L);
 
             } catch (final Exception e) {
                 logger.error("sendHeartBeatToServer exception", e);
@@ -394,6 +397,21 @@ public class ClientNode extends AbstractLifecycleComponent {
 
     public Applications getApplications() {
         return localRegionApps.get();
+    }
+
+    @Override
+    public Applications getSubscribeApplications(String serviceId) {
+        return appMap.get(serviceId);
+    }
+
+    @Override
+    public void shutdown() {
+        super.close();
+    }
+
+    @Override
+    public PantheonInstanceConfig getPantheonClientConfig() {
+        return instanceConfig;
     }
 
     public Application getApplication(String appName) {

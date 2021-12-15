@@ -20,9 +20,6 @@ public class SlotsReplica {
         String[] slotScopeSplited = slotScope.split(",");
         Integer startSlotNo = Integer.valueOf(slotScopeSplited[0]);
         Integer endSlotNo = Integer.valueOf(slotScopeSplited[1]);
-
-//        ServiceRegistry serviceRegistry = new ServiceRegistry(true);
-
         for(Integer slotNo = startSlotNo; slotNo <= endSlotNo; slotNo++) {
             slots.put(slotNo, new Slot(slotNo));
         }

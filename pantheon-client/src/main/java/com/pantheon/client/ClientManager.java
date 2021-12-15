@@ -16,7 +16,7 @@ import java.util.concurrent.ConcurrentMap;
 public class ClientManager {
     private static final Logger logger = LoggerFactory.getLogger(ClientManager.class);
 
-    private ConcurrentMap<String/* clientId */, ClientNode> factoryTable =
+    private ConcurrentMap<String/* clientId */, DiscoveryClientNode> factoryTable =
             new ConcurrentHashMap<>();
     private NettyClientConfig nettyClientConfig;
 
@@ -31,15 +31,15 @@ public class ClientManager {
         return instance;
     }
 
-    public ClientNode getOrCreateClientNode(DefaultInstanceConfig instanceConfig) {
+    public DiscoveryClientNode getOrCreateClientNode(DefaultInstanceConfig instanceConfig) {
         this.instanceConfig=instanceConfig;
         nettyClientConfig = new NettyClientConfig();
 
         String clientId = getInstance().buildClientId();
-        ClientNode instance = this.factoryTable.get(clientId);
+        DiscoveryClientNode instance = this.factoryTable.get(clientId);
         if (null == instance) {
-            instance = new ClientNode(nettyClientConfig, instanceConfig, clientId);
-            ClientNode prev = this.factoryTable.putIfAbsent(clientId, instance);
+            instance = new DiscoveryClientNode(nettyClientConfig, instanceConfig, clientId);
+            DiscoveryClientNode prev = this.factoryTable.putIfAbsent(clientId, instance);
             if (prev != null) {
                 instance = prev;
                 logger.warn("Returned Previous ClientNode for clientId:[{}]", clientId);

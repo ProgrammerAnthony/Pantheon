@@ -36,9 +36,6 @@ public class Applications extends RemotingSerializable {
 
     private Map<String/*appName*/, Application> appNameApplicationMap = new ConcurrentHashMap<String, Application>();
 
-    private Map<String/*appName*/, AtomicReference<List<InstanceInfo>>> shuffleVirtualHostNameMap = new ConcurrentHashMap<String, AtomicReference<List<InstanceInfo>>>();
-    private Map<String/*appName*/, AtomicReference<List<InstanceInfo>>> shuffledSecureVirtualHostNameMap = new ConcurrentHashMap<String, AtomicReference<List<InstanceInfo>>>();
-
     private String appsHashCode;
 
     /**
