@@ -15,6 +15,8 @@ public interface PantheonInstanceConfig {
      */
     String getServiceName();
 
+    String getInstanceId();
+
     /**
      * default localhost name
      */

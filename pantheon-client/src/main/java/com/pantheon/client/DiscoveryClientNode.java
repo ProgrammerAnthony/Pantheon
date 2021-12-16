@@ -647,4 +647,20 @@ public class DiscoveryClientNode extends AbstractLifecycleComponent implements D
         return clientId;
     }
 
+
+    @Override
+    public List<InstanceInfo> getInstance(String address) {
+        return null;
+    }
+
+    public InstanceInfo.InstanceStatus getInstanceRemoteStatus() {
+        return lastRemoteInstanceStatus;
+    }
+
+    public long getLastSuccessfulRegistryFetchTimePeriod() {
+        return lastSuccessfulRegistryFetchTimestamp < 0
+                ? lastSuccessfulRegistryFetchTimestamp
+                : System.currentTimeMillis() - lastSuccessfulRegistryFetchTimestamp;
+    }
+
 }

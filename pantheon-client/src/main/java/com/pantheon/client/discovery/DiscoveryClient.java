@@ -7,6 +7,8 @@ import com.pantheon.client.appinfo.Applications;
 import com.pantheon.client.appinfo.InstanceInfo;
 import com.pantheon.client.config.PantheonInstanceConfig;
 
+import java.util.List;
+
 
 public interface DiscoveryClient {
 
@@ -46,4 +48,20 @@ public interface DiscoveryClient {
      */
     PantheonInstanceConfig getPantheonClientConfig();
 
+
+
+    /**
+     * Gets the list of instances matching the given  Address.
+     *
+     * @param address The  address to match the instances for.
+     * @return - The list of {@link InstanceInfo} objects matching the criteria
+     */
+    List<InstanceInfo> getInstance(String address);
+
+
+    /**
+     * Return the current instance status as seen on the Pantheon server.
+     * @return
+     */
+    InstanceInfo.InstanceStatus getInstanceRemoteStatus();
 }

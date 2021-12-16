@@ -4,6 +4,9 @@ import com.pantheon.remoting.protocol.RemotingSerializable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+
 /**
  * @author Anthony
  * @create 2021/11/28
@@ -45,7 +48,7 @@ public class InstanceInfo extends RemotingSerializable {
     private volatile Long lastUpdatedTimestamp = System.currentTimeMillis();
     private volatile Long lastDirtyTimestamp = System.currentTimeMillis();
     private volatile ActionType actionType;
-
+    private volatile Map<String, String> metadata = new ConcurrentHashMap<String, String>();
 
     public enum InstanceStatus {
         UP, // Ready to receive traffic
@@ -202,16 +205,6 @@ public class InstanceInfo extends RemotingSerializable {
             return this;
         }
 
-        /**
-         * Sets the secure port that is used to service requests.
-         *
-         * @param port the secure port that is used to service requests.
-         * @return the {@link InstanceInfo} builder.
-         */
-        public Builder setSecurePort(int port) {
-            result.securePort = port;
-            return this;
-        }
 
         /**
          * Set the instance lease information.
@@ -220,6 +213,18 @@ public class InstanceInfo extends RemotingSerializable {
          */
         public Builder setLeaseInfo(LeaseInfo info) {
             result.leaseInfo = info;
+            return this;
+        }
+
+        /**
+         * Add arbitrary metadata to running instance.
+         *
+         * @param key The key of the metadata.
+         * @param val The value of the metadata.
+         * @return the {@link InstanceInfo} builder.
+         */
+        public Builder add(String key, String val) {
+            result.metadata.put(key, val);
             return this;
         }
 
@@ -602,6 +607,15 @@ public class InstanceInfo extends RemotingSerializable {
 
     public Integer getSlotNum() {
         return slotNum;
+    }
+
+    /**
+     * Returns all application specific metadata set on the instance.
+     *
+     * @return application specific metadata.
+     */
+    public Map<String, String> getMetadata() {
+        return metadata;
     }
 
 

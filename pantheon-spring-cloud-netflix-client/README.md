@@ -1,0 +1,1 @@
+Reference from spring-cloud-netflix-eureka-client-1.4.5.RELEASE.jar

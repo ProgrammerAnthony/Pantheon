@@ -31,6 +31,7 @@ public class DefaultInstanceConfig extends AbstractInstanceConfig implements Pan
     protected String namespace = "pantheon.";
     public static final String CONFIG_FILE_NAME = "pantheon-client";
     final String CONFIG_KEY_SERVICE_NAME = namespace + "serviceName";
+    final String CONFIG_KEY_INSTANCE_ID = namespace + "instanceId";
     final String CONFIG_KEY_INSTANCE_HOST_NAME = namespace + "instanceHostName";
     final String CONFIG_KEY_IP_ADDRESS = namespace + "instanceIpAddress";
     final String CONFIG_KEY_CONTROLLER_CANDIDATE_SERVERS = namespace + "controllerCandidateServers";
@@ -94,6 +95,10 @@ public class DefaultInstanceConfig extends AbstractInstanceConfig implements Pan
         return configInstance.getStringProperty(CONFIG_KEY_SERVICE_NAME, null).get();
     }
 
+    @Override
+    public String getInstanceId() {
+        return configInstance.getStringProperty(CONFIG_KEY_INSTANCE_ID, null).get();
+    }
 
     @Override
     public List<String> getServerList() {
