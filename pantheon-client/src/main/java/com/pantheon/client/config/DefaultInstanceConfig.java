@@ -148,5 +148,8 @@ public class DefaultInstanceConfig extends AbstractInstanceConfig implements Pan
 
     }
 
-
+    @Override
+    public Integer setInstancePort(Integer port) {
+        return null;
+    }
 }

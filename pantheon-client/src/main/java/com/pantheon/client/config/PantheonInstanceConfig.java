@@ -40,6 +40,8 @@ public interface PantheonInstanceConfig {
 
     Integer getInstancePort();
 
+    Integer setInstancePort(Integer port);
+
     /**
      * should fetch registry ,default true
      * @return

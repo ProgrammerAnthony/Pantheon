@@ -42,7 +42,7 @@ import java.util.concurrent.locks.ReentrantLock;
 public class DiscoveryClientNode extends AbstractLifecycleComponent implements DiscoveryClient {
     public static final int INSTANCE_REQUEST_TIMOUT_MILLS = 10000;
     private NettyClientConfig nettyClientConfig;
-    private DefaultInstanceConfig instanceConfig;
+    private PantheonInstanceConfig instanceConfig;
     private final ScheduledExecutorService scheduledExecutorService = Executors.newSingleThreadScheduledExecutor(new ThreadFactoryImpl(
             "InstanceControllerScheduledThread"));
     private static final Logger logger = LoggerFactory.getLogger(ServerBootstrap.class);
@@ -65,6 +65,24 @@ public class DiscoveryClientNode extends AbstractLifecycleComponent implements D
 
 //todo add eventbus support
 // private final CopyOnWriteArraySet<PantheonEventListener> eventListeners = new CopyOnWriteArraySet<>();
+
+    public DiscoveryClientNode(PantheonInstanceConfig instanceConfig) {
+        this.nettyClientConfig = new NettyClientConfig();
+        this.instanceConfig = instanceConfig;
+        this.clientId = ClientManager.getInstance().buildClientId();
+        fetchRegistryGeneration = new AtomicLong(0);
+        localRegionApps.set(new Applications());
+        clientAPI = new ClientAPIImpl(nettyClientConfig, instanceConfig, new ClientRemotingProcessor(), null);
+    }
+
+    public DiscoveryClientNode(DefaultInstanceConfig instanceConfig, String clientId) {
+        this.nettyClientConfig = new NettyClientConfig();
+        this.instanceConfig = instanceConfig;
+        this.clientId = clientId;
+        fetchRegistryGeneration = new AtomicLong(0);
+        localRegionApps.set(new Applications());
+        clientAPI = new ClientAPIImpl(nettyClientConfig, instanceConfig, new ClientRemotingProcessor(), null);
+    }
 
 
     public DiscoveryClientNode(NettyClientConfig nettyClientConfig, DefaultInstanceConfig instanceConfig, String clientId) {

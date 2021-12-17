@@ -43,13 +43,13 @@ public class ClientAPIImpl {
     private PantheonInstanceConfig pantheonInstanceConfig;
     private Map<String/*serverNodeId*/, List<String>> slotsAllocation;
     private static final Integer SLOT_COUNT = 16384;
-    private DefaultInstanceConfig instanceConfig;
+    private PantheonInstanceConfig instanceConfig;
     /**
      * server addresses
      */
     private Map<String/*server node id*/, Server> servers = new HashMap<String, Server>();
 
-    public ClientAPIImpl(final NettyClientConfig nettyClientConfig, DefaultInstanceConfig instanceConfig, ClientRemotingProcessor clientRemotingProcessor, RPCHook rpcHook) {
+    public ClientAPIImpl(final NettyClientConfig nettyClientConfig, PantheonInstanceConfig instanceConfig, ClientRemotingProcessor clientRemotingProcessor, RPCHook rpcHook) {
         this.clientRemotingProcessor = clientRemotingProcessor;
         this.nettyClientConfig = nettyClientConfig;
         this.instanceConfig = instanceConfig;
