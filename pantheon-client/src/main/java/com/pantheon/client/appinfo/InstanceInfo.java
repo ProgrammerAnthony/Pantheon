@@ -50,6 +50,33 @@ public class InstanceInfo extends RemotingSerializable {
     private volatile ActionType actionType;
     private volatile Map<String, String> metadata = new ConcurrentHashMap<String, String>();
 
+
+    public InstanceInfo(InstanceInfo ii) {
+        this.port = 7001;
+        this.securePort = 7002;
+        this.status = InstanceInfo.InstanceStatus.UP;
+        this.overriddenstatus = InstanceInfo.InstanceStatus.UNKNOWN;
+        this.isInstanceInfoDirty = false;
+        this.metadata = new ConcurrentHashMap();
+        this.lastUpdatedTimestamp = System.currentTimeMillis();
+        this.lastDirtyTimestamp = System.currentTimeMillis();
+        this.instanceId = ii.instanceId;
+        this.appName = ii.appName;
+        this.appGroupName = ii.appGroupName;
+        this.ipAddr = ii.ipAddr;
+        this.port = ii.port;
+        this.securePort = ii.securePort;
+        this.hostName = ii.hostName;
+        this.status = ii.status;
+        this.overriddenstatus = ii.overriddenstatus;
+        this.isInstanceInfoDirty = ii.isInstanceInfoDirty;
+        this.leaseInfo = ii.leaseInfo;
+        this.metadata = ii.metadata;
+        this.lastUpdatedTimestamp = ii.lastUpdatedTimestamp;
+        this.lastDirtyTimestamp = ii.lastDirtyTimestamp;
+        this.actionType = ii.actionType;
+    }
+
     public enum InstanceStatus {
         UP, // Ready to receive traffic
         DOWN, // Do not send traffic- healthcheck callback failed

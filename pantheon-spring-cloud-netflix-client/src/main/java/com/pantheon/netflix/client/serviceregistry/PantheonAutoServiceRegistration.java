@@ -1,5 +1,7 @@
-package com.pantheon.netflix.client;
+package com.pantheon.netflix.client.serviceregistry;
 
+import com.pantheon.netflix.client.AutoServiceRegistration;
+import com.pantheon.netflix.client.PantheonDiscoveryClientConfiguration;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.boot.context.embedded.EmbeddedServletContainerInitializedEvent;
@@ -16,7 +18,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 /**
  * @author Anthony
  * @create 2021/12/17
- * @desc
+ * @desc called by auto configuration class {@link PantheonDiscoveryClientConfiguration}
  **/
 public class PantheonAutoServiceRegistration  implements AutoServiceRegistration, SmartLifecycle, Ordered {
     private static final Log log = LogFactory.getLog(PantheonAutoServiceRegistration.class);

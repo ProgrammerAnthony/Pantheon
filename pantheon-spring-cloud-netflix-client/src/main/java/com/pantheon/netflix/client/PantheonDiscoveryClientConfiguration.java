@@ -2,6 +2,7 @@ package com.pantheon.netflix.client;
 
 import com.pantheon.client.DiscoveryClientNode;
 import com.pantheon.client.config.PantheonInstanceConfig;
+import com.pantheon.netflix.client.serviceregistry.PantheonAutoServiceRegistration;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.actuate.health.HealthAggregator;
 import org.springframework.boot.actuate.health.OrderedHealthAggregator;

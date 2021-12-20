@@ -637,6 +637,10 @@ public class DiscoveryClientNode extends AbstractLifecycleComponent implements D
 //        fireEvent(new StatusChangeEvent(oldStatus, newStatus));
     }
 
+    @Override
+    public boolean unregisterEventListener(PantheonEventListener var1) {
+        return false;
+    }
 
     public void registerEventListener(PantheonEventListener eventListener) {
 //        this.eventListeners.add(eventListener);

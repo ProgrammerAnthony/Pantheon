@@ -1,12 +1,10 @@
-package com.pantheon.netflix.client;
+package com.pantheon.netflix.client.serviceregistry;
 
 import com.pantheon.client.DiscoveryClientNode;
-import com.pantheon.client.appinfo.InstanceInfo;
 import com.pantheon.client.config.PantheonInstanceConfig;
+import com.pantheon.netflix.client.HealthCheckHandler;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
-import org.springframework.aop.framework.Advised;
-import org.springframework.aop.support.AopUtils;
 import org.springframework.cloud.client.DefaultServiceInstance;
 import org.springframework.cloud.client.serviceregistry.Registration;
 import org.springframework.context.ApplicationEventPublisher;
@@ -24,7 +22,7 @@ import java.util.concurrent.atomic.AtomicReference;
 public class PantheonRegistration implements Registration {
     private static final Log log = LogFactory.getLog(PantheonRegistration.class);
     private final DiscoveryClientNode pantheonClient;
-    private final AtomicReference<PantheonDiscoveryClient> cloudPantheonClient;
+    private final AtomicReference<DiscoveryClientNode> cloudPantheonClient;
     private final PantheonInstanceConfig instanceConfig;
     private HealthCheckHandler healthCheckHandler;
 
@@ -63,21 +61,21 @@ public class PantheonRegistration implements Registration {
         return this.instanceConfig.getMetadataMap();
     }
 
-    public PantheonDiscoveryClient getEurekaClient() {
+    public DiscoveryClientNode getEurekaClient() {
         if (this.cloudPantheonClient.get() == null) {
             try {
-                this.cloudPantheonClient.compareAndSet((Object)null, this.getTargetObject(this.pantheonClient, PantheonDiscoveryClient.class));
+                this.cloudPantheonClient.compareAndSet(null,pantheonClient);
             } catch (Exception var2) {
                 log.error("error getting PantheonClient", var2);
             }
         }
 
-        return (PantheonDiscoveryClient) this.cloudPantheonClient.get();
+        return (DiscoveryClientNode) this.cloudPantheonClient.get();
     }
 
-    protected <T> T getTargetObject(Object proxy, Class<T> targetClass) throws Exception {
-        return AopUtils.isJdkDynamicProxy(proxy) ? ((Advised)proxy).getTargetSource().getTarget() : proxy;
-    }
+//    protected <T> T getTargetObject(Object proxy, Class<T> targetClass) throws Exception {
+//        return AopUtils.isJdkDynamicProxy(proxy) ? ((Advised)proxy).getTargetSource().getTarget() : proxy;
+//    }
 
     public PantheonInstanceConfig getInstanceConfig() {
         return this.instanceConfig;

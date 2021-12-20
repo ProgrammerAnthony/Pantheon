@@ -1,4 +1,4 @@
-package com.pantheon.netflix.client;
+package com.pantheon.netflix.client.serviceregistry;
 
 import com.pantheon.client.appinfo.InstanceInfo;
 import org.apache.commons.logging.Log;

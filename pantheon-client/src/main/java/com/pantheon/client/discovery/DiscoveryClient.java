@@ -2,6 +2,7 @@
 package com.pantheon.client.discovery;
 
 
+import com.pantheon.client.PantheonEventListener;
 import com.pantheon.client.appinfo.Application;
 import com.pantheon.client.appinfo.Applications;
 import com.pantheon.client.appinfo.InstanceInfo;
@@ -64,4 +65,8 @@ public interface DiscoveryClient {
      * @return
      */
     InstanceInfo.InstanceStatus getInstanceRemoteStatus();
+
+    void registerEventListener(PantheonEventListener var1);
+
+    boolean unregisterEventListener(PantheonEventListener var1);
 }
