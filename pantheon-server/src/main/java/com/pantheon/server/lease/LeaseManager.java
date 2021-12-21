@@ -12,10 +12,6 @@ package com.pantheon.server.lease;
  * out of {@link com.pantheon.server.registry.InstanceRegistry}. This is key to instances receiving traffic
  * or not.
  * <p>
- *
- * @author Karthik Ranganathan, Greg Kim
- *
- * @param <T>
  */
 public interface LeaseManager<T> {
 
@@ -25,7 +21,7 @@ public interface LeaseManager<T> {
      * @param r
      *            - T to register
      * @param leaseDuration
-     *            - whether this is a replicated entry from another eureka node.
+     *            - whether this is a replicated entry from another pantheon node.
      */
     void register(T r, int leaseDuration);
 

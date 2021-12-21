@@ -13,10 +13,10 @@ import javax.inject.Provider;
  * @desc
  **/
 
-class LegacyEurekaClientProvider implements Provider<DiscoveryClient> {
+class LegacyPantheonClientProvider implements Provider<DiscoveryClient> {
     private volatile DiscoveryClientNode pantheonClient;
 
-    LegacyEurekaClientProvider() {
+    LegacyPantheonClientProvider() {
     }
 
     public synchronized DiscoveryClient get() {

@@ -64,5 +64,5 @@ public class ClientManager {
         return sb.toString();
     }
 
-    getcli
+
 }

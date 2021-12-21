@@ -45,7 +45,7 @@ public class PantheonHealthIndicator implements DiscoveryHealthIndicator {
     private Status getStatus(Health.Builder builder) {
         Status status = new Status(
                 this.pantheonClient.getInstanceRemoteStatus().toString(),
-                "Remote status from Eureka server");
+                "Remote status from Pantheon server");
 
         if (pantheonClient instanceof DiscoveryClientNode && instanceConfig.shouldFetchRegistry()) {
             DiscoveryClientNode discoveryClient = (DiscoveryClientNode) pantheonClient;

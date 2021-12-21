@@ -26,9 +26,9 @@ public class PantheonRegistration implements Registration {
     private final PantheonInstanceConfig instanceConfig;
     private HealthCheckHandler healthCheckHandler;
 
-    private PantheonRegistration(PantheonInstanceConfig instanceConfig, DiscoveryClientNode eurekaClient, HealthCheckHandler healthCheckHandler) {
+    private PantheonRegistration(PantheonInstanceConfig instanceConfig, DiscoveryClientNode pantheonClient, HealthCheckHandler healthCheckHandler) {
         this.cloudPantheonClient = new AtomicReference();
-        this.pantheonClient = eurekaClient;
+        this.pantheonClient = pantheonClient;
         this.instanceConfig = instanceConfig;
         this.healthCheckHandler = healthCheckHandler;
     }
@@ -61,7 +61,7 @@ public class PantheonRegistration implements Registration {
         return this.instanceConfig.getMetadataMap();
     }
 
-    public DiscoveryClientNode getEurekaClient() {
+    public DiscoveryClientNode getPantheonClient() {
         if (this.cloudPantheonClient.get() == null) {
             try {
                 this.cloudPantheonClient.compareAndSet(null,pantheonClient);
@@ -131,7 +131,7 @@ public class PantheonRegistration implements Registration {
 
             if (this.pantheonClient == null) {
                 Assert.notNull(this.clientConfig, "if pantheonClient is null, clientConfig may not be null");
-                Assert.notNull(this.publisher, "if eurekaClient is null, ApplicationEventPublisher may not be null");
+                Assert.notNull(this.publisher, "if pantheonClient is null, ApplicationEventPublisher may not be null");
                 this.pantheonClient = new DiscoveryClientNode(this.clientConfig);
             }
 

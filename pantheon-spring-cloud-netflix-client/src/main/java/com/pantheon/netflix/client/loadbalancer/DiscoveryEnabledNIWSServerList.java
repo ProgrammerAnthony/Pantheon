@@ -32,19 +32,19 @@ public class DiscoveryEnabledNIWSServerList extends AbstractServerList<Discovery
     int overridePort;
     boolean shouldUseOverridePort;
     boolean shouldUseIpAddr;
-    private final Provider<DiscoveryClient> eurekaClientProvider;
+    private final Provider<DiscoveryClient> pantheonClientProvider;
 
-    public DiscoveryEnabledNIWSServerList(String vipAddresses, Provider<DiscoveryClient> eurekaClientProvider) {
-        this(createClientConfig(vipAddresses), eurekaClientProvider);
+    public DiscoveryEnabledNIWSServerList(String vipAddresses, Provider<DiscoveryClient> pantheonClientProvider) {
+        this(createClientConfig(vipAddresses), pantheonClientProvider);
     }
 
-    public DiscoveryEnabledNIWSServerList(IClientConfig clientConfig, Provider<DiscoveryClient> eurekaClientProvider) {
+    public DiscoveryEnabledNIWSServerList(IClientConfig clientConfig, Provider<DiscoveryClient> pantheonClientProvider) {
         this.isSecure = false;
         this.prioritizeVipAddressBasedServers = true;
         this.overridePort = 7001;
         this.shouldUseOverridePort = false;
         this.shouldUseIpAddr = false;
-        this.eurekaClientProvider = eurekaClientProvider;
+        this.pantheonClientProvider = pantheonClientProvider;
         this.initWithNiwsConfig(clientConfig);
     }
 
@@ -88,15 +88,15 @@ public class DiscoveryEnabledNIWSServerList extends AbstractServerList<Discovery
 
     private List<DiscoveryEnabledServer> obtainServersViaDiscovery() {
         List<DiscoveryEnabledServer> serverList = new ArrayList();
-        if (this.eurekaClientProvider != null && this.eurekaClientProvider.get() != null) {
-            DiscoveryClient eurekaClient = (DiscoveryClient)this.eurekaClientProvider.get();
+        if (this.pantheonClientProvider != null && this.pantheonClientProvider.get() != null) {
+            DiscoveryClient pantheonClient = (DiscoveryClient)this.pantheonClientProvider.get();
             if (this.vipAddresses != null) {
                 String[] var3 = this.vipAddresses.split(",");
                 int var4 = var3.length;
 
                 for(int var5 = 0; var5 < var4; ++var5) {
                     String vipAddress = var3[var5];
-                    List<InstanceInfo> listOfInstanceInfo = eurekaClient.getInstance(vipAddress);
+                    List<InstanceInfo> listOfInstanceInfo = pantheonClient.getInstance(vipAddress);
                     Iterator var8 = listOfInstanceInfo.iterator();
 
                     while(var8.hasNext()) {
@@ -129,7 +129,7 @@ public class DiscoveryEnabledNIWSServerList extends AbstractServerList<Discovery
 
             return serverList;
         } else {
-            logger.warn("EurekaClient has not been initialized yet, returning an empty list");
+            logger.warn("PantheonClient has not been initialized yet, returning an empty list");
             return new ArrayList();
         }
     }

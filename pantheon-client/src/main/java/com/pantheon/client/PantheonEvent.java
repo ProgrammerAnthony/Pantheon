@@ -1,7 +1,7 @@
 package com.pantheon.client;
 
 /**
- * Marker interface for Eureka events
+ * Marker interface for Pantheon events
  * 
  * @see {@link PantheonEventListener}
  */

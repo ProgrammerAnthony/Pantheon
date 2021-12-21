@@ -22,7 +22,7 @@ public class InstanceInfoFactory {
                 .setRenewalIntervalInSecs(config.getLeaseRenewalIntervalInSeconds())
                 .setDurationInSecs(config.getLeaseExpirationDurationInSeconds());
 
-        // Builder the instance information to be registered with eureka
+        // Builder the instance information to be registered with pantheon
         // server
         InstanceInfo.Builder builder = InstanceInfo.Builder.newBuilder();
 

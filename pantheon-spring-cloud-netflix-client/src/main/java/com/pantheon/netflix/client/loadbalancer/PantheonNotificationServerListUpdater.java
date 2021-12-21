@@ -1,5 +1,6 @@
 package com.pantheon.netflix.client.loadbalancer;
 
+import com.google.common.util.concurrent.ThreadFactoryBuilder;
 import com.netflix.config.DynamicIntProperty;
 import com.netflix.loadbalancer.ServerListUpdater;
 
@@ -40,10 +41,10 @@ public class PantheonNotificationServerListUpdater implements ServerListUpdater 
     }
 
     public PantheonNotificationServerListUpdater() {
-        this(new LegacyEurekaClientProvider());
+        this(new LegacyPantheonClientProvider());
     }
 
-    public PantheonNotificationServerListUpdater(Provider<DiscoveryClient> eurekaClientProvider) {
+    public PantheonNotificationServerListUpdater(Provider<DiscoveryClient> pantheonClientProvider) {
         this(pantheonClientProvider, getDefaultRefreshExecutor());
     }
 
@@ -136,17 +137,18 @@ public class PantheonNotificationServerListUpdater implements ServerListUpdater 
     }
 
     private static class LazyHolder {
-        private static final String CORE_THREAD = "EurekaNotificationServerListUpdater.ThreadPoolSize";
-        private static final String QUEUE_SIZE = "EurekaNotificationServerListUpdater.queueSize";
+        private static final String CORE_THREAD = "PantheonNotificationServerListUpdater.ThreadPoolSize";
+        private static final String QUEUE_SIZE = "PantheonNotificationServerListUpdater.queueSize";
         private static final PantheonNotificationServerListUpdater.LazyHolder SINGLETON = new PantheonNotificationServerListUpdater.LazyHolder();
-        private final DynamicIntProperty poolSizeProp = new DynamicIntProperty("EurekaNotificationServerListUpdater.ThreadPoolSize", 2);
-        private final DynamicIntProperty queueSizeProp = new DynamicIntProperty("EurekaNotificationServerListUpdater.queueSize", 1000);
+        private final DynamicIntProperty poolSizeProp = new DynamicIntProperty("PantheonNotificationServerListUpdater.ThreadPoolSize", 2);
+        private final DynamicIntProperty queueSizeProp = new DynamicIntProperty("PantheonNotificationServerListUpdater.queueSize", 1000);
         private final ThreadPoolExecutor defaultServerListUpdateExecutor;
         private final Thread shutdownThread;
 
         private LazyHolder() {
             int corePoolSize = this.getCorePoolSize();
-            this.defaultServerListUpdateExecutor = new ThreadPoolExecutor(corePoolSize, corePoolSize * 5, 0L, TimeUnit.NANOSECONDS, new ArrayBlockingQueue(this.queueSizeProp.get()), (new ThreadFactoryBuilder()).setNameFormat("EurekaNotificationServerListUpdater-%d").setDaemon(true).build());
+            this.defaultServerListUpdateExecutor = new ThreadPoolExecutor(corePoolSize, corePoolSize * 5, 0L, TimeUnit.NANOSECONDS,
+                    new ArrayBlockingQueue(this.queueSizeProp.get()), (new ThreadFactoryBuilder()).setNameFormat("PantheonNotificationServerListUpdater-%d").setDaemon(true).build());
             this.poolSizeProp.addCallback(new Runnable() {
                 public void run() {
                     int corePoolSize = PantheonNotificationServerListUpdater.LazyHolder.this.getCorePoolSize();
@@ -156,7 +158,7 @@ public class PantheonNotificationServerListUpdater implements ServerListUpdater 
             });
             this.shutdownThread = new Thread(new Runnable() {
                 public void run() {
-                    PantheonNotificationServerListUpdater.logger.info("Shutting down the Executor for EurekaNotificationServerListUpdater");
+                    PantheonNotificationServerListUpdater.logger.info("Shutting down the Executor for PantheonNotificationServerListUpdater");
 
                     try {
                         PantheonNotificationServerListUpdater.LazyHolder.this.defaultServerListUpdateExecutor.shutdown();

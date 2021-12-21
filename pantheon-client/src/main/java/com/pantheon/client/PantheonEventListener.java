@@ -8,7 +8,7 @@ public interface PantheonEventListener {
     /**
      * Notification of an event within the {@link DiscoveryClientNode}.
      * 
-     * {@link PantheonEventListener#onEvent} is called from the context of an internal eureka thread
+     * {@link PantheonEventListener#onEvent} is called from the context of an internal pantheon thread
      * and must therefore return as quickly as possible without blocking.
      * 
      * @param event

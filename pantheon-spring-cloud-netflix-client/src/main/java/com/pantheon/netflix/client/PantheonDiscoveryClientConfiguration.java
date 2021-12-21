@@ -32,7 +32,7 @@ public class PantheonDiscoveryClientConfiguration {
     }
 
     @Bean
-    public PantheonDiscoveryClientConfiguration.Marker eurekaDiscoverClientMarker() {
+    public PantheonDiscoveryClientConfiguration.Marker pantheonDiscoverClientMarker() {
         return new PantheonDiscoveryClientConfiguration.Marker();
     }
 
@@ -41,25 +41,25 @@ public class PantheonDiscoveryClientConfiguration {
             value = {"pantheon.client.healthcheck.enabled"},
             matchIfMissing = false
     )
-    protected static class EurekaHealthCheckHandlerConfiguration {
+    protected static class PantheonHealthCheckHandlerConfiguration {
         @Autowired(
                 required = false
         )
         private HealthAggregator healthAggregator = new OrderedHealthAggregator();
 
-        protected EurekaHealthCheckHandlerConfiguration() {
+        protected PantheonHealthCheckHandlerConfiguration() {
         }
 
         @Bean
         @ConditionalOnMissingBean({HealthCheckHandler.class})
-        public PantheonHealthCheckHandler eurekaHealthCheckHandler() {
+        public PantheonHealthCheckHandler pantheonHealthCheckHandler() {
             return new PantheonHealthCheckHandler(this.healthAggregator);
         }
     }
 
     @Configuration
     @ConditionalOnClass({RefreshScopeRefreshedEvent.class})
-    protected static class EurekaClientConfigurationRefresher {
+    protected static class PantheonClientConfigurationRefresher {
         @Autowired(
                 required = false
         )
@@ -69,7 +69,7 @@ public class PantheonDiscoveryClientConfiguration {
         )
         private PantheonAutoServiceRegistration autoRegistration;
 
-        protected EurekaClientConfigurationRefresher() {
+        protected PantheonClientConfigurationRefresher() {
         }
 
         @EventListener({RefreshScopeRefreshedEvent.class})

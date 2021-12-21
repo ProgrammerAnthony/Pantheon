@@ -5,7 +5,7 @@ import com.pantheon.client.appinfo.InstanceInfo;
 /**
  * Event containing the latest instance status information.  This event
  * is sent to the {@link com.netflix.eventbus.spi.EventBus} by {@link DiscoveryClientNode ) whenever
- * a status change is identified from the remote Eureka server response.
+ * a status change is identified from the remote Pantheon server response.
  */
 public class StatusChangeEvent {
     // System time when the event happened

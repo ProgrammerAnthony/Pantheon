@@ -21,7 +21,7 @@ public class PantheonServiceRegistry implements ServiceRegistry<PantheonRegistra
     public void register(PantheonRegistration reg) {
         this.maybeInitializeClient(reg);
         if (log.isInfoEnabled()) {
-//            log.info("Registering application " + reg.getInstanceConfig().getServiceName() + " with eureka with status " + reg.getInstanceConfig().getInitialStatus());
+//            log.info("Registering application " + reg.getInstanceConfig().getServiceName() + " with pantheon with status " + reg.getInstanceConfig().getInitialStatus());
         }
 
 //todo        reg.getApplicationInfoManager().setInstanceStatus(reg.getInstanceConfig().getInitialStatus());
@@ -33,7 +33,7 @@ public class PantheonServiceRegistry implements ServiceRegistry<PantheonRegistra
 
     private void maybeInitializeClient(PantheonRegistration reg) {
 //        reg.getApplicationInfoManager().getInfo();
-        reg.getEurekaClient().getApplications();
+        reg.getPantheonClient().getApplications();
     }
 
     public void deregister(PantheonRegistration reg) {

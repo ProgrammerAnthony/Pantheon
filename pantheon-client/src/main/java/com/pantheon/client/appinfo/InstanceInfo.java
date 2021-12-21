@@ -50,7 +50,9 @@ public class InstanceInfo extends RemotingSerializable {
     private volatile ActionType actionType;
     private volatile Map<String, String> metadata = new ConcurrentHashMap<String, String>();
 
+    public InstanceInfo(){
 
+    }
     public InstanceInfo(InstanceInfo ii) {
         this.port = 7001;
         this.securePort = 7002;

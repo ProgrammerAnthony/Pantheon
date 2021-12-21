@@ -8,7 +8,6 @@ import com.netflix.loadbalancer.IPing;
 import com.netflix.loadbalancer.ServerList;
 import com.pantheon.client.config.PantheonInstanceConfig;
 import com.pantheon.client.discovery.DiscoveryClient;
-import com.pantheon.netflix.client.PantheonDiscoveryClient;
 import com.pantheon.netflix.client.loadbalancer.DiscoveryEnabledNIWSServerList;
 import com.pantheon.netflix.client.loadbalancer.NIWSDiscoveryPing;
 import org.apache.commons.logging.Log;
@@ -24,7 +23,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.util.StringUtils;
 
 import javax.annotation.PostConstruct;
-import javax.xml.ws.Provider;
+import javax.inject.Provider;
 
 /**
  * @author Anthony
