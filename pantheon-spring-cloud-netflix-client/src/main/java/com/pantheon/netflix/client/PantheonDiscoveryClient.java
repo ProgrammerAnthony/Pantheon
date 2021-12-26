@@ -18,7 +18,7 @@ import java.util.Map;
 /**
  * @author Anthony
  * @create 2021/12/14
- * @desc Reference from spring-cloud-netflix-eureka-client：1.4.5.RELEASE
+ * @desc
  **/
 public class PantheonDiscoveryClient implements DiscoveryClient {
     public static final String DESCRIPTION = "Pantheon Discovery Client";

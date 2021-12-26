@@ -37,7 +37,6 @@ import java.util.concurrent.locks.ReentrantLock;
  * @desc todo add retry mechanism reference from EurekaHttpClientFactory
  * todo load specific instances not all
  * todo throw PantheonException
- * todo add
  **/
 public class DiscoveryClientNode extends AbstractLifecycleComponent implements DiscoveryClient {
     public static final int INSTANCE_REQUEST_TIMOUT_MILLS = 10000;
@@ -62,9 +61,7 @@ public class DiscoveryClientNode extends AbstractLifecycleComponent implements D
     private volatile InstanceInfo.InstanceStatus lastRemoteInstanceStatus = InstanceInfo.InstanceStatus.UNKNOWN;
     private final AtomicBoolean isShutdown = new AtomicBoolean(false);
 
-
-//todo add eventbus support
-// private final CopyOnWriteArraySet<PantheonEventListener> eventListeners = new CopyOnWriteArraySet<>();
+    private final CopyOnWriteArraySet<PantheonEventListener> eventListeners = new CopyOnWriteArraySet<>();
 
     public DiscoveryClientNode(PantheonInstanceConfig instanceConfig) {
         this.nettyClientConfig = new NettyClientConfig();
