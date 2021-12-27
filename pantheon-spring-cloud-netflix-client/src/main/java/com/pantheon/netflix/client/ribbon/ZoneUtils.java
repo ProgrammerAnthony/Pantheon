@@ -1,4 +1,4 @@
-package com.pantheon.netflix.client.ribbon.pantheon;
+package com.pantheon.netflix.client.ribbon;
 
 import org.springframework.util.StringUtils;
 

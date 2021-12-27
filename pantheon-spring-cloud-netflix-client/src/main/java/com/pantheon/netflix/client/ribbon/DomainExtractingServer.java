@@ -1,4 +1,4 @@
-package com.pantheon.netflix.client.ribbon.pantheon;
+package com.pantheon.netflix.client.ribbon;
 
 import com.netflix.loadbalancer.Server;
 import com.pantheon.client.appinfo.InstanceInfo;

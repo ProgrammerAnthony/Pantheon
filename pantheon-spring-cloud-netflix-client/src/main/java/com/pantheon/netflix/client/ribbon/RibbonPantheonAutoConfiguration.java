@@ -1,6 +1,6 @@
-package com.pantheon.netflix.client.ribbon.pantheon;
+package com.pantheon.netflix.client.ribbon;
 
-import com.netflix.niws.loadbalancer.DiscoveryEnabledNIWSServerList;
+import com.pantheon.netflix.client.loadbalancer.DiscoveryEnabledNIWSServerList;
 import org.springframework.boot.autoconfigure.AutoConfigureAfter;
 import org.springframework.boot.autoconfigure.condition.AllNestedConditions;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
@@ -23,7 +23,7 @@ import java.lang.annotation.Target;
 /**
  * @author Anthony
  * @create 2021/12/20
- * @desc
+ * @desc Spring configuration for configuring Ribbon defaults to be Pantheon based if Pantheon client is enabled
  **/
 @Configuration
 @EnableConfigurationProperties

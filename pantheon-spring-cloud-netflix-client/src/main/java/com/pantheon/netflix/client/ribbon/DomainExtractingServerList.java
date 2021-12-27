@@ -1,8 +1,9 @@
-package com.pantheon.netflix.client.ribbon.pantheon;
+package com.pantheon.netflix.client.ribbon;
 
 import com.netflix.client.config.CommonClientConfigKey;
 import com.netflix.client.config.IClientConfig;
 import com.netflix.loadbalancer.ServerList;
+import com.pantheon.netflix.client.loadbalancer.DiscoveryEnabledNIWSServerList;
 import com.pantheon.netflix.client.loadbalancer.DiscoveryEnabledServer;
 
 import java.util.ArrayList;
@@ -12,7 +13,7 @@ import java.util.List;
 /**
  * @author Anthony
  * @create 2021/12/20
- * @desc
+ * @desc {@link #getInitialListOfServers()} and  {@link #getUpdatedListOfServers()} use {@link DiscoveryEnabledNIWSServerList} to load server list dynamically
  **/
 public class DomainExtractingServerList implements ServerList<DiscoveryEnabledServer> {
     private ServerList<DiscoveryEnabledServer> list;
@@ -41,8 +42,8 @@ public class DomainExtractingServerList implements ServerList<DiscoveryEnabledSe
         boolean shouldUseIpAddr = this.clientConfig.getPropertyAsBoolean(CommonClientConfigKey.UseIPAddrForServer, Boolean.FALSE);
         Iterator var5 = servers.iterator();
 
-        while(var5.hasNext()) {
-            DiscoveryEnabledServer server = (DiscoveryEnabledServer)var5.next();
+        while (var5.hasNext()) {
+            DiscoveryEnabledServer server = (DiscoveryEnabledServer) var5.next();
             result.add(new DomainExtractingServer(server, isSecure, shouldUseIpAddr, this.approximateZoneFromHostname));
         }
 

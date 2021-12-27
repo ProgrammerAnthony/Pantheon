@@ -34,7 +34,7 @@ import java.util.concurrent.locks.ReentrantLock;
 /**
  * @author Anthony
  * @create 2021/11/19
- * @desc todo add retry mechanism reference from EurekaHttpClientFactory
+ * @desc
  * todo load specific instances not all
  * todo throw PantheonException
  **/

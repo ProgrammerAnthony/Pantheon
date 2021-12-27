@@ -9,7 +9,7 @@ import com.pantheon.client.appinfo.InstanceInfo;
 /**
  * @author Anthony
  * @create 2021/12/20
- * @desc
+ * @desc "Ping" Discovery Client i.e. we dont do a real "ping". We just assume that the server is up if Discovery Client says so
  **/
 public class NIWSDiscoveryPing extends AbstractLoadBalancerPing {
     BaseLoadBalancer lb = null;
@@ -33,7 +33,7 @@ public class NIWSDiscoveryPing extends AbstractLoadBalancerPing {
             if (instanceInfo != null) {
                 InstanceInfo.InstanceStatus status = instanceInfo.getStatus();
                 if (status != null) {
-                    // InstanceStatus.UP means alive in ribbon and eureka discovery
+                    // InstanceStatus.UP means alive in ribbon and pantheon discovery
                     isAlive = status.equals(InstanceInfo.InstanceStatus.UP);
                 }
             }
