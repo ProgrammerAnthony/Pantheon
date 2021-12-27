@@ -33,6 +33,7 @@ public class NIWSDiscoveryPing extends AbstractLoadBalancerPing {
             if (instanceInfo != null) {
                 InstanceInfo.InstanceStatus status = instanceInfo.getStatus();
                 if (status != null) {
+                    // InstanceStatus.UP means alive in ribbon and eureka discovery
                     isAlive = status.equals(InstanceInfo.InstanceStatus.UP);
                 }
             }

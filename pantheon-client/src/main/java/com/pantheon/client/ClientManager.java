@@ -31,8 +31,30 @@ public class ClientManager {
         return instance;
     }
 
+    public DiscoveryClientNode getOrCreateClientNode() {
+        this.instanceConfig = DefaultInstanceConfig.getInstance();
+        nettyClientConfig = new NettyClientConfig();
+
+        String clientId = getInstance().buildClientId();
+        DiscoveryClientNode instance = this.factoryTable.get(clientId);
+        if (null == instance) {
+            instance = new DiscoveryClientNode(nettyClientConfig, instanceConfig, clientId);
+            DiscoveryClientNode prev = this.factoryTable.putIfAbsent(clientId, instance);
+            if (prev != null) {
+                instance = prev;
+                logger.warn("Returned Previous ClientNode for clientId:[{}]", clientId);
+            } else {
+                logger.info("Created new ClientNode for clientId:[{}]", clientId);
+            }
+        }
+
+        return instance;
+
+    }
+
+
     public DiscoveryClientNode getOrCreateClientNode(DefaultInstanceConfig instanceConfig) {
-        this.instanceConfig=instanceConfig;
+        this.instanceConfig = instanceConfig;
         nettyClientConfig = new NettyClientConfig();
 
         String clientId = getInstance().buildClientId();
