@@ -7,7 +7,7 @@ import com.pantheon.client.appinfo.InstanceInfo;
  * is sent to the {@link com.netflix.eventbus.spi.EventBus} by {@link DiscoveryClientNode ) whenever
  * a status change is identified from the remote Pantheon server response.
  */
-public class StatusChangeEvent {
+public class StatusChangeEvent implements PantheonEvent{
     // System time when the event happened
     private final long timestamp;
     private final InstanceInfo.InstanceStatus current;

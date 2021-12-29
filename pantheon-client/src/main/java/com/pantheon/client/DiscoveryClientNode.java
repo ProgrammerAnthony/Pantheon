@@ -383,7 +383,18 @@ public class DiscoveryClientNode extends AbstractLifecycleComponent implements D
      * Subclasses may override this method to implement custom behavior if needed.
      */
     protected void onCacheRefreshed() {
-//        fireEvent(new CacheRefreshedEvent());
+        fireEvent(new CacheRefreshedEvent());
+    }
+
+    /**
+     * Send the given event on the EventBus if one is available
+     *
+     * @param event the event to send on the eventBus
+     */
+    protected void fireEvent(final PantheonEvent event) {
+        for (PantheonEventListener listener : eventListeners) {
+            listener.onEvent(event);
+        }
     }
 
 
@@ -631,16 +642,17 @@ public class DiscoveryClientNode extends AbstractLifecycleComponent implements D
      * @param newStatus the new remote {@link InstanceInfo.InstanceStatus}
      */
     protected void onRemoteStatusChanged(InstanceInfo.InstanceStatus oldStatus, InstanceInfo.InstanceStatus newStatus) {
-//        fireEvent(new StatusChangeEvent(oldStatus, newStatus));
+        fireEvent(new StatusChangeEvent(oldStatus, newStatus));
     }
 
     @Override
-    public boolean unregisterEventListener(PantheonEventListener var1) {
-        return false;
+    public boolean unregisterEventListener(PantheonEventListener eventListener) {
+        return this.eventListeners.remove(eventListener);
     }
 
+    @Override
     public void registerEventListener(PantheonEventListener eventListener) {
-//        this.eventListeners.add(eventListener);
+        this.eventListeners.add(eventListener);
     }
 
     public Server getServer() throws InterruptedException {

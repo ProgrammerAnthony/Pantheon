@@ -15,4 +15,5 @@ public class RequestCode {
     public static final int SERVICE_UNREGISTER = 16;
     public static final int GET_ALL_APP = 17;
     public static final int GET_DELTA_APP = 18;
+    public static final int GET_IN_NEED_APP = 19;
 }
