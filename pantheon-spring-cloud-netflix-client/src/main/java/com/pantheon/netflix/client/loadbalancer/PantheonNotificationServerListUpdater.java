@@ -24,7 +24,11 @@ import java.util.concurrent.atomic.AtomicLong;
 /**
  * @author Anthony
  * @create 2021/12/20
- * @desc
+ * @desc A server list updater for the {@link com.netflix.loadbalancer.DynamicServerListLoadBalancer} that
+ * utilizes pantheon's event listener to trigger LB cache updates.
+ * <p>
+ * Note that when a cache refreshed notification is received, the actual update on the serverList is
+ * done on a separate scheduler as the notification is delivered on an pantheonclient thread.
  **/
 public class PantheonNotificationServerListUpdater implements ServerListUpdater {
     private static final Logger logger = LoggerFactory.getLogger(PantheonNotificationServerListUpdater.class);
@@ -133,7 +137,7 @@ public class PantheonNotificationServerListUpdater implements ServerListUpdater 
     }
 
     public int getCoreThreads() {
-        return this.isActive.get() && this.refreshExecutor != null && this.refreshExecutor instanceof ThreadPoolExecutor ? ((ThreadPoolExecutor)this.refreshExecutor).getCorePoolSize() : 0;
+        return this.isActive.get() && this.refreshExecutor != null && this.refreshExecutor instanceof ThreadPoolExecutor ? ((ThreadPoolExecutor) this.refreshExecutor).getCorePoolSize() : 0;
     }
 
     private static class LazyHolder {

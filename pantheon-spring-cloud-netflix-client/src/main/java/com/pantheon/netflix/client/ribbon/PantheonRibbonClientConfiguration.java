@@ -1,4 +1,4 @@
-package com.pantheon.netflix.client.ribbon.pantheon;
+package com.pantheon.netflix.client.ribbon;
 
 import com.netflix.client.config.CommonClientConfigKey;
 import com.netflix.client.config.IClientConfig;
@@ -28,7 +28,8 @@ import javax.inject.Provider;
 /**
  * @author Anthony
  * @create 2021/12/20
- * @desc
+ * @desc Preprocessor that configures defaults for pantheon-discovered ribbon clients.
+ * Such as: @zone, NIWSServerListClassName, DeploymentContextBasedVipAddresses, NFLoadBalancerRuleClassName, NIWSServerListFilterClassName and more
  **/
 @Configuration
 public class PantheonRibbonClientConfiguration {

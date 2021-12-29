@@ -7,7 +7,7 @@ import com.sun.xml.internal.ws.wsdl.writer.document.PortType;
 /**
  * @author Anthony
  * @create 2021/12/20
- * @desc
+ * @desc Servers that were obtained via Discovery and hence contain meta data in the form of InstanceInfo
  **/
 @SuppressWarnings({"EQ_DOESNT_OVERRIDE_EQUALS"})
 public class DiscoveryEnabledServer extends Server {
