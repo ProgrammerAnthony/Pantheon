@@ -15,6 +15,9 @@
         <module>pantheon-remoting</module>
         <module>pantheon-spring-cloud-netflix-client</module>
         <module>pantheon-spring-cloud-netflix-server</module>
+        <module>pantheon-dubbo-support</module>
+        <module>pantheon-zuul-support</module>
+        <module>pantheon-spring-cloud-gateway-support</module>
     </modules>
 
     <properties>

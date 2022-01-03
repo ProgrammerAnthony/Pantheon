@@ -10,7 +10,8 @@ import java.lang.annotation.Target;
 /**
  * @author Anthony
  * @create 2021/12/14
- * @desc All it does is turn on discovery and let the autoconfiguration find the pantheon classes if they are available
+ * @desc All it does is turn on discovery and let the autoconfiguration
+ * find the pantheon classes if they are available
  **/
 @Target(ElementType.TYPE)
 @Retention(RetentionPolicy.RUNTIME)
