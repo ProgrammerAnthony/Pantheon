@@ -18,6 +18,7 @@
         <module>pantheon-dubbo-support</module>
         <module>pantheon-zuul-support</module>
         <module>pantheon-spring-cloud-gateway-support</module>
+<!--        <module>pantheon-spring-cloud-netflix-client-v3.4</module>-->
     </modules>
 
     <properties>
