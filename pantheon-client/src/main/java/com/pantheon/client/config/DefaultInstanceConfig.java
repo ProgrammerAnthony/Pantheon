@@ -3,7 +3,6 @@ package com.pantheon.client.config;
 import com.netflix.config.ConfigurationManager;
 import com.netflix.config.DynamicPropertyFactory;
 import com.netflix.config.DynamicStringProperty;
-import com.pantheon.client.Server;
 import io.netty.bootstrap.ServerBootstrap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

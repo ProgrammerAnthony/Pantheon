@@ -1,4 +1,4 @@
-package com.pantheon.client;
+package com.pantheon.client.transport;
 
 /**
  * @author Anthony

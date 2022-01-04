@@ -7,6 +7,10 @@ import com.pantheon.client.appinfo.LeaseInfo;
 import com.pantheon.client.config.DefaultInstanceConfig;
 import com.pantheon.client.config.PantheonInstanceConfig;
 import com.pantheon.client.discovery.DiscoveryClient;
+import com.pantheon.client.transport.ClientAPIImpl;
+import com.pantheon.client.transport.ClientRemotingProcessor;
+import com.pantheon.client.transport.HeartBeatSender;
+import com.pantheon.client.transport.Server;
 import com.pantheon.common.ObjectUtils;
 import com.pantheon.common.ThreadFactoryImpl;
 import com.pantheon.common.lifecycle.AbstractLifecycleComponent;
@@ -34,11 +38,10 @@ import java.util.concurrent.locks.ReentrantLock;
 /**
  * @author Anthony
  * @create 2021/11/19
- * @desc
- * todo load specific instances not all
+ * @desc todo load specific instances not all
  * todo throw PantheonException
  **/
-public class DiscoveryClientNode extends AbstractLifecycleComponent implements DiscoveryClient {
+public class DiscoveryClientNode extends AbstractLifecycleComponent implements DiscoveryClient, HeartBeatSender {
     public static final int INSTANCE_REQUEST_TIMOUT_MILLS = 10000;
     private NettyClientConfig nettyClientConfig;
     private PantheonInstanceConfig instanceConfig;
@@ -169,17 +172,19 @@ public class DiscoveryClientNode extends AbstractLifecycleComponent implements D
         this.scheduledExecutorService.scheduleAtFixedRate(new Runnable() {
             @Override
             public void run() {
-                sendHeartBeatToServer();
+               sendHeartbeat();
             }
-        }, 1000, instanceConfig.getLeaseRenewalIntervalInSeconds() * 1000, TimeUnit.MILLISECONDS);
+        }, 1000, intervalMs(), TimeUnit.MILLISECONDS);
         //heartbeat
     }
 
-    private void sendHeartBeatToServer() {
+
+    @Override
+    public boolean sendHeartbeat(){
         if (this.lockHeartbeat.tryLock()) {
             try {
                 boolean successResult = this.clientAPI.sendHeartBeatToServer(getServer(), getInstanceInfo().getAppName(), this.getClientId(), 3000L);
-
+                return successResult;
             } catch (final Exception e) {
                 logger.error("sendHeartBeatToServer exception", e);
             } finally {
@@ -188,6 +193,12 @@ public class DiscoveryClientNode extends AbstractLifecycleComponent implements D
         } else {
             logger.warn("lock heartBeat, but failed. [{}]", instanceConfig.getServiceName());
         }
+        return false;
+    }
+
+    @Override
+    public long intervalMs() {
+        return instanceConfig.getLeaseRenewalIntervalInSeconds() * 1000;
     }
 
     private void sendUnRegister() {

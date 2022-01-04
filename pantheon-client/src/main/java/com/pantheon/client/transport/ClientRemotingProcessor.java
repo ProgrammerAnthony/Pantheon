@@ -1,20 +1,15 @@
-package com.pantheon.client;
+package com.pantheon.client.transport;
 
 import com.pantheon.common.protocol.RequestCode;
 import com.pantheon.common.protocol.ResponseCode;
 import com.pantheon.common.protocol.header.GetConsumerRunningInfoRequestHeader;
-import com.pantheon.remoting.common.RemotingHelper;
 import com.pantheon.remoting.exception.RemotingCommandException;
 import com.pantheon.remoting.netty.AsyncNettyRequestProcessor;
 import com.pantheon.remoting.netty.NettyRequestProcessor;
 import com.pantheon.remoting.protocol.RemotingCommand;
-import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.ChannelHandlerContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.nio.charset.StandardCharsets;
-import java.util.Map;
 
 /**
  * @author Anthony
